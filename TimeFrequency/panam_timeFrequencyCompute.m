@@ -177,7 +177,7 @@ end
 
 % compute
 freq = ft_freqanalysis(cfg, data);
-freq.analyse = 'timefrequency_power';
+freq.analyse = 'timefrequency';
 freq.label = data.label;
 freq.TrialName = trialName;
 freq.TrialNum = trialNum;
