@@ -215,7 +215,7 @@ if param.computeRemoved && ~isempty(inputStruct.RemovedTrials)
     outputStruct.TimeFreqRemovedTrials = freq_removed;
 end
 outputStruct.Infos = Infos;
-outputStruct.Param = param;
+outputStruct.param = para
 outputStruct.History{1,1} = datestr(clock);
 outputStruct.History{1,2} = ['Creation of the time frequency structure from signal structure ' inputStruct.Infos.FileName];
 
