@@ -1,9 +1,9 @@
-function outputStruct = panam_timeFrequencyProcess( inputStructs, inputEvents, param )
+function outputStruct = panam_timeFrequencyProcess( inputData, inputEvents, param )
 
 %PANAM_TIMEFREQUENCYPROCESS Function to compute corrections and averages on
 %Panam TimeFrequency structures
 
-% inputStructs :
+% inputData :
 % must be a structure with field files : string or a cell array of
 % strings (files addresses, partial or full), and with field path : folder in which to
 % find the files (will be concatenated with the file address)
@@ -11,7 +11,7 @@ function outputStruct = panam_timeFrequencyProcess( inputStructs, inputEvents, p
 % PANAM_TIMEFREQUENCY structure cell array
 % Possible to mix both inputs but not recommended
 % (OPTIONAL) inputEvents
-% same as inputStructs but with PANAM_TRIALPARAMS as structure instead
+% same as inputData but with PANAM_TRIALPARAMS as structure instead
 % of PANAM_TIMEFREQUENCY
 % (OPTIONAL) param:
 % structure of parameters for the TIMEFREQUENCY preocessing operation
@@ -26,24 +26,24 @@ function outputStruct = panam_timeFrequencyProcess( inputStructs, inputEvents, p
 
 %% check the format of input files and input events structures, and prepare for loading the data
 % input files
-if isfield(inputStructs,'files')
-    if isempty(inputStructs.files)
-        inputStructs = rmfield(inputStructs,'files');
+if isfield(inputData,'files')
+    if isempty(inputData.files)
+        inputData = rmfield(inputData,'files');
     else % non-empty
         % one input as a string
-        if ischar(inputStructs.files)
-            inputStructs.files = {inputStructs.files};
+        if ischar(inputData.files)
+            inputData.files = {inputData.files};
         end
-        if ~iscell(inputStructs.files) || ~all(cellfun(@ischar,inputStructs.files))
+        if ~iscell(inputData.files) || ~all(cellfun(@ischar,inputData.files))
             error('''files'' field must be a string or cell array of strings');
         end
         % path
-        if isfield(inputStructs,'path')
-            if ischar(inputStructs.path)
-                inputStructs.files = cellfun(@fullfile, ...
-                    repmat({inputStructs.path},[1 length(inputStructs.files)]),inputStructs.files,'UniformOutput',0);
+        if isfield(inputData,'path')
+            if ischar(inputData.path)
+                inputData.files = cellfun(@fullfile, ...
+                    repmat({inputData.path},[1 length(inputData.files)]),inputData.files,'UniformOutput',0);
             else
-                error('''path'' field in inputStructs must be a string indicating the common origin folder of the inputStruct files');
+                error('''path'' field in inputData must be a string indicating the common origin folder of the inputStruct files');
             end
         end
     end
@@ -62,7 +62,7 @@ if nargin > 1
             if ischar(inputEvents.files)
                 inputEvents.files = {inputEvents.files};
             end
-            if ~iscell(inputEvents.files) || ~all(cellfun(@ischar,inputStructs.files))
+            if ~iscell(inputEvents.files) || ~all(cellfun(@ischar,inputData.files))
                 error('''files'' field must be a string or cell array of strings');
             end
             % path
@@ -84,10 +84,10 @@ end
 
 %% load the data
 
-% load input structures from inputStructs.files
-if isfield(inputStructs, 'files')
-    for ii = 1:length(inputStructs.files)
-        inputStructs.files{ii} = load(inputStructs.files{ii});
+% load input structures from inputData.files
+if isfield(inputData, 'files')
+    for ii = 1:length(inputData.files)
+        inputData.files{ii} = load(inputData.files{ii});
     end
 end
 % load input event structures from inputEvents.files
@@ -100,23 +100,25 @@ if nargin > 1
 end
 
 % concatenate input files and input structures
-if ~isfield(inputStructs,'structures')
-    inputStructs.structures = {};
+if ~isfield(inputData,'structures')
+    inputData.structures = {};
 end
-if ischar(inputStructs.structures)
-    inputStructs.structures = {inputStructs.structures};
+if ischar(inputData.structures)
+    inputData.structures = {inputData.structures};
 end
-if ~iscell(inputStructs.structures)
-    error('''structures'' field of inputStructs must be a cell array of time-frequency elements');
+if ~iscell(inputData.structures)
+    error('''structures'' field of inputData must be a cell array of time-frequency elements');
 end
-if isfield(inputStructs, 'files')
-    for ii = 1:length(inputStructs.files)
-        field = fieldnames(inputStructs.files{ii});
+if isfield(inputData, 'files')
+    for ii = 1:length(inputData.files)
+        field = fieldnames(inputData.files{ii});
         for jj = 1:length(field)
-            inputStructs.structures{end+1} = inputStructs.files{ii}.(field{jj});
+            inputData.structures{end+1} = inputData.files{ii}.(field{jj});
         end
     end
 end
+TimeFreqData = inputData.structures;
+clear inputData;
 
 % concatenate input event files and input event structures
 if ~isempty(inputEvents)
@@ -137,33 +139,100 @@ if ~isempty(inputEvents)
             end
         end
     end
+    Events = inputEvents.structures;
+else
+    Events = {};
 end
+clear inputEvents;
 
 
 %% check the final structure
 
 % check for identical structures, which throws an error
-for ii = 1:length(inputStructs.structures)-1
-    for jj =ii+1:length(inputStructs.structures)
-        if isequal(inputStructs.structures{ii}.Infos, inputStructs.structures{jj}.Infos)
+for ii = 1:length(TimeFreqData)-1
+    for jj = ii+1:length(TimeFreqData)
+        if isequal(TimeFreqData{ii}.Infos, TimeFreqData{jj}.Infos)
             error('replications of structures in the input - please check the unicity of the inputs');
         end
     end
 end
 if ~isempty(inputEvents)
-    for ii = 1:length(inputEvents.structures)-1
-        for jj =ii+1:length(inputEvents.structures)
-            if isequal(inputEvents.structures{ii}.Infos, inputEvents.structures{jj}.Infos)
+    for ii = 1:length(Events)-1
+        for jj =ii+1:length(Events)
+            if isequal(Events{ii}.Infos, Events{jj}.Infos)
                 error('replications of structures in the input - please check the unicity of the inputs');
             end
         end
     end
 end
 
+% check for correspondance between input structures and input events structures
+if ~isempty(inputEvents)
+    % check the correspondance of structures (inputs and events)
+    indices = [];
+    for ii = 1:length(TimeFreqData)
+        stringData = ['GBMOV_POSTOP_' TimeFreqData{ii}.Infos.SubjectCode '_' TimeFreqData{ii}.Infos.MedCondition '_' ...
+                      TimeFreqData{ii}.Infos.SpeedCondition];
+        stringsEvents = cellfun(@(x) x.Infos.FileName,Events,'UniformOutput',0);
+        ind = find(strcmpi(stringsEvents, stringData));
+        if length(ind) == 1 % one unique corresponding structure
+            indices(ii) = ind;
+        else
+            error(['TimeFreq data structure number ' num2str(ii) ' (at least) has no corresponding events structure']);
+        end
+    end
+    Events = Events(indices); % reorganize events so that data and events structures indices correspond
+end
+
 
 %% average contacts
 % define the contacts selected for each input structure
 % then average over the contacts
+
+% contacts selection filter
+for ii = 1:length(param.contacts)
+    switch param.contacts{ii}
+        case {'avgAll','all'}
+            contact_filter{ii} = [1 1 1 1 1 1];
+        case {'avgRight','right'}
+            contact_filter{ii} = [1 1 1 0 0 0];
+        case {'avgLeft','left'}
+            contact_filter{ii} = [0 0 0 1 1 1];
+        case {1,2,3,4,5,6}
+            contact_filter{ii} = zeros(1,6);
+            contact_filter{ii}(param.contacts) = 1;
+        otherwise
+            error('param.contacts is wrong');
+    end
+end
+
+% filter STN
+if strcmpi(param.filter_STN,'yes')
+    try
+        locContacts_isSTN = load(param.locContacts_STN_filename);
+    catch 
+        error('param.locContacts_STN_filename unspecified or wrong. Needs to be the full adress of the loc file');
+    end
+    temp = fieldnames(locContacts_isSTN);
+    locContacts_isSTN = locContacts_isSTN.(temp{1});
+    for ii = 1:length(TimeFreqData)
+        temp = find(strcmpi(locContacts_isSTN.SubjectNumber,TimeFreqData{ii}.SubjectNumber),1);
+        if ~isempty(temp)
+            STN_contacts{ii} = find(locContacts_isSTN(temp).dipole);
+        else
+            STN_contacts{ii} = 1:6;
+            warning(['No STN localisation for subj number ' TimeFreqData{ii}.SubjectNumber ', all contacts considered in the STN']);
+        end
+        for jj = 1:length(param.contacts)
+            % final filter
+            contact_filter_final{jj,ii} = contact_filter{jj} .* STN_contacts{ii};
+        end
+    end
+    % rewrite
+    contact_filter = contact_filter_final;
+end
+
+
 
 
 %% trials filtering
