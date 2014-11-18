@@ -103,9 +103,6 @@ end
 if ~isfield(inputData,'structures')
     inputData.structures = {};
 end
-if ischar(inputData.structures)
-    inputData.structures = {inputData.structures};
-end
 if ~iscell(inputData.structures)
     error('''structures'' field of inputData must be a cell array of time-frequency elements');
 end
@@ -124,9 +121,6 @@ clear inputData;
 if ~isempty(inputEvents)
     if ~isfield(inputEvents,'structures')
         inputEvents.structures = {};
-    end
-    if ischar(inputEvents.structures)
-        inputEvents.structures = {inputEvents.structures};
     end
     if ~iscell(inputEvents.structures)
         error('''structures'' field of inputEvents must be a cell array of PANAM TrialParams structures');
@@ -205,12 +199,12 @@ for ii = 1:length(TimeFreqData)
     for jj = 1:length(param.contacts)
         switch param.contacts(jj).filter
             case 'STN'
-                temp = find(strcmpi(locContacts_isSTN.SubjectNumber,TimeFreqData{ii}.SubjectNumber),1);
+                temp = find(strcmpi([locContacts_isSTN.SubjectNumber],TimeFreqData{ii}.Infos.SubjectNumber),1);
                 if ~isempty(temp)
                     filter_contacts{jj,ii} = find(locContacts_isSTN(temp).dipole);
                 else
                     filter_contacts{jj,ii} = 1:6;
-                    warning(['No STN localisation for subject number ' TimeFreqData{ii}.SubjectNumber ', all contacts are supposed in the STN']);
+                    warning(['No STN localisation for subject number ' num2str(TimeFreqData{ii}.Infos.SubjectNumber) ', all contacts are supposed in the STN']);
                 end
             case 'none'
                 filter_contacts{jj,ii} = 1:6;
@@ -219,9 +213,6 @@ for ii = 1:length(TimeFreqData)
         end
     end
 end
-
-% test : for 'all', 'left and 'right' contacts selection, when used with a
-% filter contacts must match between structures
 
 % contacts selection filter
 powspctrmTmp = cell(1,length(TimeFreqData));
@@ -244,7 +235,7 @@ for ii = 1:length(param.contacts)
                     powspctrmTmp{jj}(:,end+1,:,:) = nan * ones(size(TimeFreqData{jj}.TimeFreqTrials.powspctrm(:,1,:,:)));
                 end
             end
-            labelTmp{end+1} = ['AvgAllContacts_Filter:' param.contacts(ii).filter'];
+            labelTmp{end+1} = ['AvgAllContacts_Filter:' param.contacts(ii).filter];
         case 'avgLeft'
             for jj = 1:length(TimeFreqData)
                 contacts = intersect(filter_contacts{ii,jj}, 4:6);
@@ -254,7 +245,7 @@ for ii = 1:length(param.contacts)
                     powspctrmTmp{jj}(:,end+1,:,:) = nan * ones(size(TimeFreqData{jj}.TimeFreqTrials.powspctrm(:,1,:,:)));
                 end
             end
-            labelTmp{end+1} = ['AvgLeftContacts_Filter:' param.contacts(ii).filter'];
+            labelTmp{end+1} = ['AvgLeftContacts_Filter:' param.contacts(ii).filter];
         case 'avgRight'
             for jj = 1:length(TimeFreqData)
                 contacts = intersect(filter_contacts{ii,jj}, 1:3);
@@ -264,7 +255,7 @@ for ii = 1:length(param.contacts)
                     powspctrmTmp{jj}(:,end+1,:,:) = nan * ones(size(TimeFreqData{jj}.TimeFreqTrials.powspctrm(:,1,:,:)));
                 end
             end
-            labelTmp{end+1} = ['AvgRightContacts_Filter:' param.contacts(ii).filter'];
+            labelTmp{end+1} = ['AvgRightContacts_Filter:' param.contacts(ii).filter];
         case 'all'
             test_all = true;
             contacts_all{1} = intersect(filter_contacts{ii,1}, 1:6);
@@ -329,14 +320,28 @@ for ii = 1:length(param.contacts)
             error('param.contacts is wrong');
     end
 end
+
 % affectation
 for jj = 1:length(TimeFreqData)
-    TimeFreqData{jj}.TimeFreqtrials.powspctrm = powspctrmTmp{jj};
-    TimeFreqData{jj}.TimeFreqtrials.label = labelTmp;
+    TimeFreqData{jj}.TimeFreqTrials.powspctrm = powspctrmTmp{jj};
+    TimeFreqData{jj}.TimeFreqTrials.label = labelTmp;
 end
-
+clear powspctrmTmp;
 
 %% trials filtering
+
+% keep only common trials between Data and Events structures
+for ii = 1:length(TimeFreqData)
+    trialNumData = TimeFreqData{ii}.TimeFreqTrials.TrialNum;
+    trialNumEvents = [Events{ii}.Trial.TrialNum];
+    [sortedCommonTrialNums indCommonTrData indCommonTrEvents] = intersect(trialNumData, trialNumEvents);
+    TimeFreqData{ii}.TimeFreqTrials.powspctrm = TimeFreqData{ii}.TimeFreqTrials.powspctrm(indCommonTrData,:,:,:);
+    TimeFreqData{ii}.TimeFreqTrials.cumtapcnt = TimeFreqData{ii}.TimeFreqTrials.cumtapcnt(indCommonTrData,:);
+    TimeFreqData{ii}.TimeFreqTrials.TrialName = TimeFreqData{ii}.TimeFreqTrials.TrialName(indCommonTrData);
+    TimeFreqData{ii}.TimeFreqTrials.TrialNum = TimeFreqData{ii}.TimeFreqTrials.TrialNum(indCommonTrData);
+    Events{ii}.Trial = Events{ii}.Trial(indCommonTrEvents);
+end
+
 % select trials which correpond to the specified filter
 if strcmpi(param.trialFilter, 'leftStarts') || strcmpi(param.trialFilter, 'rightStarts')
     if ~isempty(Events)
@@ -351,6 +356,7 @@ if strcmpi(param.trialFilter, 'leftStarts') || strcmpi(param.trialFilter, 'right
                     Events{jj}.Trial = Events{jj}.Trial(trialInd);
                 else
                     TimeFreqData{jj}.TimeFreqTrials = [];
+                    Events{jj} = [];
                     warning(['no trials after left starts filtering for structure ' TimeFreqData{jj}.Infos.FileName]);
                 end
             end
@@ -371,36 +377,145 @@ if strcmpi(param.trialFilter, 'leftStarts') || strcmpi(param.trialFilter, 'right
             end
         end
     else
-        error('trial filter cannot be applied : TrialParams structures are needed');
+        error('trial filter cannot be applied : TrialParams structures are required');
     end
+end
+
+% suppress the empty structures
+ind = [];
+for ii = 1:length(TimeFreqData)
+    if ~isempty(TimeFreqData{ii}.TimeFreqTrials)
+        ind(end+1) = ii;
+    end
+end
+TimeFreqData = TimeFreqData(ind);
+Events = Events(ind);
+
+
+%% save the baseline
+for ii = 1:length(TimeFreqData)
+    firstBlSample = find(abs(TimeFreqData{ii}.TimeFreqTrials.time - param.blStartTime) == min(abs(TimeFreqData{ii}.TimeFreqTrials.time - param.blStartTime)));
+    lastBlSample = find(abs(TimeFreqData{ii}.TimeFreqTrials.time - param.blEndTime) == min(abs(TimeFreqData{ii}.TimeFreqTrials.time - param.blEndTime)));
+    TimeFreqData{ii}.TimeFreqTrials.blPowspctrm = TimeFreqData{ii}.TimeFreqTrials.powspctrm(:,:,:,firstBlSample:lastBlSample);
+end
+
+%% align events on selected marker
+% set selected marker (param.marker) time at 0
+for ii = 1:length(Events)
+    indGoodTrials = [];
+    for jj = 1:length(Events{ii}.Trial)
+        markerNum = find(strcmpi(Events{ii}.Trial(jj).EventsNames, param.marker));
+        if length(markerNum) ~=1
+            error('problem in param.marker');
+        end
+        if~isnan(Events{ii}.Trial(jj).EventsTime(markerNum)) && ~isnan(Events{ii}.Trial(jj).EventsTime(1))
+            Events{ii}.Trial(jj).EventsTime = Events{ii}.Trial(jj).EventsTime - Events{ii}.Trial(jj).EventsTime(markerNum);
+            indGoodTrials(end+1) = jj;
+        else
+            warning(['presence of NaNs in trial ' Events{ii}.Trial(jj).TrialName ' : trial suppressed from analysis']);
+        end
+    end
+    if ~isempty(indGoodTrials)
+        Events{ii}.Trial = Events{ii}.Trial(indGoodTrials);
+        TimeFreqData{ii}.TimeFreqTrials.powspctrm = TimeFreqData{ii}.TimeFreqTrials.powspctrm(indGoodTrials,:,:,:);
+        TimeFreqData{ii}.TimeFreqTrials.cumtapcnt = TimeFreqData{ii}.TimeFreqTrials.cumtapcnt(indGoodTrials,:);
+        TimeFreqData{ii}.TimeFreqTrials.TrialName = TimeFreqData{ii}.TimeFreqTrials.TrialName(indGoodTrials);
+        TimeFreqData{ii}.TimeFreqTrials.TrialNum = TimeFreqData{ii}.TimeFreqTrials.TrialNum(indGoodTrials);
+        TimeFreqData{ii}.TimeFreqTrials.blPowspctrm = TimeFreqData{ii}.TimeFreqTrials.blPowspctrm(indGoodTrials,:,:,:);
+    else
+        TimeFreqData{ii}.TimeFreqTrials = [];
+        Events{ii} = [];
+        warning('no trials left after marker times analysis');
+    end
+end
+
+% suppress the empty structures
+ind = [];
+for ii = 1:length(TimeFreqData)
+    if ~isempty(TimeFreqData{ii}.TimeFreqTrials)
+        ind(end+1) = ii;
+    end
+end
+TimeFreqData = TimeFreqData(ind);
+Events = Events(ind);
+
+
+%% select the period of interest
+for ii = 1:length(TimeFreqData)
+    powspctrmTmp = [];
+    timeStepTimeFreq = (TimeFreqData{ii}.TimeFreqTrials.time(end) - TimeFreqData{ii}.TimeFreqTrials.time(1)) / (length(TimeFreqData{ii}.TimeFreqTrials.time)-1);
+    nSamplesPre = round(param.preMarkerTime/timeStepTimeFreq);
+    nSamplesPost = round(param.postMarkerTime/timeStepTimeFreq);
+    for jj = 1:length(TimeFreqData{ii}.TimeFreqTrials.TrialNum)
+        markerTime = -1 * Events{ii}.Trial(jj).EventsTime(1);
+        markerSample = find(abs(TimeFreqData{ii}.TimeFreqTrials.time - markerTime) == min(abs(TimeFreqData{ii}.TimeFreqTrials.time - markerTime)));
+        firstSample = markerSample - nSamplesPre;
+        lastSample = markerSample + nSamplesPost;
+        powspctrmTmp(jj,:,:,:) = TimeFreqData{ii}.TimeFreqTrials.powspctrm(jj,:,:,firstSample:lastSample);
+    end
+    TimeFreqData{ii}.TimeFreqTrials.powspctrm = powspctrmTmp;
+    TimeFreqData{ii}.TimeFreqTrials.time = linspace(-param.preMarkerTime, param.postMarkerTime, nSamplesPre+nSamplesPost+1);
 end
 
 
 %% intra-subject averaging
-% in case of multi-subject inputs, average over subjects if option is selected
+% concatenate structures per subject
 if strcmpi(param.avgIntraSubjects, 'yes')
-    TimeFreqData_AvgIntraSubj = {};
+    indToBeKept = [];
     for jj = 1:length(TimeFreqData)
         subjIndices = find(cellfun(@(x) x.Infos.SubjectNumber, TimeFreqData) == TimeFreqData{jj}.Infos.SubjectNumber);
-        if subjIndices(1) >= TimeFreqData{jj}.Infos.SubjectNumber % subject not treated before
-            TimeFreqData_AvgIntraSubj{end+1} = TimeFreqData{jj};
-            for k = 2:length(subjIndices)
-                TimeFreqData_AvgIntraSubj{end}.TimeFreqTrials.powspctrm = cat(1,...
-                                            TimeFreqData_AvgIntraSubj{end}.TimeFreqTrials.powspctrm,
-            
-    
+        if subjIndices(1) >= jj % subject not treated before
+            for kk = 2:length(subjIndices)
+                TimeFreqData{subjIndices(1)}.TimeFreqTrials.powspctrm = cat(1,...
+                    TimeFreqData{subjIndices(1)}.TimeFreqTrials.powspctrm, TimeFreqData{subjIndices(kk)}.TimeFreqTrials.powspctrm);
+                TimeFreqData{subjIndices(1)}.TimeFreqTrials.cumtapcnt = cat(1,...
+                    TimeFreqData{subjIndices(1)}.TimeFreqTrials.cumtapcnt, TimeFreqData{subjIndices(kk)}.TimeFreqTrials.cumtapcnt);
+                TimeFreqData{subjIndices(1)}.TimeFreqTrials.TrialName = cat(2,...
+                    TimeFreqData{subjIndices(1)}.TimeFreqTrials.TrialName, TimeFreqData{subjIndices(kk)}.TimeFreqTrials.TrialName);
+                TimeFreqData{subjIndices(1)}.TimeFreqTrials.TrialNum = cat(2,...
+                    TimeFreqData{subjIndices(1)}.TimeFreqTrials.TrialNum, TimeFreqData{subjIndices(kk)}.TimeFreqTrials.TrialNum);
+                TimeFreqData{subjIndices(1)}.TimeFreqTrials.blPowspctrm = cat(1,...
+                    TimeFreqData{subjIndices(1)}.TimeFreqTrials.blPowspctrm, TimeFreqData{subjIndices(kk)}.TimeFreqTrials.blPowspctrm);
+                Events{subjIndices(1)}.Trial = cat(2, Events{subjIndices(1)}.Trial,Events{subjIndices(kk)}.Trial);
+            end
+            indToBeKept(end+1) = subjIndices(1);
+        end
+    end
+    TimeFreqData = TimeFreqData(indToBeKept);
+    Events = Events(indToBeKept);
+    % average over the subject
+    for jj = 1:length(TimeFreqData)
+        TimeFreqData{jj}.TimeFreqTrials.powspctrm = nanmean(TimeFreqData{jj}.TimeFreqTrials.powspctrm,1);
+        if isequal(TimeFreqData{jj}.TimeFreqTrials.cumtapcnt,...
+                repmat(TimeFreqData{jj}.TimeFreqTrials.cumtapcnt(1,:),size(TimeFreqData{jj}.TimeFreqTrials.cumtapcnt,1),1))
+            TimeFreqData{jj}.TimeFreqTrials.cumtapcnt = TimeFreqData{jj}.TimeFreqTrials.cumtapcnt(1,:);
+        else
+            TimeFreqData{jj}.TimeFreqTrials = rmfield(TimeFreqData{jj}.TimeFreqTrials.cumtapcnt,'cumtapcnt');
+        end
+        TimeFreqData{subjIndices(1)}.TimeFreqTrials.TrialName = ['Average_' TimeFreqData{subjIndices(1)}.Infos.SubjectCode];
+        TimeFreqData{subjIndices(1)}.TimeFreqTrials.TrialNum = 1;
+        Events{jj}.Trial(1).EventsTime = nanmean(vertcat(Events{jj}.Trial.EventsTime),1);
+        Events{jj}.Trial(1).TrialName = ['Average_' TimeFreqData{subjIndices(1)}.Infos.SubjectCode];
+        Events{jj}.Trial(1).TrialNum = 1;
+        Events{jj}.Trial = Events{jj}.Trial(1);
+        Events{jj}.Trial = rmfield(Events{jj}.Trial,'StartingFoot');
+    end
+end
+
 
 %% baseline correction
 % apply baseline correction on the trials/subjects :
 % decibel - zscore - ratio of change from baseline - (average t-maps ?)
-
-
-%% events handling
-% compute events averages
-
+for jj = 1:length(TimeFreqData)
+    TimeFreqData{jj}.Trial = panam_blCorrection(TimeFreqData{jj}.Trial,param.blCorrection);
+end
 
 %% output affectation
-
+% concatenate final structures
+outputStruct = [];
+for ii = 1:length(TimeFreqData)
+    outputStruct.TimeFreqTrials = TimeFreqData{ii};
+end
 
 %% visualization
 
