@@ -117,6 +117,7 @@ end
 TimeFreqData = inputData.structures;
 clear inputData;
 
+
 % concatenate input event files and input event structures
 if ~isempty(inputEvents)
     if ~isfield(inputEvents,'structures')
@@ -328,6 +329,7 @@ for jj = 1:length(TimeFreqData)
 end
 clear powspctrmTmp;
 
+
 %% trials filtering
 
 % keep only common trials between Data and Events structures
@@ -398,6 +400,7 @@ for ii = 1:length(TimeFreqData)
     lastBlSample = find(abs(TimeFreqData{ii}.TimeFreqTrials.time - param.blEndTime) == min(abs(TimeFreqData{ii}.TimeFreqTrials.time - param.blEndTime)));
     TimeFreqData{ii}.TimeFreqTrials.blPowspctrm = TimeFreqData{ii}.TimeFreqTrials.powspctrm(:,:,:,firstBlSample:lastBlSample);
 end
+
 
 %% align events on selected marker
 % set selected marker (param.marker) time at 0
@@ -486,16 +489,17 @@ if strcmpi(param.avgIntraSubjects, 'yes')
     % average over the subject
     for jj = 1:length(TimeFreqData)
         TimeFreqData{jj}.TimeFreqTrials.powspctrm = nanmean(TimeFreqData{jj}.TimeFreqTrials.powspctrm,1);
+        TimeFreqData{jj}.TimeFreqTrials.blPowspctrm = nanmean(TimeFreqData{jj}.TimeFreqTrials.blPowspctrm,1);
         if isequal(TimeFreqData{jj}.TimeFreqTrials.cumtapcnt,...
                 repmat(TimeFreqData{jj}.TimeFreqTrials.cumtapcnt(1,:),size(TimeFreqData{jj}.TimeFreqTrials.cumtapcnt,1),1))
             TimeFreqData{jj}.TimeFreqTrials.cumtapcnt = TimeFreqData{jj}.TimeFreqTrials.cumtapcnt(1,:);
         else
             TimeFreqData{jj}.TimeFreqTrials = rmfield(TimeFreqData{jj}.TimeFreqTrials.cumtapcnt,'cumtapcnt');
         end
-        TimeFreqData{subjIndices(1)}.TimeFreqTrials.TrialName = ['Average_' TimeFreqData{subjIndices(1)}.Infos.SubjectCode];
-        TimeFreqData{subjIndices(1)}.TimeFreqTrials.TrialNum = 1;
+        TimeFreqData{jj}.TimeFreqTrials.TrialName = {['Average_' TimeFreqData{jj}.Infos.SubjectCode]};
+        TimeFreqData{jj}.TimeFreqTrials.TrialNum = 1;
         Events{jj}.Trial(1).EventsTime = nanmean(vertcat(Events{jj}.Trial.EventsTime),1);
-        Events{jj}.Trial(1).TrialName = ['Average_' TimeFreqData{subjIndices(1)}.Infos.SubjectCode];
+        Events{jj}.Trial(1).TrialName = ['Average_' TimeFreqData{jj}.Infos.SubjectCode];
         Events{jj}.Trial(1).TrialNum = 1;
         Events{jj}.Trial = Events{jj}.Trial(1);
         Events{jj}.Trial = rmfield(Events{jj}.Trial,'StartingFoot');
@@ -503,22 +507,45 @@ if strcmpi(param.avgIntraSubjects, 'yes')
 end
 
 
+%% concatenate final structures
+for ii = 2:length(TimeFreqData)
+    TimeFreqData{1}.TimeFreqTrials.powspctrm = cat(1, TimeFreqData{1}.TimeFreqTrials.powspctrm, TimeFreqData{ii}.TimeFreqTrials.powspctrm);
+    TimeFreqData{1}.TimeFreqTrials.blPowspctrm = cat(1, TimeFreqData{1}.TimeFreqTrials.blPowspctrm, TimeFreqData{ii}.TimeFreqTrials.blPowspctrm);
+    if isfield(TimeFreqData{1}.TimeFreqTrials,'cumtapcnt') && isfield(TimeFreqData{ii}.TimeFreqTrials,'cumtapcnt')
+        TimeFreqData{1}.TimeFreqTrials.cumtapcnt = cat(1,TimeFreqData{1}.TimeFreqTrials.cumtapcnt,TimeFreqData{ii}.TimeFreqTrials.cumtapcnt);
+    end
+    TimeFreqData{1}.TimeFreqTrials.analyse = 'timefrequency_processed';
+    TimeFreqData{1}.TimeFreqTrials.TrialName = cat(2,TimeFreqData{1}.TimeFreqTrials.TrialName, TimeFreqData{ii}.TimeFreqTrials.TrialName);
+    TimeFreqData{1}.TimeFreqTrials.TrialNum = cat(2,TimeFreqData{1}.TimeFreqTrials.TrialNum, TimeFreqData{ii}.TimeFreqTrials.TrialNum);
+    Events{1}.Trial = cat(2,Events{1}.Trial, Events{ii}.Trial);
+end
+TimeFreqData = TimeFreqData{1};
+Events = Events{1};
+
+
 %% baseline correction
 % apply baseline correction on the trials/subjects :
 % decibel - zscore - ratio of change from baseline - (average t-maps ?)
 for jj = 1:length(TimeFreqData)
-    TimeFreqData{jj}.Trial = panam_blCorrection(TimeFreqData{jj}.Trial,param.blCorrection);
+    TimeFreqData{jj}.Trial = panam_baselineCorrection(TimeFreqData{jj}.Trial,param.blCorrection);
 end
+
+
+%% history
+history{1,1} = datestr(clock);
+history{1,2} = ['Processed files 
 
 %% output affectation
-% concatenate final structures
-outputStruct = [];
-for ii = 1:length(TimeFreqData)
-    outputStruct.TimeFreqTrials = TimeFreqData{ii};
-end
+outputStruct.TimeFreqData = TimeFreqData;
+outputStruct.Events = Events;
+outputStruct.History = history;
+outputStruct.Param = param;
+
 
 %% visualization
+if strcmpi(param.visu, 'yes')
+    panam_timeFrequencyVisu(outputStruct);
+end
 
 
 end
-
