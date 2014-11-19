@@ -32,7 +32,8 @@ for ii = 1:length(inputStruct.TimeFreqData.label)
         if strcmpi(inputStruct.Param.marker,inputStruct.Events(1).EventsNames{jj})
             % normally event is equal to 0
             plot([event event],[firstFreq lastFreq],'linewidth',3,'color','r');
-            tempLegend{end+1} = inputStruct.Events(1).EventsNames{jj};
+            if ii == length(inputStruct.TimeFreqData.label) % last lap
+                tempLegend{end+1} = inputStruct.Events(1).EventsNames{jj};
         elseif event > startTime && event < endTime
             plot([event event],[firstFreq lastFreq],'linewidth',2,'color',liste_colors{colorCount});
             colorCount = colorCount + 1;
@@ -40,9 +41,9 @@ for ii = 1:length(inputStruct.TimeFreqData.label)
         end
     end
     set(h, 'FontSize', 15, 'FontName','New Century Schoolbook', 'OuterPosition',[mod(ii-1,nSPH)/nSPH (nSPV-ceil(ii/nSPH))/nSPV 1/nSPH 1/nSPV]);
-    hleg = legend(tempLegend);
-    set(hleg, 'Location','NorthWest');
 end
+hleg = legend(tempLegend);
+set(hleg, 'Location','NorthEast');
 end
 
 

@@ -115,6 +115,7 @@ if isfield(inputData, 'files')
     end
 end
 TimeFreqData = inputData.structures;
+filenames_TimeFreq = cellfun(@(x) x.Infos.FileName, TimeFreqData, 'UniformOutput',0);
 clear inputData;
 
 
@@ -135,8 +136,10 @@ if ~isempty(inputEvents)
         end
     end
     Events = inputEvents.structures;
+    filenames_Events = cellfun(@(x) [x.Infos.FileName '_TrialParams'], TimeFreqData, 'UniformOutput',0);
 else
     Events = {};
+    filenames_Events = {};
 end
 clear inputEvents;
 
@@ -533,14 +536,17 @@ end
 
 %% history
 history{1,1} = datestr(clock);
-history{1,2} = ['Processed files 
+temp = cellfun(@(x) [x ', '],filenames_TimeFreq,'UniformOutput',0);
+temp = [temp{:}];
+history{1,2} = ['Creation of the PANAM processed Time-Freq structure from structures  '];
 
 %% output affectation
 outputStruct.TimeFreqData = TimeFreqData;
 outputStruct.Events = Events;
 outputStruct.History = history;
 outputStruct.Param = param;
-
+outputStruct.Param.InputsTimeFreq_Files = filenames_TimeFreq;
+outputStruct.Param.InputsEvents_Files = filenames_Events;
 
 %% visualization
 if strcmpi(param.visu, 'yes')

@@ -529,27 +529,29 @@ Events = Events{1};
 %% baseline correction
 % apply baseline correction on the trials/subjects :
 % decibel - zscore - ratio of change from baseline - (average t-maps ?)
-for jj = 1:length(TimeFreqData)
-    TimeFreqData{jj}.Trial = panam_baselineCorrection(TimeFreqData{jj}.Trial,param.blCorrection);
-end
+TimeFreqData.TimeFreqTrials = panam_baselineCorrection(TimeFreqData.TimeFreqTrials,param.blCorrection);
 
 
 %% history
 history{1,1} = datestr(clock);
-history{1,2} = ['Processed files '];
+temp = cellfun(@(x) [x ', '],filenames_TimeFreq,'UniformOutput',0);
+temp = [temp{:}];
+history{1,2} = ['Creation of the structure with panam_timeFrequencyProcess from structures ' temp(1:end-2)];
 
-%% output affectation
-outputStruct.TimeFreqData = TimeFreqData;
-outputStruct.Events = Events;
-outputStruct.History = history;
-outputStruct.Param = param;
-outputStruct.Param.InputsTimeFreq_Files = filenames_TimeFreq;
-outputStruct.Param.InputsEvents_Files = filenames_Events;
 
 %% visualization
 if strcmpi(param.visu, 'yes')
     panam_timeFrequencyVisu(outputStruct);
 end
+
+
+%% output affectation
+outputStruct.TimeFreqData = TimeFreqData.TimeFreqTrials;
+outputStruct.Events = Events.Trial;
+outputStruct.History = history;
+outputStruct.Param = param;
+outputStruct.Param.InputsTimeFreq_Files = filenames_TimeFreq;
+outputStruct.Param.InputsEvents_Files = filenames_Events;
 
 
 end
