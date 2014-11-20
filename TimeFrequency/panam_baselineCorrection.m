@@ -29,6 +29,8 @@ switch corrType
         timeFreqOut.blCorr = 'RELATIVECHANGE';
         timeFreqOut.powspctrm = (timeFreqIn.powspctrm - repmat(meanBL, [1 1 1 length(timeFreqIn.time)])) ./ ...
             repmat(meanBL, [1 1 1 length(timeFreqIn.time)]);
+    case 'none'
+        timeFreqOut.blCorr = 'NoBlCorrection';
 end
 end
 
