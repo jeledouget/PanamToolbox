@@ -1,4 +1,4 @@
-function outputStruct = panam_removeBadTrials(inputStruct, badTrials )
+function outputStruct = panam_removeBadTrials(inputStruct, badTrials, comment )
 
 %REMOVEBADTRIALS Remove the trials specified in badTrials and place them
 %into RemovedTrials category
@@ -47,6 +47,7 @@ outputStruct.Trials = inputStruct.Trials(indicesGood);
 
 outputStruct.History{end+1,1} = datestr(clock);
 outputStruct.History{end,2} = ['The trials whose numbers are : [' num2str(badTrials) '] have been placed in the RemovedTrials substructure.'];
-
+if nargin > 2
+   outputStruct.History{end+1,2} = comment;
 end
 

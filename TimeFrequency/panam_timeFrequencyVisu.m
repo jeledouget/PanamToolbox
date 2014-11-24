@@ -48,21 +48,23 @@ for ii = 1:length(inputStruct.TimeFreqData.label)
     hold off
     hold all
     colorCount = 1;
-    for jj = 1:length(inputStruct.Events(1).EventsNames)
-        event = nanmean(arrayfun(@(x) x.EventsTime(jj),inputStruct.Events));
-        if strcmpi(inputStruct.Param.marker,inputStruct.Events(1).EventsNames{jj})
-            % normally event is equal to 0
-            plot([event event],[firstFreq lastFreq],'linewidth',3,'color','r');
-            tempLegend{end+1} = inputStruct.Events(1).EventsNames{jj};
-        elseif event > startTime && event < endTime
-            plot([event event],[firstFreq lastFreq],'linewidth',2,'color',liste_colors{colorCount});
-            colorCount = colorCount + 1;
-            tempLegend{end+1} = inputStruct.Events(1).EventsNames{jj};
-        end
-    end
     set(h, 'FontSize', 15, 'FontName','New Century Schoolbook', 'OuterPosition',[mod(ii-1,nSPH)/nSPH (nSPV-ceil(ii/nSPH))/nSPV 1/nSPH 1/nSPV]);
-    hleg = legend(tempLegend);
-    set(hleg, 'Location','NorthWest');
+    if ~isempty(inputStruct.Events)
+        for jj = 1:length(inputStruct.Events(1).EventsNames)
+            event = nanmean(arrayfun(@(x) x.EventsTime(jj),inputStruct.Events));
+            if strcmpi(inputStruct.Param.marker,inputStruct.Events(1).EventsNames{jj})
+                % normally event is equal to 0
+                plot([event event],[firstFreq lastFreq],'linewidth',3,'color','r');
+                tempLegend{end+1} = inputStruct.Events(1).EventsNames{jj};
+            elseif event > startTime && event < endTime
+                plot([event event],[firstFreq lastFreq],'linewidth',2,'color',liste_colors{colorCount});
+                colorCount = colorCount + 1;
+                tempLegend{end+1} = inputStruct.Events(1).EventsNames{jj};
+            end
+        end
+        hleg = legend(tempLegend);
+        set(hleg, 'Location','NorthWest');
+    end
 end
 
 
