@@ -35,9 +35,8 @@ if nargin > 2  && (stat > 0)% stat view ?
         for kk = 1:size(inputStruct.TimeFreqData.powspctrm,2)
             inputStruct.TimeFreqData.powspctrm(ii,kk,:,:) = squeeze(inputStruct.TimeFreqData.stat(stat).hMaskCorr(kk,:,:)) .* squeeze(inputStruct.TimeFreqData.powspctrm(ii,kk,:,:));
             if strcmp(inputStruct.TimeFreqData.stat(stat).method,'ttest_cluster');
-                [tempFreq, tempTime] = find(~isnan(squeeze(inputStruct.TimeFreqData.stat(stat).hMaskCorr(1,:,:))));
-                cfg.xlim = inputStruct.TimeFreqData.time([min(tempTime) max(tempTime)]);
-            end
+                tempX, tempY
+                cfg.xlim = 
         end
     end
 end
