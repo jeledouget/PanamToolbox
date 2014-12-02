@@ -65,12 +65,14 @@ for ii = 1:length(inputStruct.TimeFreqData.label)
     if ~isempty(inputStruct.Events)
         for jj = 1:length(inputStruct.Events(1).EventsNames)
             event = nanmean(arrayfun(@(x) x.EventsTime(jj),inputStruct.Events));
-            if strcmpi(inputStruct.Param.marker,inputStruct.Events(1).EventsNames{jj})
+            if all(strcmpi({inputStruct.Param.marker},inputStruct.Events(1).EventsNames{jj}))
                 % normally event is equal to 0
                 plot([event event],[firstFreq lastFreq],'linewidth',3,'color','r');
                 tempLegend{end+1} = inputStruct.Events(1).EventsNames{jj};
+            elseif any(strcmpi({inputStruct.Param.marker},inputStruct.Events(1).EventsNames{jj}))
+                error('concatenated structures must be time-locked to the same marker to be visualizable');
             elseif event > startTime && event < endTime
-                plot([event event],[firstFreq lastFreq],'linewidth',2,'color',liste_colors{colorCount});
+                plot([event event],[firstFreq lastFreq],'linewidth',2,'color',liste_colors{1+mod(colorCount-1,length(liste_colors))});
                 colorCount = colorCount + 1;
                 tempLegend{end+1} = inputStruct.Events(1).EventsNames{jj};
             end

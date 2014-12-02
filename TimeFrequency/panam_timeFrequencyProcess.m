@@ -392,28 +392,36 @@ if strcmpi(param.trialFilter, 'leftStarts') || strcmpi(param.trialFilter, 'right
         indOK = [];
         if strcmpi(param.trialFilter, 'leftStarts')
             for jj = 1:length(Events)
-                trialInd = find(strcmpi({Events{jj}.Trial.StartingFoot}, 'Left'));
-                if ~isempty(trialInd)
-                    TimeFreqData{jj}.TimeFreqTrials.powspctrm = TimeFreqData{jj}.TimeFreqTrials.powspctrm(trialInd,:,:,:);
-                    TimeFreqData{jj}.TimeFreqTrials.cumtapcnt = TimeFreqData{jj}.TimeFreqTrials.cumtapcnt(trialInd,:);
-                    TimeFreqData{jj}.TimeFreqTrials.TrialName = TimeFreqData{jj}.TimeFreqTrials.TrialName(trialInd);
-                    TimeFreqData{jj}.TimeFreqTrials.TrialNum = TimeFreqData{jj}.TimeFreqTrials.TrialNum(trialInd);
-                    Events{jj}.Trial = Events{jj}.Trial(trialInd);
-                    indOK(end+1) = jj;
+                if isfield(Events{jj}.Trial,'StartingFoot')
+                    trialInd = find(strcmpi({Events{jj}.Trial.StartingFoot}, 'Left'));
+                    if ~isempty(trialInd)
+                        TimeFreqData{jj}.TimeFreqTrials.powspctrm = TimeFreqData{jj}.TimeFreqTrials.powspctrm(trialInd,:,:,:);
+                        TimeFreqData{jj}.TimeFreqTrials.cumtapcnt = TimeFreqData{jj}.TimeFreqTrials.cumtapcnt(trialInd,:);
+                        TimeFreqData{jj}.TimeFreqTrials.TrialName = TimeFreqData{jj}.TimeFreqTrials.TrialName(trialInd);
+                        TimeFreqData{jj}.TimeFreqTrials.TrialNum = TimeFreqData{jj}.TimeFreqTrials.TrialNum(trialInd);
+                        Events{jj}.Trial = Events{jj}.Trial(trialInd);
+                        indOK(end+1) = jj;
+                    else
+                        warning(['no trials after left starts filtering for structure ' TimeFreqData{jj}.Infos.FileName]);
+                    end
                 else
                     warning(['no trials after left starts filtering for structure ' TimeFreqData{jj}.Infos.FileName]);
                 end
             end
         elseif strcmpi(param.trialFilter, 'rightStarts')
             for jj = 1:length(Events)
+                if isfield(Events{jj}.Trial,'StartingFoot')
                 trialInd = find(strcmpi({Events{jj}.Trial.StartingFoot}, 'Right'));
-                if ~isempty(trialInd)
-                    TimeFreqData{jj}.TimeFreqTrials.powspctrm = TimeFreqData{jj}.TimeFreqTrials.powspctrm(trialInd,:,:,:);
-                    TimeFreqData{jj}.TimeFreqTrials.cumtapcnt = TimeFreqData{jj}.TimeFreqTrials.cumtapcnt(trialInd,:);
-                    TimeFreqData{jj}.TimeFreqTrials.TrialName = TimeFreqData{jj}.TimeFreqTrials.TrialName(trialInd);
-                    TimeFreqData{jj}.TimeFreqTrials.TrialNum = TimeFreqData{jj}.TimeFreqTrials.TrialNum(trialInd);
-                    Events{jj}.Trial = Events{jj}.Trial(trialInd);
-                    indOK(end+1) = jj;
+                    if ~isempty(trialInd)
+                        TimeFreqData{jj}.TimeFreqTrials.powspctrm = TimeFreqData{jj}.TimeFreqTrials.powspctrm(trialInd,:,:,:);
+                        TimeFreqData{jj}.TimeFreqTrials.cumtapcnt = TimeFreqData{jj}.TimeFreqTrials.cumtapcnt(trialInd,:);
+                        TimeFreqData{jj}.TimeFreqTrials.TrialName = TimeFreqData{jj}.TimeFreqTrials.TrialName(trialInd);
+                        TimeFreqData{jj}.TimeFreqTrials.TrialNum = TimeFreqData{jj}.TimeFreqTrials.TrialNum(trialInd);
+                        Events{jj}.Trial = Events{jj}.Trial(trialInd);
+                        indOK(end+1) = jj;
+                    else
+                        warning(['no trials after right starts filtering for structure ' TimeFreqData{jj}.Infos.FileName]);
+                    end
                 else
                     warning(['no trials after right starts filtering for structure ' TimeFreqData{jj}.Infos.FileName]);
                 end

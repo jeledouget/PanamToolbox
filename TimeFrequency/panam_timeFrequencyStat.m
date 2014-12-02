@@ -73,7 +73,7 @@ switch method
             data1(end).powspctrm = data1(end).powspctrm(:,:,:,jj:jj+nSamplesBL-1);
             sliceTimeIndices{end+1} = jj:jj+nSamplesBL-1;
             data1(end).time = data1(end).time(jj:jj+nSamplesBL-1) - data1(end).time(jj);
-            jj = jj + nSamplesBL;
+            jj = jj + round(nSamplesBL/2);
         end
         nTimesFinal = jj-1;
                 
@@ -97,7 +97,7 @@ switch method
             hMaskTemp(1,:,sliceTimeIndices{jj},jj) = slice(jj).mask;
         end
         hMaskTemp = nanmean(hMaskTemp,4);
-        hMaskCorr = double(hMaskTemp == 1);
+        hMaskCorr = double(hMaskTemp > 0);
         hMaskCorr(isnan(hMaskTemp)) = nan;
         
         stat.pMask = [];
@@ -130,13 +130,38 @@ switch method
         stat.hMask = hMask;
         stat.hMaskCorr = hMaskTemp;
         stat.method = method;
+        
+        case 'zscore'
+        % test : ttest under the hypothesis the decibel power (compared to
+        % baseline) is 0, on the values of the (t,f) point for the set 
+        % of trials + correction FDR
+        zCorrectedData = panam_baselineCorrection(inputStruct.TimeFreqData,'ZSCORE');
+        for ii=1:nFreq
+            for jj=1:nTimes
+                try
+                    [hMask(1,ii,jj) pMask(1,ii,jj)] = ttest(squeeze(zCorrectedData.powspctrm(:,1,ii,jj)));
+                catch
+                    hMask(1,ii,jj) = nan;
+                    pMask(1,ii,jj) = nan;
+                end
+            end
+        end
+        temp = reshape(pMask,1,[]);
+        temp = sort(temp);
+        [~, corr_p] = fdr_bh(temp,0.05);
+        hMaskTemp = (pMask < corr_p);
+        stat.pMask = pMask;
+        stat.hMask = hMask;
+        stat.hMaskCorr = hMaskTemp;
+        stat.method = method;
 end
 
 outputStruct = inputStruct;
 if ~isfield(outputStruct.TimeFreqData,'stat');
-    outputStruct.TimeFreqData.stat = [];
+    outputStruct.TimeFreqData.stat(1) = stat;
+else
+    outputStruct.TimeFreqData.stat(end+1) = stat;
 end
-outputStruct.TimeFreqData.stat(end+1) = stat;
 outputStruct.History{end+1,1} = datestr(clock);
 outputStruct.History{end,2} = 'Statistical mask computation with panam_timeFrequencyStat';
 

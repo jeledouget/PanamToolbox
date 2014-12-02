@@ -34,6 +34,12 @@ switch method
         temp = sort(temp);
         [~, corr_p] = fdr_bh(temp,0.05);
         hMaskTemp = (pMask < corr_p);
+        stat.pMask = pMask;
+        stat.hMask = hMask;
+        stat.hMaskCorr = hMaskTemp;
+        stat.method = method;
+        
+        
     case 'ttest_cluster'
         % test : paired ttest on the values of the (t,f) point for the set
         % of trials compared to the time average of the baseline values for
@@ -42,7 +48,7 @@ switch method
         cfg.neighbours = [];
         cfg.correctm = 'cluster';
         cfg.method = 'montecarlo';
-        cfg.numrandomization = 100;
+        cfg.numrandomization = 500;
         cfg.statistic = 'actvsblT';
         cfg.clusterstatistic = 'maxsum';
         cfg.clusteralpha = 0.05;
@@ -64,7 +70,7 @@ switch method
             else
                 data1(end+1) = dataTF;
             end
-            data1(end).powspctrm = data1(end).powspctrm(:,:,:,jj:jj+nSamplesBL-1);
+            data1(end).powspctrm = data1(end).powspctrm(:,:,:,jj:jj+round(nSamplesBL-1);
             sliceTimeIndices{end+1} = jj:jj+nSamplesBL-1;
             data1(end).time = data1(end).time(jj:jj+nSamplesBL-1) - data1(end).time(jj);
             jj = jj + nSamplesBL;
@@ -91,8 +97,13 @@ switch method
             hMaskTemp(1,:,sliceTimeIndices{jj},jj) = slice(jj).mask;
         end
         hMaskTemp = nanmean(hMaskTemp,4);
-        hMaskCorr = (hMaskTemp == 1);
-        hMaskCorr2 = (hMaskTemp > 0);
+        hMaskCorr = double(hMaskTemp == 1);
+        hMaskCorr(isnan(hMaskTemp)) = nan;
+        
+        stat.pMask = [];
+        stat.hMask = [];
+        stat.hMaskCorr = hMaskCorr;
+        stat.method = method;
         
         
         
@@ -115,20 +126,17 @@ switch method
         temp = sort(temp);
         [~, corr_p] = fdr_bh(temp,0.05);
         hMaskTemp = (pMask < corr_p);
-        stat.hMaskCorr = hMaskTemp;
         stat.pMask = pMask;
         stat.hMask = hMask;
-        stat.method = metho
+        stat.hMaskCorr = hMaskTemp;
+        stat.method = method;
 end
 
 outputStruct = inputStruct;
 if ~isfield(outputStruct.TimeFreqData,'stat');
     outputStruct.TimeFreqData.stat = [];
 end
-outputStruct.TimeFreqData.stat(end+1).pMask = pMask;
-outputStruct.TimeFreqData.stat(end).hMask = hMask;
-outputStruct.TimeFreqData.stat(end).hMaskCorr = hMaskTemp;
-outputStruct.TimeFreqData.stat(end).method = method;
+outputStruct.TimeFreqData.stat(end+1) = stat;
 outputStruct.History{end+1,1} = datestr(clock);
 outputStruct.History{end,2} = 'Statistical mask computation with panam_timeFrequencyStat';
 

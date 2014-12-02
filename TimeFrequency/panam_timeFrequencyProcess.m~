@@ -392,6 +392,7 @@ if strcmpi(param.trialFilter, 'leftStarts') || strcmpi(param.trialFilter, 'right
         indOK = [];
         if strcmpi(param.trialFilter, 'leftStarts')
             for jj = 1:length(Events)
+                if isfield
                 trialInd = find(strcmpi({Events{jj}.Trial.StartingFoot}, 'Left'));
                 if ~isempty(trialInd)
                     TimeFreqData{jj}.TimeFreqTrials.powspctrm = TimeFreqData{jj}.TimeFreqTrials.powspctrm(trialInd,:,:,:);
@@ -489,20 +490,23 @@ for ii = 1:length(TimeFreqData)
         % test if first sample and last sample are not out of bounds, if so the trial is not marked as OK and therefore not conserved
         if firstSample > 0 && lastSample <= size(TimeFreqData{ii}.TimeFreqTrials.powspctrm,4)
             indOK(end+1) = jj;
-            nTrCurrent = size(TimeFreqData{ii}.TimeFreqTrials.powspctrm,2);
-            f
-            powspctrmTmp(end+1,:,:,:) = TimeFreqData{ii}.TimeFreqTrials.powspctrm(jj,:,:,firstSample:lastSample);
+            nTrCurrent = size(powspctrmTmp,1);
+            for kk = 1:size(TimeFreqData{ii}.TimeFreqTrials.powspctrm,2)
+                powspctrmTmp(nTrCurrent+1,kk,:,:) = TimeFreqData{ii}.TimeFreqTrials.powspctrm(jj,kk,:,firstSample:lastSample);
+            end
         else
-            warning(['trial' TimeFreqData{ii}.TimeFreqTrials.TrialName 'has to be suppressed because time of events are out of bounds']);
+            warning(['trial' TimeFreqData{ii}.TimeFreqTrials.TrialName{jj} 'has to be suppressed because time of events are out of bounds']);
         end
     end
     TimeFreqData{ii}.TimeFreqTrials.powspctrm = powspctrmTmp;
     TimeFreqData{ii}.TimeFreqTrials.time = linspace(-param.preMarkerTime, param.postMarkerTime, nSamplesPre+nSamplesPost+1);
     TimeFreqData{ii}.TimeFreqTrials.TrialNum = TimeFreqData{ii}.TimeFreqTrials.TrialNum(indOK);
     TimeFreqData{ii}.TimeFreqTrials.TrialName = TimeFreqData{ii}.TimeFreqTrials.TrialName(indOK);
-    TimeFreqData{ii}.TimeFreqTrials.blPowspctrm = TimeFreqData{ii}.TimeFreqTrials.blPowspctrm(indOK);
+    TimeFreqData{ii}.TimeFreqTrials.blPowspctrm = TimeFreqData{ii}.TimeFreqTrials.blPowspctrm(indOK,:,:,:);
     TimeFreqData{ii}.TimeFreqTrials.cumtapcnt = TimeFreqData{ii}.TimeFreqTrials.cumtapcnt(indOK,:);
-    Events{ii}.Trial = Events{ii}.Trial(indOK);
+    if ~isempty(Events)
+        Events{ii}.Trial = Events{ii}.Trial(indOK);
+    end
 end
 
 
