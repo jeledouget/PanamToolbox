@@ -232,7 +232,11 @@ for ii = 1:length(TimeFreqData)
     for jj = 1:length(param.contacts)
         switch param.contacts(jj).filter
             case 'STN'
-                temp = find(strcmpi([locContacts_isSTN.SubjectNumber],TimeFreqData{ii}.Infos.SubjectNumber),1);
+                if locContacts_isSTN(TimeFreqData{ii}.Infos.SubjectNumber).SubjectNumber == TimeFreqData{ii}.Infos.SubjectNumber
+                    temp = TimeFreqData{ii}.Infos.SubjectNumber;
+                else
+                    error('in localisation file, subjects don''t have the correct index');
+                end
                 if ~isempty(temp)
                     filter_contacts{jj,ii} = find(locContacts_isSTN(temp).dipole);
                 else
@@ -535,6 +539,16 @@ if strcmpi(param.avgIntraSubjects, 'yes')
                     TimeFreqData{subjIndices(1)}.TimeFreqTrials.TrialNum, TimeFreqData{subjIndices(kk)}.TimeFreqTrials.TrialNum);
                 TimeFreqData{subjIndices(1)}.TimeFreqTrials.blPowspctrm = cat(1,...
                     TimeFreqData{subjIndices(1)}.TimeFreqTrials.blPowspctrm, TimeFreqData{subjIndices(kk)}.TimeFreqTrials.blPowspctrm);
+                field1 = fieldnames(Events{subjIndices(1)}.Trial);
+                field2 = fieldnames(Events{subjIndices(kk)}.Trial);
+                missingField1 = find(~ismember(field2,field1));
+                missingField2 = find(~ismember(field1,field2));
+                for ll = 1:length(missingField1)
+                    Events{subjIndices(1)}.Trial(end).(field2{missingField1(ll)}) = [];
+                end
+                for mm = 1:length(missingField2)
+                    Events{subjIndices(kk)}.Trial(end).(field1{missingField2(mm)}) = [];
+                end
                 Events{subjIndices(1)}.Trial = cat(2, Events{subjIndices(1)}.Trial,Events{subjIndices(kk)}.Trial);
             end
             indToBeKept(end+1) = subjIndices(1);
