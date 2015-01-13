@@ -1,4 +1,4 @@
-function outputStruct = panam_timeFrequencyStat( inputStruct, method)
+function outputStruct = panam_timeFrequencyStat_actVsBL( inputStruct, method)
 
 %PANAM_TIMEFREQUENCYSTAT Perform statistical test activation vs. baseline
 %for Processed Time-Frequency Panam structure
@@ -17,7 +17,7 @@ end
 %% compute
 switch method
     case 'ttest_fdr'
-        % test : paired ttest on the values of the (t,f) point for the set 
+        % test : paired ttest on the values of the (t,f) point for the set
         % of trials compared to the time average of the baseline values for
         % the same trials + correction FDR
         for ii=1:nFreq
@@ -70,13 +70,13 @@ switch method
             else
                 data1(end+1) = dataTF;
             end
-            data1(end).powspctrm = data1(end).powspctrm(:,:,:,jj:jj+round(nSamplesBL-1);
+            data1(end).powspctrm = data1(end).powspctrm(:,:,:,jj:jj+nSamplesBL-1);
             sliceTimeIndices{end+1} = jj:jj+nSamplesBL-1;
             data1(end).time = data1(end).time(jj:jj+nSamplesBL-1) - data1(end).time(jj);
-            jj = jj + nSamplesBL;
+            jj = jj + round(nSamplesBL/2);
         end
         nTimesFinal = jj-1;
-                
+        
         ntrials = size(dataBL.powspctrm,1);
         design  = zeros(2,2*ntrials);
         design(1,1:ntrials) = 1;
@@ -97,7 +97,7 @@ switch method
             hMaskTemp(1,:,sliceTimeIndices{jj},jj) = slice(jj).mask;
         end
         hMaskTemp = nanmean(hMaskTemp,4);
-        hMaskCorr = double(hMaskTemp == 1);
+        hMaskCorr = double(hMaskTemp > 0);
         hMaskCorr(isnan(hMaskTemp)) = nan;
         
         stat.pMask = [];
@@ -109,7 +109,7 @@ switch method
         
     case 'ttest_ZeroLog'
         % test : ttest under the hypothesis the decibel power (compared to
-        % baseline) is 0, on the values of the (t,f) point for the set 
+        % baseline) is 0, on the values of the (t,f) point for the set
         % of trials + correction FDR
         dbCorrectedData = panam_baselineCorrection(inputStruct.TimeFreqData,'DB');
         for ii=1:nFreq
@@ -130,13 +130,38 @@ switch method
         stat.hMask = hMask;
         stat.hMaskCorr = hMaskTemp;
         stat.method = method;
+        
+    case 'zscore'
+        % test : ttest under the hypothesis the decibel power (compared to
+        % baseline) is 0, on the values of the (t,f) point for the set
+        % of trials + correction FDR
+        zCorrectedData = panam_baselineCorrection(inputStruct.TimeFreqData,'ZSCORE');
+        for ii=1:nFreq
+            for jj=1:nTimes
+                try
+                    [hMask(1,ii,jj) pMask(1,ii,jj)] = ttest(squeeze(zCorrectedData.powspctrm(:,1,ii,jj)));
+                catch
+                    hMask(1,ii,jj) = nan;
+                    pMask(1,ii,jj) = nan;
+                end
+            end
+        end
+        temp = reshape(pMask,1,[]);
+        temp = sort(temp);
+        [~, corr_p] = fdr_bh(temp,0.05);
+        hMaskTemp = (pMask < corr_p);
+        stat.pMask = pMask;
+        stat.hMask = hMask;
+        stat.hMaskCorr = hMaskTemp;
+        stat.method = method;
 end
 
 outputStruct = inputStruct;
 if ~isfield(outputStruct.TimeFreqData,'stat');
-    outputStruct.TimeFreqData.stat = [];
+    outputStruct.TimeFreqData.stat(1) = stat;
+else
+    outputStruct.TimeFreqData.stat(end+1) = stat;
 end
-outputStruct.TimeFreqData.stat(end+1) = stat;
 outputStruct.History{end+1,1} = datestr(clock);
 outputStruct.History{end,2} = 'Statistical mask computation with panam_timeFrequencyStat';
 
@@ -149,11 +174,11 @@ end
 
 
 % fdr_bh() - Executes the Benjamini & Hochberg (1995) and the Benjamini &
-%            Yekutieli (2001) procedure for controlling the false discovery 
+%            Yekutieli (2001) procedure for controlling the false discovery
 %            rate (FDR) of a family of hypothesis tests. FDR is the expected
-%            proportion of rejected hypotheses that are mistakenly rejected 
-%            (i.e., the null hypothesis is actually true for those tests). 
-%            FDR is a somewhat less conservative/more powerful method for 
+%            proportion of rejected hypotheses that are mistakenly rejected
+%            (i.e., the null hypothesis is actually true for those tests).
+%            FDR is a somewhat less conservative/more powerful method for
 %            correcting for multiple comparisons than procedures like Bonferroni
 %            correction that provide strong control of the family-wise
 %            error rate (i.e., the probability that one or more null
@@ -184,14 +209,14 @@ end
 %
 % Outputs:
 %   h       - A binary vector or matrix of the same size as the input "pvals."
-%             If the ith element of h is 1, then the test that produced the 
+%             If the ith element of h is 1, then the test that produced the
 %             ith p-value in pvals is significant (i.e., the null hypothesis
 %             of the test is rejected).
-%   crit_p  - All uncorrected p-values less than or equal to crit_p are 
-%             significant (i.e., their null hypotheses are rejected).  If 
+%   crit_p  - All uncorrected p-values less than or equal to crit_p are
+%             significant (i.e., their null hypotheses are rejected).  If
 %             no p-values are significant, crit_p=0.
 %   adj_p   - All adjusted p-values less than or equal to q are significant
-%             (i.e., their null hypotheses are rejected). Note, adjusted 
+%             (i.e., their null hypotheses are rejected). Note, adjusted
 %             p-values can be greater than 1.
 %
 %
@@ -216,9 +241,9 @@ end
 % For a review on false discovery rate control and other contemporary
 % techniques for correcting for multiple comparisons see:
 %
-%   Groppe, D.M., Urbach, T.P., & Kutas, M. (2011) Mass univariate analysis 
-% of event-related brain potentials/fields I: A critical tutorial review. 
-% Psychophysiology, 48(12) pp. 1711-1725, DOI: 10.1111/j.1469-8986.2011.01273.x 
+%   Groppe, D.M., Urbach, T.P., & Kutas, M. (2011) Mass univariate analysis
+% of event-related brain potentials/fields I: A critical tutorial review.
+% Psychophysiology, 48(12) pp. 1711-1725, DOI: 10.1111/j.1469-8986.2011.01273.x
 % http://www.cogsci.ucsd.edu/~dgroppe/PUBLICATIONS/mass_uni_preprint1.pdf
 %
 %

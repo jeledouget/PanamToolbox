@@ -1,4 +1,4 @@
-function panam_timeFrequencyVisu(inputStruct, blCorr, stat)
+function h = panam_timeFrequencyVisu(inputStruct, blCorr, stat)
 %PANAM_TIMEFREQUENCYVISU Visualization tool for processed Panam TimeFreq
 %Data
 % (result from panam_timeFrequencyProcess)
@@ -43,25 +43,26 @@ if nargin > 2  && (stat > 0)% stat view ?
 end
 
 %% plots
-figure;
+% figure;
 for ii = 1:length(inputStruct.TimeFreqData.label)
     tempLegend = {};
     cfg.channel = inputStruct.TimeFreqData.label(ii);
-    h = subplot(nSPV, nSPH, ii);
+    h{ii} = subplot(nSPV, nSPH, ii);
     ft_singleplotTFR(cfg, inputStruct.TimeFreqData);
+    colormap(jet(256));
     tempTitle = strrep(cfg.channel{1},'_', ', ');
     tempTitle = strrep(tempTitle,':', ': ');
     tempTitle2 = strrep(inputStruct.TimeFreqData.blCorr,'Bl',' Baseline ');
     tempTitle = [tempTitle ' (' tempTitle2 ')'];
     title(tempTitle,'FontSize', 20, 'FontName','New Century Schoolbook');
     xlabel({'Time','[s]'}, 'FontSize', 15, 'FontName','New Century Schoolbook');
-    xlab = get(h,'xlabel');
+    xlab = get(h{ii},'xlabel');
     set(xlab,'Position',get(xlab,'Position') - [0 .2 0]);
     ylabel({'Frequency','[Hz]'}, 'FontSize', 15, 'FontName','New Century Schoolbook');
     hold off
     hold all
     colorCount = 1;
-    set(h, 'FontSize', 15, 'FontName','New Century Schoolbook', 'OuterPosition',[mod(ii-1,nSPH)/nSPH (nSPV-ceil(ii/nSPH))/nSPV 1/nSPH 1/nSPV]);
+    set(h{ii}, 'FontSize', 15, 'FontName','New Century Schoolbook', 'OuterPosition',[mod(ii-1,nSPH)/nSPH (nSPV-ceil(ii/nSPH))/nSPV 1/nSPH 1/nSPV]);
     if ~isempty(inputStruct.Events)
         for jj = 1:length(inputStruct.Events(1).EventsNames)
             event = nanmean(arrayfun(@(x) x.EventsTime(jj),inputStruct.Events));

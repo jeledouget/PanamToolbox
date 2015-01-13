@@ -210,7 +210,7 @@ Infos.Type = [Infos.Type '_TimeFreq_' upper(param.output)];
 
 %% output
 
-outputStruct.TimeFreqTrials = freq;
+outputStruct.TimeFreqData = freq;
 if param.computeRemoved && ~isempty(inputStruct.RemovedTrials)
     outputStruct.TimeFreqRemovedTrials = freq_removed;
 end

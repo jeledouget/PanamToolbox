@@ -1,47 +1,16 @@
-function outputStruct = panam_timeFrequencyStat( inputStruct, method)
+function outputStruct = panam_timeFrequencyStat_compareConditions( inputStruct1,inputStruct2, method)
 
 %PANAM_TIMEFREQUENCYSTAT Perform statistical test activation vs. baseline
 %for Processed Time-Frequency Panam structure
 
-nFreq = size(inputStruct.TimeFreqData.powspctrm,3);
-nTimes = size(inputStruct.TimeFreqData.powspctrm,4);
-nChannels = size(inputStruct.TimeFreqData.powspctrm,2);
-avgBL = mean(inputStruct.TimeFreqData.blPowspctrm,4);
-hMask = nan(nChannels,nFreq,nTimes);
-pMask = nan(nChannels,nFreq,nTimes);
-
 % default
-if nargin < 2
-    method  = 'ttest_fdr';
+if nargin < 3
+    method  = 'ttest_cluster';
 end
 
 %% compute
 switch method
-    case 'ttest_fdr'
-        % test : paired ttest on the values of the (t,f) point for the set
-        % of trials compared to the time average of the baseline values for
-        % the same trials + correction FDR
-        for kk = 1:nChannels
-            for ii=1:nFreq
-                for jj=1:nTimes
-                    try
-                        [hMask(kk,ii,jj) pMask(kk,ii,jj)] = ttest(squeeze(inputStruct.TimeFreqData.powspctrm(:,kk,ii,jj)), squeeze(avgBL(:,kk,ii)));
-                    catch
-                        hMask(kk,ii,jj) = nan;
-                        pMask(kk,ii,jj) = nan;
-                    end
-                end
-            end
-            temp = reshape(pMask(kk,:,:),1,[]);
-            temp = sort(temp);
-            [~, corr_p] = fdr_bh(temp,0.05);
-            hMaskTemp = (pMask(kk,:,:) < corr_p);
-            stat.pMask(kk,:,:) = pMask(kk,:,:);
-            stat.hMask(kk,:,:) = hMask(kk,:,:);
-            stat.hMaskCorr(kk,:,:) = hMaskTemp;
-        end
-        stat.method = method;
-        
+   
     case 'ttest_cluster'
         % test : paired ttest on the values of the (t,f) point for the set
         % of trials compared to the time average of the baseline values for
@@ -51,128 +20,62 @@ switch method
         cfg.correctm = 'cluster';
         cfg.method = 'montecarlo';
         cfg.numrandomization = 500;
-        cfg.statistic = 'actvsblT';
+        cfg.statistic = 'indepsamplesT';
         cfg.clusterstatistic = 'maxsum';
         cfg.clusteralpha = 0.05;
-        cfg.alpha = 0.05;
+        cfg.alpha = 0.025;
         cfg.tail = 0;
         
-        dataBL = inputStruct.TimeFreqData;
-        dataBL.powspctrm = dataBL.blPowspctrm;
-        timeStep = (dataBL.time(end) - dataBL.time(1)) / (length(dataBL.time)-1);
-        dataBL.time = timeStep *(0:size(dataBL.powspctrm,4)-1);
-        dataTF = inputStruct.TimeFreqData;
-        jj = 1;
-        nSamplesTotal = size(dataTF.powspctrm,4);
-        nSamplesBL = size(dataBL.powspctrm,4);
-        sliceTimeIndices = {};
-        while jj <= nSamplesTotal - nSamplesBL + 1
-            if ~exist('data1')
-                data1 = dataTF;
-            else
-                data1(end+1) = dataTF;
-            end
-            data1(end).powspctrm = data1(end).powspctrm(:,:,:,jj:jj+nSamplesBL-1);
-            sliceTimeIndices{end+1} = jj:jj+nSamplesBL-1;
-            data1(end).time = data1(end).time(jj:jj+nSamplesBL-1) - data1(end).time(jj);
-            jj = jj + round(nSamplesBL/2);
-        end
-        nTimesFinal = jj-1;
+        data1 = inputStruct1.TimeFreqData;
+        data2 = inputStruct2.TimeFreqData;
         
-        ntrials = size(dataBL.powspctrm,1);
+        ntrials = size(data1.powspctrm,1);
         design  = zeros(2,2*ntrials);
         design(1,1:ntrials) = 1;
         design(1,ntrials+1:2*ntrials) = 2;
         design(2,1:ntrials) = 1:ntrials;
         design(2,ntrials+1:2*ntrials) = 1:ntrials;
         
+        design = zeros(1,size(data1.powspctrm,1) + size(data2.powspctrm,1));
+        design(1,1:size(data1.powspctrm,1)) = 1;
+        design(1,(size(data1.powspctrm,1)+1):(size(data1.powspctrm,1)+size(data2.powspctrm,1))) = 2;
+        
         cfg.design   = design;
         cfg.ivar     = 1;
-        cfg.uvar     = 2;
         
-        for jj = 1:length(data1)
-            slice(jj) = ft_freqstatistics(cfg, data1(jj), dataBL);
-        end
+        statTemp = ft_freqstatistics(cfg, data1, data2);
         
-        hMaskTemp = nan(nChannels,length(dataTF.freq), length(dataTF.time), length(data1));
-        for kk = 1:nChannels
-            for jj = 1:length(data1)
-                hMaskTemp(kk,:,sliceTimeIndices{jj},jj) = slice(jj).mask(kk,:,:);
-            end
-            hMaskTemp = nanmean(hMaskTemp,4);
-            hMaskTemp = double(hMaskTemp > 0);
-            hMaskTemp(isnan(hMaskTemp)) = nan;
-            hMaskCorr(kk,:,:) = hMaskTemp;
-        end
+    case 'ttest_bl'
+        cfg.method = 'stats';
+        cfg.statistic = 'ttest2';
+        cfg.alpha = 0.05;
+        cfg.tail = 0;
+        cfg.correctm = 'fdr';
         
-        stat.pMask = [];
-        stat.hMask = [];
-        stat.hMaskCorr = hMaskCorr;
-        stat.method = method;
+        data1 = inputStruct1.TimeFreqData;
+        data2 = inputStruct2.TimeFreqData;
         
+        data1 = panam_baselineCorrection(data1,'DB');
+        data2 = panam_baselineCorrection(data2,'DB');
         
+        design = zeros(1,size(data1.powspctrm,1) + size(data2.powspctrm,1));
+        design(1,1:size(data1.powspctrm,1)) = 1;
+        design(1,(size(data1.powspctrm,1)+1):(size(data1.powspctrm,1)+size(data2.powspctrm,1))) = 2;
         
-    case 'ttest_ZeroLog'
-        % test : ttest under the hypothesis the decibel power (compared to
-        % baseline) is 0, on the values of the (t,f) point for the set
-        % of trials + correction FDR
-        dbCorrectedData = panam_baselineCorrection(inputStruct.TimeFreqData,'DB');
-        for kk = 1:nChannels
-            for ii=1:nFreq
-                for jj=1:nTimes
-                    try
-                        [hMask(kk,ii,jj) pMask(kk,ii,jj)] = ttest(squeeze(dbCorrectedData.powspctrm(:,kk,ii,jj)));
-                    catch
-                        hMask(kk,ii,jj) = nan;
-                        pMask(kk,ii,jj) = nan;
-                    end
-                end
-            end
-            temp = reshape(pMask(kk,:,:),1,[]);
-            temp = sort(temp);
-            [~, corr_p] = fdr_bh(temp,0.05);
-            hMaskTemp(kk,:,:) = (pMask(kk,:,:) < corr_p);
-        end
-        stat.pMask = pMask;
-        stat.hMask = hMask;
-        stat.hMaskCorr = hMaskTemp;
-        stat.method = method;
+        cfg.design   = design;
+        cfg.ivar     = 1;
         
-    case 'zscore'
-        % test : ttest under the hypothesis the decibel power (compared to
-        % baseline) is 0, on the values of the (t,f) point for the set
-        % of trials + correction FDR
-        zCorrectedData = panam_baselineCorrection(inputStruct.TimeFreqData,'ZSCORE');
-        for kk = 1:nChannels
-            for ii=1:nFreq
-                for jj=1:nTimes
-                    try
-                        [hMask(kk,ii,jj) pMask(kk,ii,jj)] = ttest(squeeze(zCorrectedData.powspctrm(:,kk,ii,jj)));
-                    catch
-                        hMask(kk,ii,jj) = nan;
-                        pMask(kk,ii,jj) = nan;
-                    end
-                end
-            end
-            temp = reshape(pMask(kk,:,:),1,[]);
-            temp = sort(temp);
-            [~, corr_p] = fdr_bh(temp,0.05);
-            hMaskTemp(kk,:,:) = (pMask(kk,:,:) < corr_p);
-        end
-        stat.pMask = pMask;
-        stat.hMask = hMask;
-        stat.hMaskCorr = hMaskTemp;
-        stat.method = method;
+        statTemp = ft_freqstatistics(cfg, data1, data2);
+        temp = reshape(statTemp.prob,1,[]);
+        temp = sort(temp);
+        [~, corr_p] = fdr_bh(temp,0.05);
+        statTemp.mask = (statTemp.prob < corr_p);
+        statTemp.correctedMinPvalue = corr_p;
+      
 end
 
-outputStruct = inputStruct;
-if ~isfield(outputStruct.TimeFreqData,'stat');
-    outputStruct.TimeFreqData.stat(1) = stat;
-else
-    outputStruct.TimeFreqData.stat(end+1) = stat;
-end
-outputStruct.History{end+1,1} = datestr(clock);
-outputStruct.History{end,2} = 'Statistical mask computation with panam_timeFrequencyStat';
+outputStruct = [];
+outputStruct.stat = statTemp;
 
 end
 
