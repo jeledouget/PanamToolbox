@@ -1,4 +1,4 @@
-function outputStruct= panam_coherence( inputStruct, param)
+function outputStruct= panam_coherence( inputStruct) % param ?
 %PANAM_COHERENCE Compute the coherence of a signal (including a set of
 %trials)
 
@@ -31,13 +31,12 @@ freqfourier    = ft_freqanalysis(cfg, data);
 
 cfg            = [];
 cfg.method     = 'coh';
-cfg.channelcmb = 'all';
+cfg.channelcmb = {'C*D' 'C*G'};
 fdfourier      = ft_connectivityanalysis(cfg, freqfourier);
 
 
 %% output
 outputStruct.coherence = fdfourier;
-
 
 end
 

@@ -1,4 +1,4 @@
-function h = panam_timeFrequencyVisu(inputStruct, blCorr, stat)
+function h = panam_timeFrequencyVisu(inputStruct, blCorr, stat, freqBand)
 %PANAM_TIMEFREQUENCYVISU Visualization tool for processed Panam TimeFreq
 %Data
 % (result from panam_timeFrequencyProcess)
@@ -11,6 +11,8 @@ startTime = inputStruct.TimeFreqData.time(1);
 endTime = inputStruct.TimeFreqData.time(end);
 firstFreq = min(inputStruct.TimeFreqData.freq);
 lastFreq = max(inputStruct.TimeFreqData.freq);
+cfg = [];
+
 
 %% test : log-transform (-> test de normalite a effectuer ? Fischer ?)
 
@@ -20,6 +22,9 @@ lastFreq = max(inputStruct.TimeFreqData.freq);
 
 %% baseline correction
 if nargin > 1 % blCorrection required
+    if isempty(blCorr)
+        blCorr = 'none';
+    end
     if ~strcmpi(inputStruct.TimeFreqData.blCorr, blCorr)
         if ~strcmpi(inputStruct.TimeFreqData.blCorr, 'NoBlCorrection')
             inputStruct.TimeFreqData.powspctrm = inputStruct.TimeFreqData.beforeBlCorrPowspctrm;
@@ -29,21 +34,47 @@ if nargin > 1 % blCorrection required
     end
 end
 
+%% freqBand
+if nargin > 3
+    if ~isnumeric(freqBand) || length(freqBand) ~= 2 || freqBand(1) > freqBand(2)
+        error('FreqBand uncorrectly specified : must be a vector [minFreq maxFreq]');
+    end
+    cfg.ylim = freqBand;
+else
+    cfg.ylim = 'maxmin';
+end
+
+
 %% stat view
-if nargin > 2  && (stat > 0)% stat view ?
-    for ii=1:size(inputStruct.TimeFreqData.powspctrm,1)
-        for kk = 1:size(inputStruct.TimeFreqData.powspctrm,2)
-            inputStruct.TimeFreqData.powspctrm(ii,kk,:,:) = squeeze(inputStruct.TimeFreqData.stat(stat).hMaskCorr(kk,:,:)) .* squeeze(inputStruct.TimeFreqData.powspctrm(ii,kk,:,:));
-            if strcmp(inputStruct.TimeFreqData.stat(stat).method,'ttest_cluster');
-                [tempFreq, tempTime] = find(~isnan(squeeze(inputStruct.TimeFreqData.stat(stat).hMaskCorr(1,:,:))));
-                cfg.xlim = inputStruct.TimeFreqData.time([min(tempTime) max(tempTime)]);
+if nargin > 2  && ~isempty(stat)% stat view
+    if ~isnumeric(stat) || stat < 0
+        warning('Stat mask not appearing');
+    else
+        for ii=1:size(inputStruct.TimeFreqData.powspctrm,1)
+            for kk = 1:size(inputStruct.TimeFreqData.powspctrm,2)
+                inputStruct.TimeFreqData.powspctrm(ii,kk,:,:) = squeeze(inputStruct.TimeFreqData.stat(stat).hMaskCorr(kk,:,:)) .* squeeze(inputStruct.TimeFreqData.powspctrm(ii,kk,:,:));
+                if strcmp(inputStruct.TimeFreqData.stat(stat).method,'ttest_cluster');
+                    [tempFreq, tempTime] = find(~isnan(squeeze(inputStruct.TimeFreqData.stat(stat).hMaskCorr(1,:,:))));
+                    cfg.xlim = inputStruct.TimeFreqData.time([min(tempTime) max(tempTime)]);
+                end
+                if isnumeric(cfg.ylim)
+                    firstFreqIndex = nearest(inputStruct.TimeFreqData.freq, cfg.ylim(1));
+                    lastFreqIndex = nearest(inputStruct.TimeFreqData.freq, cfg.ylim(2));
+                else % 'maxmin' freqband
+                    firstFreqIndex = 1;
+                    lastFreqIndex = length(inputStruct.TimeFreqData.freq);
+                end
+                if all(all(inputStruct.TimeFreqData.powspctrm(ii,kk,:,firstFreqIndex:lastFreqIndex)==0))
+                    inputStruct.TimeFreqData.powspctrm(ii,kk,firstFreqIndex,1) = 1; % avoid all zero values for future visualization
+                end
             end
         end
     end
 end
 
+
 %% plots
-% figure;
+figure;
 for ii = 1:length(inputStruct.TimeFreqData.label)
     tempLegend = {};
     cfg.channel = inputStruct.TimeFreqData.label(ii);
