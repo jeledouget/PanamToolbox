@@ -3,16 +3,8 @@ function panam_coherenceVisu( inputStruct )
 
 coh = inputStruct.coherence;
 n  = size(coh.labelcmb,1);
-if n < 10
-    nH = 3;
-    nV = 3;
-elseif n < 17
-    nH = 4
-    nV = 4;
-else
-    nH = 5;
-    nV = 5;
-end
+nH = ceil(sqrt(n));
+nV = ceil(n/nH);
 
 m = max(max(coh.cohspctrm));
 

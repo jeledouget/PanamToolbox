@@ -23,7 +23,6 @@ for i=1:length(inputStruct.Trials)
     data.trial{i} = inputStruct.Trials(i).PreProcessed.Data;
     data.time{i} = inputStruct.Trials(i).PreProcessed.Time;
     trialName{i} = inputStruct.Trials(i).PreProcessed.TrialName;
-    trialNum(i) = inputStruct.Trials(i).PreProcessed.TrialNum;
 end
 freqfourier    = ft_freqanalysis(cfg, data);
 
@@ -31,7 +30,7 @@ freqfourier    = ft_freqanalysis(cfg, data);
 
 cfg            = [];
 cfg.method     = 'coh';
-cfg.channelcmb = {'C*D' 'C*G'};
+cfg.channelcmb = {'C*D' 'C*G'; 'C*D' 'R*'; 'C*D' 'L*'; 'C*G' 'R*'; 'C*G' 'L*'; };
 fdfourier      = ft_connectivityanalysis(cfg, freqfourier);
 
 
