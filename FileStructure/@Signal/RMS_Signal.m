@@ -1,3 +1,4 @@
+% Method for class 'Signal'
 % RMS_Signal: compute the Root Mean Square of the Signal over a defined Time Window
 % around each time point. Default window is 1s
 % NaNs are affected when the RMS can't be computed (not enough points on

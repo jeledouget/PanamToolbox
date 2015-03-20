@@ -1,3 +1,4 @@
+% Method for class 'Signal'
 % Mean removal of a 'Signal' object
 % INPUTS   
 % OUTPUT

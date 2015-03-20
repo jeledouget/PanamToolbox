@@ -1,3 +1,4 @@
+% Method for class 'Signal_EMG'
 % TKEOprocess : TKEO processing of 'Signal_EMG'  object
 % cf TKEO method for overloaded 'Signal' object
 % INPUTS

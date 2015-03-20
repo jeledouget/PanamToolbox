@@ -1,3 +1,4 @@
+% Method for class 'Signal'
 % High-pass filtering of a 'Signal' object
 % A Butterworth filter is applied 
 % The user has handle over cutoff frequency and filter order

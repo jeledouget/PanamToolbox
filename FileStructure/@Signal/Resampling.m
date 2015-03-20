@@ -1,3 +1,4 @@
+% Method for class 'Signal'
 % Resample a 'Signal' object to a specified sampling frequency
 % INPUTS
     % newFreq : new sampling frequency

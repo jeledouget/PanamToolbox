@@ -1,3 +1,4 @@
+% Method for class 'Signal'
 % Band-pass filtering of a 'Signal' object
 % A Butterworth filter is applied 
 % The user has handle over cutoff frequency and filter order
@@ -23,6 +24,7 @@ end
 
 % copy of the object
 bpFilteredSignal = self;
+self.Fech = 1000;
 
 % band-pass each channel
 for j = 1 : size(self.Data,1)

@@ -1,3 +1,4 @@
+% Method for class 'Signal'
 %  TimeWindow : restrain the time course of the 'Signal' object to the
 %  period between 'minTime' and 'maxTime'
 % INPUTS

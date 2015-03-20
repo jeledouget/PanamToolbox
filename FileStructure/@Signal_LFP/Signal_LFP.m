@@ -9,16 +9,8 @@ classdef Signal_LFP < Signal
             sLFP@Signal(data, fech, varargin)
         end
         
-        % data preProcessing
-        function preProcessedLFP = PreProcessingLFP(thisObj,band)
-            temp = thisObj.MeanRemoval;
-            if nargin < 2
-                temp = temp.BandPassFilter(2,200,4);
-            else
-                temp = temp.BandPassFilter(band(1),band(2),4);
-            end
-            preProcessedLFP = temp.NotchFilter(2,4);
-            preProcessedLFP.Description{end+1} = 'PreProcessed';
-        end
+        % other methods
+       preProcessedLFP = PreProcessingLFP(thisObj,band)
+       
     end
 end

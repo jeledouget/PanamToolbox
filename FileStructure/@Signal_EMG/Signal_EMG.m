@@ -19,7 +19,8 @@ classdef Signal_EMG < Signal
         end
         
         % other methods
-        newSignal = TKEOprocess(thisSignal);
+        newSignal = TKEOprocess(thisSignal)
             
     end
+    
 end

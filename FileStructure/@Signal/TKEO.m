@@ -1,3 +1,4 @@
+% Method for class 'Signal'
 % Compute TKEO of a 'Signal' object
 % cf : Teager?Kaiser energy operator signal conditioning improves EMG onset detection (Solnik et al., 2010)
 % INPUTS
