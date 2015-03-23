@@ -1,4 +1,4 @@
-classdef Signal_EMG < Signal
+classdef Signal_EMG < SampledSignal
     
     %SIGNAL Summary of this class goes here
     %

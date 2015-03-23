@@ -1,22 +1,27 @@
 % Method for class 'Signal'
 % Mean removal of a 'Signal' object
-% INPUTS   
+% INPUTS
+    % dim : key to the dimension along which mean remval is performed (ex :
+    % time)
 % OUTPUT
     % zeroMeanSignal : 'Signal' object with removed mean
 
 
 
-function zeroMeanSignal = MeanRemoval(self)
+function zeroMeanSignal = MeanRemoval(self,dim)
 
 % copy of the object
 zeroMeanSignal = self;
 
 % mean removal
-zeroMeanSignal.Data = self.Data - nanmean(self.Data,2)*ones(1,length(self.Data));
+dimIndex = find(strcmpi(self.DimOrder, dim));
+reps = ones(1,length(self.DimOrder));
+reps(dimIndex) = size(self.Data,dimIndex);
+zeroMeanSignal.Data = self.Data - repmat(nanmean(self.Data,dimIndex),reps);
 
 % history
 zeroMeanSignal.History{end+1,1} = datestr(clock);
 zeroMeanSignal.History{end,2} = ...
-        'Mean Removal of the signal';
+        ['Mean Removal of the signalof dim' dim];
 
 end

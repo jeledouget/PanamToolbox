@@ -1,4 +1,4 @@
-classdef Signal_LFP < Signal
+classdef Signal_LFP < SampledSignal
     
     %SIGNAL_LFP Class for LFP Signal
     
