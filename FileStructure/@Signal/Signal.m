@@ -55,7 +55,12 @@ classdef Signal
             self.Data = data;
         end
         
-        % other methods  
+        % get dimension index in data
+        function index = DimIndex(self, dim)
+            index = find(strcmpi(self.DimOrder,dim));
+        end
+        
+        % other methods : choose dimension
         zeroMeanSignal = MeanRemoval(self,dim)
         
 

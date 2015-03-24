@@ -14,7 +14,7 @@ function zeroMeanSignal = MeanRemoval(self,dim)
 zeroMeanSignal = self;
 
 % mean removal
-dimIndex = find(strcmpi(self.DimOrder, dim));
+dimIndex = self.DimIndex(dim);
 reps = ones(1,length(self.DimOrder));
 reps(dimIndex) = size(self.Data,dimIndex);
 zeroMeanSignal.Data = self.Data - repmat(nanmean(self.Data,dimIndex),reps);

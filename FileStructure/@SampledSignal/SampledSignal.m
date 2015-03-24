@@ -36,7 +36,6 @@ classdef SampledSignal < TimeSignal
         bpFilteredSignal = BandPassFilter(self, cutoffLow, cutoffHigh, order)
         TKEOSignal = TKEO(self)
         resampledSignal = Resampling(self, newFreq)
-        timeWindowedSignal = TimeWindow(thisObj, minTime, maxTime)
         RmsSignal = RMS_Signal(self, timeWindow)
 
         

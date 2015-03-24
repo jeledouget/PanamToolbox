@@ -31,14 +31,7 @@ classdef TimeSignal < Signal
         end
         
         % other methods
-        lpFilteredSignal = LowPassFilter(self, cutoff, order)
-        hpFilteredSignal = HighPassFilter(self, cutoff, order)
-        notchedSignal = NotchFilter(self, width, order)
-        bpFilteredSignal = BandPassFilter(self, cutoffLow, cutoffHigh, order)
-        TKEOSignal = TKEO(self)
-        resampledSignal = Resampling(self, newFreq)
         timeWindowedSignal = TimeWindow(thisObj, minTime, maxTime)
-        RmsSignal = RMS_Signal(self, timeWindow)
         
     end
 end

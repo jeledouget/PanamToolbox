@@ -5,12 +5,27 @@ classdef SignalEvents
     
     properties
         Time;
-        SupplInfo@containers.Map
+        EventName@char;
+        SupplInfo@containers.Map;
     end
     
     
     
     methods
+        
+        % constructor
+        function self = SignalEvents(time, eventname, supplinfo)
+            self.SupplInfo = containers.Map;
+            if nargin > 2
+                self.SupplInfo = supplinfo;
+            end
+            if nargin > 1 && ~isempty(eventname)
+                self.EventName = eventname;
+            end
+            if nargin > 0 && ~isempty(time)
+                self.Time = time;
+            end
+        end
         
         % set time
         function self = set.Time(self, time)
