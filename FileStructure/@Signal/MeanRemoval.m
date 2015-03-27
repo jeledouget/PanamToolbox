@@ -13,15 +13,19 @@ function zeroMeanSignal = MeanRemoval(self,dim)
 % copy of the object
 zeroMeanSignal = self;
 
+% handle dimensions
+if ischar(dim)
+    dim = self.DimIndex(dim);
+end
+
 % mean removal
-dimIndex = self.DimIndex(dim);
 reps = ones(1,length(self.DimOrder));
-reps(dimIndex) = size(self.Data,dimIndex);
-zeroMeanSignal.Data = self.Data - repmat(nanmean(self.Data,dimIndex),reps);
+reps(dim) = size(self.Data,dim);
+zeroMeanSignal.Data = self.Data - repmat(nanmean(self.Data,dim),reps);
 
 % history
 zeroMeanSignal.History{end+1,1} = datestr(clock);
 zeroMeanSignal.History{end,2} = ...
-        ['Mean Removal of the signalof dim' dim];
+        ['Mean Removal of the signal, for dim ''' self.DimOrder(dim) ''''];
 
 end

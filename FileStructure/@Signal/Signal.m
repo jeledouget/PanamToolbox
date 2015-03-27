@@ -1,48 +1,44 @@
 classdef Signal
     
     %SIGNAL Class for signal objects
-    % A signal has a Data component and Dimensions information
     %
-    %Data = data of the signal (numeric matrix)
-    %Dimensions = dimensions of the Data property (containers.Map, ie 'time' key and Time vecotr for value);
-    %Infos = description of the signal (1 x 1 containers.Map) : includes TrialName, TrialNumber, Units, etc.;
-    %History = history of operations applied on the object (n x 2 string cells)
+    %Properties : 
+    %Data = numeric matrix with values of the signal
+    %DimOrder = cell of strings with dimensions of the signal values (eg. {'time','channels'}) 
+    %Infos = information about the signal (1 x 1 containers.Map) : can include TrialName, TrialNumber, Units, etc.;
+    %History = history of operations on the Signal instance (n x 2 string cells)
+    
     
     %% properties
+    
     properties
-        Data; % see set method for requirements
-        Dimensions@containers.Map; % 'time' time samples, 'freq' freq samples etc.
-        DimOrder@cell vector;
-        Infos@containers.Map;
-        History@cell matrix;
+        Data; % numeric matrix with values of the signal; see set.Data        
+        DimOrder@cell vector; % cell of strings with dimensions of the signal values (eg. {'time','channels'}) 
+        Infos@containers.Map = containers.Map; % information about the signal (1 x 1 containers.Map) : can include TrialName, TrialNumber, Units, etc.;
+        History@cell matrix; % history of operations on the Signal instance (n x 2 string cells)
     end
+    
     
     %% methods
     
     methods
         
         % constructor
-        function self = Signal(data, varargin)
-            % varargin format : (...,'PropertyName', 'PropertyValue',...)
-            self.Data = data;
+        function self = Signal(varargin)
             self.History{end+1,1} = datestr(clock);
-            self.History{end,2} = 'Creation of the Signal structure';
-            if nargin >= 2 && ~isempty(varargin{1})
-                if mod(length(varargin{1}),2)==0
-                    for i_argin = 1 : 2 : length(varargin{1})
-                        switch lower(varargin{1}{i_argin})
-                            case 'dimensions'
-                                self.Dimensions = varargin{1}{i_argin + 1};
-                            case 'dimorder'
-                                self.DimOrder = varargin{1}{i_argin + 1};
-                            case 'infos'
-                                self.Infos = varargin{1}{i_argin + 1};
-                            otherwise
-                                error(['Propriete ' varargin{1}{i_argin} 'inexistante dans la classe'])
-                        end
+            self.History{end,2} = 'Calling Signal constructor';
+            if nargin > 1
+                for i_argin = 1 : 2 : length(varargin)
+                    switch lower(varargin{i_argin})
+                        case 'data'
+                            self.Data = varargin{i_argin + 1};
+                        case 'infos'
+                            self.Infos = varargin{i_argin + 1};
+                        case 'dimorder'
+                            self.DimOrder = varargin{i_argin + 1};
+                        otherwise
+                            warning(['Property ''' varargin{i_argin} ''' is not part of the constructor for TimeSignal']);
                     end
-                else
-                    error('Nombre impair d''arguments supplementaires')
                 end
             end
         end
@@ -55,15 +51,16 @@ classdef Signal
             self.Data = data;
         end
         
-        % get dimension index in data
-        function index = DimIndex(self, dim)
-            index = find(strcmpi(self.DimOrder,dim));
+        % dim index
+        function dimIndex = DimIndex(self, dimString)
+            dimIndex = find(strcmpi(self.DimOrder, dimString));
+            if isempty(dimIndex)
+                error(['dimension ''' dimString ''' does not exist']);
+            end
         end
         
         % other methods : choose dimension
         zeroMeanSignal = MeanRemoval(self,dim)
-        
-
-        
+            
     end
 end

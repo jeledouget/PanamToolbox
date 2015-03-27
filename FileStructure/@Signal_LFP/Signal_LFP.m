@@ -5,8 +5,11 @@ classdef Signal_LFP < SampledSignal
     %% methods
     methods
         % constructor
-        function sLFP = Signal_LFP(data, fech, varargin)
-            sLFP@Signal(data, fech, varargin)
+        function sLFP = Signal_LFP(data, fs, varargin)
+            if nargin < 2 || isempty(fs)
+                fs = nan;
+            end
+            sLFP@SampledSignal(data, fs, varargin{:})
         end
         
         % other methods

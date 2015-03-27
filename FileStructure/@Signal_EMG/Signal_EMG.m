@@ -14,8 +14,11 @@ classdef Signal_EMG < SampledSignal
     methods
         
         % constructor
-        function sEMG = Signal_EMG(data, fech, varargin)
-            sEMG@Signal(data, fech, varargin)
+        function sEMG = Signal_EMG(data, fs, varargin)
+            if nargin < 2 || isempty(fs)
+                fs = nan;
+            end
+            sEMG@SampledSignal(data, fs, varargin{:})
         end
         
         % other methods

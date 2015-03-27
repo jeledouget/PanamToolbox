@@ -1,14 +1,14 @@
 classdef SampledSignal < TimeSignal
     
-    %SAMPLEDSIGNAL Class for time-sampled signal objects with regular time
-    %space
+    % SAMPLEDSIGNAL Class for time-sampled signal objects with regular time space
     %
-    % 
+    % Properties:
+    % Fs = sampling frequency (usually Hz)
 
     
     %% properties
     properties
-        Fs
+        Fs; % sampling frequency
     end
     
     %% methods
@@ -16,17 +16,23 @@ classdef SampledSignal < TimeSignal
     methods
         
         % constructor
-        function self = SampledSignal(data, fech, varargin)
-            self@TimeSignal(data,varargin);
-            self.Fech = fech;
+        function self = SampledSignal(data, fs, varargin)
+            self@TimeSignal(data,varargin{:});
+            self.Fs = fs;
+            checkTime(self);
         end
         
         % set methods
         function self = set.Fs(self, fs)
-            if ~isscalar(fech) || ~isnumeric(fech)
-                error('Fech property must be a numeric scalar');
+            if ~isscalar(fs) || ~isnumeric(fs)
+                error('Fs property must be a numeric scalar');
             end
             self.Fs = fs;
+        end
+        
+        % check time
+        function checkTime(self)
+            
         end
             
         % other methods

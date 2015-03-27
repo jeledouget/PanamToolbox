@@ -6,7 +6,7 @@ classdef SignalEvents
     properties
         Time;
         EventName@char;
-        SupplInfo@containers.Map;
+        SupplInfo@containers.Map = containers.Map;
     end
     
     
