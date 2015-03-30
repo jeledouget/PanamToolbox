@@ -2,9 +2,9 @@ classdef Signal
     
     %SIGNAL Class for signal objects
     %
-    %Properties : 
+    %Properties :
     %Data = numeric matrix with values of the signal
-    %DimOrder = cell of strings with dimensions of the signal values (eg. {'time','channels'}) 
+    %DimOrder = cell of strings with dimensions of the signal values (eg. {'time','channels'})
     %Infos = information about the signal (1 x 1 containers.Map) : can include TrialName, TrialNumber, Units, etc.;
     %History = history of operations on the Signal instance (n x 2 string cells)
     
@@ -12,8 +12,9 @@ classdef Signal
     %% properties
     
     properties
-        Data; % numeric matrix with values of the signal; see set.Data        
-        DimOrder@cell vector; % cell of strings with dimensions of the signal values (eg. {'time','channels'}) 
+        Data; % numeric matrix with values of the signal; see set.Data
+        ChannelTags; % ids for last dimension of data (usually channels, eg. {'C01D','C12D'})
+        DimOrder@cell vector; % cell of strings with dimensions of the signal values (eg. {'time','channels'})
         Infos@containers.Map = containers.Map; % information about the signal (1 x 1 containers.Map) : can include TrialName, TrialNumber, Units, etc.;
         History@cell matrix; % history of operations on the Signal instance (n x 2 string cells)
     end
@@ -25,21 +26,28 @@ classdef Signal
         
         % constructor
         function self = Signal(varargin)
-            self.History{end+1,1} = datestr(clock);
-            self.History{end,2} = 'Calling Signal constructor';
+            subclassFlag = 0;
             if nargin > 1
                 for i_argin = 1 : 2 : length(varargin)
                     switch lower(varargin{i_argin})
                         case 'data'
                             self.Data = varargin{i_argin + 1};
-                        case 'infos'
-                            self.Infos = varargin{i_argin + 1};
+                        case 'channeltags'
+                            self.ChannelTags = varargin{i_argin + 1};
                         case 'dimorder'
                             self.DimOrder = varargin{i_argin + 1};
+                        case 'infos'
+                            self.Infos = varargin{i_argin + 1};
+                        case 'subclassflag'
+                            subclassFlag = varargin{i_argin + 1};
                         otherwise
-                            warning(['Property ''' varargin{i_argin} ''' is not part of the constructor for TimeSignal']);
+                            warning(['Property ''' varargin{i_argin} ''' is not present in the Signal class or subclasses']);
                     end
                 end
+            end
+            if ~subclassFlag
+                self.History{end+1,1} = datestr(clock);
+                self.History{end,2} = 'Calling Signal constructor';
             end
         end
         
@@ -61,6 +69,6 @@ classdef Signal
         
         % other methods : choose dimension
         zeroMeanSignal = MeanRemoval(self,dim)
-            
+        
     end
 end

@@ -1,10 +1,11 @@
 classdef SampledSignal < TimeSignal
     
     % SAMPLEDSIGNAL Class for time-sampled signal objects with regular time space
+    % 1st Dimension of Data property is for time
     %
     % Properties:
     % Fs = sampling frequency (usually Hz)
-
+    
     
     %% properties
     properties
@@ -16,10 +17,29 @@ classdef SampledSignal < TimeSignal
     methods
         
         % constructor
-        function self = SampledSignal(data, fs, varargin)
-            self@TimeSignal(data,varargin{:});
+        function self = SampledSignal(data, varargin)
+            subclassFlag = 0;
+            indicesVarargin = []; % initiate vector for superclass constructor
+            fs = 1; % default value for Fs property
+            if nargin > 1
+                for i_argin = 1 : 2 : length(varargin)
+                    switch lower(varargin{i_argin})
+                        case 'fs'
+                            fs = varargin{i_argin + 1};
+                        case 'subclassflag'
+                            subclassFlag = varargin{i_argin + 1};
+                        otherwise
+                            indicesVarargin = [indicesVarargin i_argin i_argin+1];
+                    end
+                end
+            end
+            self@TimeSignal(data, varargin{indicesVarargin}, 'subclassflag', 1);
             self.Fs = fs;
-            checkTime(self);
+            if ~subclassFlag
+                self.History{end+1,1} = datestr(clock);
+                self.History{end,2} = 'Calling SampledSignal constructor';
+                checkDimensions(self);
+            end
         end
         
         % set methods
@@ -34,7 +54,7 @@ classdef SampledSignal < TimeSignal
         function checkTime(self)
             
         end
-            
+        
         % other methods
         lpFilteredSignal = LowPassFilter(self, cutoff, order)
         hpFilteredSignal = HighPassFilter(self, cutoff, order)
@@ -43,7 +63,7 @@ classdef SampledSignal < TimeSignal
         TKEOSignal = TKEO(self)
         resampledSignal = Resampling(self, newFreq)
         RmsSignal = RMS_Signal(self, timeWindow)
-
+        
         
     end
 end

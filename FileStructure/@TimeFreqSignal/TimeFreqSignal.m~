@@ -16,7 +16,6 @@ classdef TimeFreqSignal < TimeSignal
         
         % constructor
         function self = TimeFreqSignal(data, varargin)
-            subclassFlag = 0; % default : not called from  a subclass constructor
             indicesVarargin = []; % initiate vector for superclass constructor
             freq = 1:size(data,1); % default value for freq
             if nargin > 1
@@ -24,20 +23,17 @@ classdef TimeFreqSignal < TimeSignal
                     switch lower(varargin{i_argin})
                         case 'freq'
                             freq = varargin{i_argin + 1};
-                        case 'subclassflag'
-                            subclassFlag = varargin{i_argin + 1};
                         otherwise
                             indicesVarargin = [indicesVarargin i_argin i_argin+1];
                     end
                 end
             end
-            self@TimeSignal(data,varargin{indicesVarargin},'subclassFlag',1);
+            self@TimeSignal(data,varargin{indicesVarargin});            
+            if isempty(self.DimOrder) || , self.DimOrder = {'time','freq','chan'};end
             self.Freq = freq;
-            if ~subclassFlag % only if the constructor is not called from a subclass
-                self.History{end+1,1} = datestr(clock);
-                self.History{end,2} = 'Calling TimeFreqSignal constructor';
-                checkDimensions(self);
-            end
+            self.History{end+1,1} = datestr(clock);
+            self.History{end,2} = 'Calling TimeFreqSignal constructor';
+            checkDimensions(self);
         end
         
         % check instance

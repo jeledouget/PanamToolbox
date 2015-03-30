@@ -34,13 +34,13 @@ classdef FreqSignal < Signal
                 end
             end
             % call Signal constructor
-            self@Signal('data', data, varargin{indicesVarargin}, 'subclassFlag', 1);
+            self@Signal('data',data,varargin{indicesVarargin});
             self.Freq = freq;
             if ~subclassFlag
-                self.History{end+1,1} = datestr(clock);
-                self.History{end,2} = 'Calling FreqSignal constructor';
-                checkDimensions(self);
-            end
+            self.History{end+1,1} = datestr(clock);
+            self.History{end,2} = 'Calling FreqSignal constructor';
+            checkDimensions(self);
+            
         end
         
         % set freq

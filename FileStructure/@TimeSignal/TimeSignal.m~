@@ -1,7 +1,6 @@
 classdef TimeSignal < Signal
     
     % TIMESIGNAL Class for signal with time dimension
-    % 1st Dimension of Data property is for time
     %
     % Properties:
     % Events = container in which keys are events id (triggers, etc.) and values are instances of SignalEvents array
@@ -22,7 +21,6 @@ classdef TimeSignal < Signal
         
         % constructor
         function self = TimeSignal(data, varargin)
-            subclassFlag = 0;
             indicesVarargin = []; % initiate vector for superclass constructor
             time = 0:size(data,1)-1; % default value for time
             events = containers.Map;
@@ -33,22 +31,16 @@ classdef TimeSignal < Signal
                             time = varargin{i_argin + 1};
                         case 'events'
                             events = varargin{i_argin + 1};
-                        case 'subclassflag'
-                            subclassFlag = varargin{i_argin + 1};
                         otherwise
                             indicesVarargin = [indicesVarargin i_argin i_argin+1];
                     end
                 end
             end                
-            self@Signal('data', data, varargin{indicesVarargin}, 'subclassFlag', 1);
-            if isempty(self.DimOrder), self.DimOrder = {'time','chan'};end
+            self@Signal('data',data,varargin{indicesVarargin});
             self.Time = time;
             self.Events = events;
-            if ~subclassFlag
-                self.History{end+1,1} = datestr(clock);
-                self.History{end,2} = 'Calling TimeSignal constructor';
-                self.checkDimensions;
-            end
+            self.History{end+1,1} = datestr(clock);
+            self.History{end,2} = 'Calling TimeSignal constructor';
         end
         
         % set time

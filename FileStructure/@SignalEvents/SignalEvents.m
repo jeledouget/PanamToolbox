@@ -41,7 +41,5 @@ classdef SignalEvents
     end
     
     
-    
-    
 end
 
