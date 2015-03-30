@@ -49,7 +49,7 @@ classdef Signal
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling Signal constructor';
                 self.setDefaults;
-                self.checkInstance;
+                
             end
         end
         
@@ -59,16 +59,6 @@ classdef Signal
                 error('Data property must be a numeric matrix');
             end
             self.Data = data;
-        end
-        
-        % set default values
-        function self = setDefaults(self);
-            
-        end
-        
-        % check instance properties
-        function checkInstance(self)
-            
         end
         
         % dim index

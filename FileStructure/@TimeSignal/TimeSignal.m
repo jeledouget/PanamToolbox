@@ -47,8 +47,19 @@ classdef TimeSignal < Signal
             if ~subclassFlag
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling TimeSignal constructor';
-                self.checkDimensions;
+                self.setDefaults;
+                self.checkInstance;
             end
+        end
+        
+        % set default values
+        function self = setDefaults(self)
+            
+        end
+        
+        % check instance properties
+        function checkInstance(self)
+            
         end
         
         % set time

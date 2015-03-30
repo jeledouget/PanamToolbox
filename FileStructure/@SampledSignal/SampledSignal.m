@@ -38,8 +38,19 @@ classdef SampledSignal < TimeSignal
             if ~subclassFlag
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling SampledSignal constructor';
-                checkDimensions(self);
+                self.setDefaults;
+                self.checkInstance;
             end
+        end
+        
+        % set default values
+        function self = setDefaults(self)
+            
+        end
+        
+        % check instance properties
+        function checkInstance(self)
+            
         end
         
         % set methods

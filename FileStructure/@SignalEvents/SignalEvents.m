@@ -25,6 +25,8 @@ classdef SignalEvents
             if nargin > 0 && ~isempty(time)
                 self.Time = time;
             end
+            self.setDefaults;
+            self.checkInstance;
         end
         
         % set time

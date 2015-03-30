@@ -36,8 +36,19 @@ classdef TimeFreqSignal < TimeSignal
             if ~subclassFlag % only if the constructor is not called from a subclass
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling TimeFreqSignal constructor';
-                checkDimensions(self);
+                self.setDefaults;
+                self.checkInstance;
             end
+        end
+        
+        % set default values
+        function self = setDefaults(self)
+            
+        end
+        
+        % check instance properties
+        function checkInstance(self)
+            
         end
         
         % check instance
