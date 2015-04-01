@@ -9,18 +9,21 @@ classdef TimeSignal < Signal
     
     
     
-    
     %% properties
+    
     properties
         Events@containers.Map = containers.Map; % container in which keys are events id (triggers, etc.) and values are instances of SignalEvents array
         Time; % numeric vector for time samples
     end
     
+    
+    
     %% methods
     
     methods
         
-        % constructor
+        %% constructor
+        
         function self = TimeSignal(data, varargin)
             subclassFlag = 0;
             indicesVarargin = []; % initiate vector for superclass constructor
@@ -52,6 +55,9 @@ classdef TimeSignal < Signal
             end
         end
         
+        
+        %% set, get and check methods
+        
         % set default values
         function self = setDefaults(self)
             
@@ -70,8 +76,14 @@ classdef TimeSignal < Signal
             self.Time = time;
         end
         
-        % other methods
+        
+        %% other methods
+        
+
+        %% external methods
+        
         timeWindowedSignal = TimeWindow(thisObj, minTime, maxTime)
+        
         
     end
 end

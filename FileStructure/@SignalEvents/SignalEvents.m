@@ -1,33 +1,49 @@
 classdef SignalEvents
-    %SIGNALEVENTS class defines a set of events for a trial or a set of trials
+    
+    %SIGNALEVENTS : defines a set of events with a common name
+    %
+    % Properties:
+    % Time = time vector - start time of the Events
+    % EventName = event id
+    % SupplInfo = containers.Map including optional information for the Event
     
     
+    
+    %% properties
     
     properties
-        Time;
-        EventName@char;
-        SupplInfo@containers.Map = containers.Map;
+        Time = 0; % time vector - start times of the events
+        Duration = 0; % duration of events
+        EventName@char = 'DefaultEvent'; % event id
+        SupplInfo@containers.Map = containers.Map; % include optional information for the Event
     end
     
     
     
+    %% methods
+    
     methods
         
-        % constructor
-        function self = SignalEvents(time, eventname, supplinfo)
-            self.SupplInfo = containers.Map;
-            if nargin > 2
+        %% constructor
+        
+        function self = SignalEvents(eventname, time, duration, supplinfo)
+            if nargin > 3
                 self.SupplInfo = supplinfo;
             end
-            if nargin > 1 && ~isempty(eventname)
-                self.EventName = eventname;
+            if nargin > 2 && ~isempty(duration)
+                self.Duration = duration;
             end
-            if nargin > 0 && ~isempty(time)
+            if nargin > 1 && ~isempty(time)
                 self.Time = time;
             end
-            self.setDefaults;
-            self.checkInstance;
+            if nargin > 0 && ~isempty(eventname)
+                self.EventName = eventname;
+            end
+%             self.checkInstance;
         end
+        
+        
+        %% set, get and check methods
         
         % set time
         function self = set.Time(self, time)
@@ -38,8 +54,26 @@ classdef SignalEvents
             end
         end
         
+        % set duration
+        function self = set.Duration(self, duration)
+            if isnumeric(duration) && isvector(duration)
+                self.Duration = duration;
+            else
+                error('duration must be a numeric vector');
+            end
+        end
+        
+        
+        %% other methods
+        
+        
+        %% external methods
+        
         % to do
+        checkInstance(self);
         event = offsetTime(self, offset);
+        
+        
     end
     
     

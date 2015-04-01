@@ -5,16 +5,21 @@ classdef TimeFreqSignal < TimeSignal
     % 2nd Dimension of Data property id for freq
     
     
+    
     %% properties
+    
     properties
         Freq; % numeric vector for frequency samples, or cell array (eg. {'alpha','beta'})
     end
+    
+    
     
     %% methods
     
     methods
         
-        % constructor
+        %% constructor
+        
         function self = TimeFreqSignal(data, varargin)
             subclassFlag = 0; % default : not called from  a subclass constructor
             indicesVarargin = []; % initiate vector for superclass constructor
@@ -41,6 +46,9 @@ classdef TimeFreqSignal < TimeSignal
             end
         end
         
+        
+        %% set, get and check methods
+        
         % set default values
         function self = setDefaults(self)
             
@@ -57,6 +65,13 @@ classdef TimeFreqSignal < TimeSignal
                 error('1st dimension of data property must represent time');
             end
         end
+        
+        
+        %% other methods
+        
+        
+        %% external methods
+        
         
     end
 end

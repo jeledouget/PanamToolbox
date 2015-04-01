@@ -1,0 +1,58 @@
+classdef SignalEvents
+    
+    %SIGNALEVENTS : defines a set of events with a common name
+    %
+    % Properties:
+    % Time = time vector - start time of the Events
+    % EventName = event id
+    % SupplInfo = containers.Map including optional information for the Event
+    
+    
+    
+    %% properties
+    
+    properties
+        Time; % time vector - start times of the Events
+        Duration;
+        EventName@char;
+        SupplInfo@containers.Map = containers.Map;
+    end
+    
+    
+    
+    %% methods
+    
+    methods
+        
+        % constructor
+        function self = SignalEvents(time, eventname, supplinfo)
+            self.SupplInfo = containers.Map;
+            if nargin > 2
+                self.SupplInfo = supplinfo;
+            end
+            if nargin > 1 && ~isempty(eventname)
+                self.EventName = eventname;
+            end
+            if nargin > 0 && ~isempty(time)
+                self.Time = time;
+            end
+            self.setDefaults;
+            self.checkInstance;
+        end
+        
+        % set time
+        function self = set.Time(self, time)
+            if isnumeric(time) && isvector(time)
+                self.Time = time;
+            else
+                error('time must be a numeric vector');
+            end
+        end
+        
+        % to do
+        event = offsetTime(self, offset);
+    end
+    
+    
+end
+

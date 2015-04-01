@@ -7,16 +7,21 @@ classdef SampledSignal < TimeSignal
     % Fs = sampling frequency (usually Hz)
     
     
+    
     %% properties
+    
     properties
         Fs; % sampling frequency
     end
+    
+    
     
     %% methods
     
     methods
         
-        % constructor
+        %% constructor
+        
         function self = SampledSignal(data, varargin)
             subclassFlag = 0;
             indicesVarargin = []; % initiate vector for superclass constructor
@@ -43,6 +48,9 @@ classdef SampledSignal < TimeSignal
             end
         end
         
+        
+        %% set, get and check methods
+        
         % set default values
         function self = setDefaults(self)
             
@@ -66,7 +74,12 @@ classdef SampledSignal < TimeSignal
             
         end
         
-        % other methods
+        
+        %% other methods
+        
+        
+        %% external methods
+        
         lpFilteredSignal = LowPassFilter(self, cutoff, order)
         hpFilteredSignal = HighPassFilter(self, cutoff, order)
         notchedSignal = NotchFilter(self, width, order)

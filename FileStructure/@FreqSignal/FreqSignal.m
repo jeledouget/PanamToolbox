@@ -7,16 +7,21 @@ classdef FreqSignal < Signal
     % Freq = numeric vector for frequency samples
 
     
+    
     %% properties
+    
     properties
         Freq; % numeric vector for frequency samples
     end
+    
+    
     
     %% methods
     
     methods
         
-        % constructor
+        %% constructor
+        
         function self = FreqSignal(data, varargin)
             subclassFlag = 0;
             indicesVarargin = []; % initiate vector for superclass constructor
@@ -44,6 +49,9 @@ classdef FreqSignal < Signal
             end
         end
         
+        
+        %% set, get and check methods
+        
         % set default values
         function self = setDefaults(self)
             
@@ -61,6 +69,13 @@ classdef FreqSignal < Signal
             end
             self.Freq = freq;
         end
+        
+        
+        %% other methods
+        
+        
+        %% external methods
+        
         
     end
 end
