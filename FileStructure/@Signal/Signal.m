@@ -14,10 +14,14 @@ classdef Signal
     
     properties
         Data; % numeric matrix with values of the signal; see set.Data
-        ChannelTags@cell vector; % ids for last dimension of data (usually channels, eg. {'C01D','C12D'})
-        DimOrder@cell vector; % cell of strings with dimensions of the signal values (eg. {'time','channels'})
+        ChannelTags@cell vector = {}; % ids for last dimension of data (usually channels, eg. {'C01D','C12D'})
+        DimOrder@cell vector = {}; % cell of strings with dimensions of the signal values (eg. {'time','channels'})
         Infos@containers.Map = containers.Map; % information about the signal (1 x 1 containers.Map) : can include TrialName, TrialNumber, Units, etc.;
         History@cell matrix; % history of operations on the Signal instance (n x 2 string cells)
+    end
+    
+    properties(Hidden)
+        Temp; % store temporary information
     end
     
     
@@ -51,7 +55,7 @@ classdef Signal
             if ~subclassFlag
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling Signal constructor';
-                self.setDefaults;
+                self = self.setDefaults;
                 self.checkInstance;
             end
         end
@@ -59,6 +63,7 @@ classdef Signal
         
         %% set, get and check methods
         
+        % set data
         function self = set.Data(self, data)
             if ~isnumeric(data)
                 error('Data property must be a numeric matrix');
@@ -68,11 +73,28 @@ classdef Signal
         
         % set default values
         function self = setDefaults(self)
-            self.setDefaultData;
-            self.setDefaultChannelTags;
-            self.setDefaultDimOrder;
+            self = self.setDefaultChannelTags;
+            self = self.setDefaultDimOrder;
         end
         
+        % set default ChannelTags property
+        function self = setDefaultChannelTags(self)
+            if isempty(self.ChannelTags)
+                s = size(self.Data);
+                nChannels = s(end);
+                self.ChannelTags = arrayfun(@(x) ['chan' num2str(x)],1:nChannels,'UniformOutput',0);
+            end
+        end
+        
+        % set default DimOrder property
+        function self = setDefaultDimOrder(self)
+            if isempty(self.DimOrder)
+                nDims = ndims(self.Data);
+                self.DimOrder(1:nDims-1) = arrayfun(@(x) ['dim' num2str(x)],1:nDims-1,'UniformOutput',0);
+                self.DimOrder{nDims} = 'chan';
+            end
+        end
+                
         % check instance properties
         function checkInstance(self)
             self.checkData;
@@ -80,21 +102,47 @@ classdef Signal
             self.checkDimOrder;
         end
         
+        % check Data property
+        function checkData(self)
+            if isempty(self.Data)
+                error('Data property is empty: cannot instantiate Signal');
+            end
+        end
+        
+        % check ChannelTags property
+        function checkChannelTags(self)
+            if size(self.ChannelTags,2) ~= size(self.Data, ndims(self.Data))
+                error('the number of channels in ChannelTags property does not correspond to the last dimension in Data property');
+            end
+        end
+        
+        % check DimOrder property
+        function checkDimOrder(self)
+            if size(self.DimOrder,2) ~= ndims(self.Data)
+                error('the number of dimensions in DimOrder property does not correspond to the number of dimensions in Data property');
+            end
+        end
+        
         
         %% other methods
         
         % dim index
-        function dimIndex = DimIndex(self, dimString)
+        function dimIndex = dimIndex(self, dimString)
             dimIndex = find(strcmpi(self.DimOrder, dimString));
             if isempty(dimIndex)
                 error(['dimension ''' dimString ''' does not exist']);
             end
         end
         
+        % clear hidden Temp property
+        function self = clearTemp(self)
+            self.Temp = [];
+        end
+        
         
         %% external methods
         
-        zeroMeanSignal = MeanRemoval(self,dim)
+        zeroMeanSignal = meanRemoval(self,dim)
         
         
     end

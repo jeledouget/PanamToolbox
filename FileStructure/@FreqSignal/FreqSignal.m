@@ -22,15 +22,15 @@ classdef FreqSignal < Signal
         
         %% constructor
         
-        function self = FreqSignal(data, varargin)
+        function self = FreqSignal(varargin)
             subclassFlag = 0;
             indicesVarargin = []; % initiate vector for superclass constructor
-            freq = 1:size(data,1); % default value for freq
+            indFreq = [];
             if nargin > 1
                 for i_argin = 1 : 2 : length(varargin)
                     switch lower(varargin{i_argin})
                         case 'freq'
-                            freq = varargin{i_argin + 1};
+                            indFreq = i_argin + 1;
                         case 'subclassflag'
                             subclassFlag = varargin{i_argin + 1};
                         otherwise
@@ -39,12 +39,12 @@ classdef FreqSignal < Signal
                 end
             end
             % call Signal constructor
-            self@Signal('data', data, varargin{indicesVarargin}, 'subclassFlag', 1);
-            self.Freq = freq;
+            self@Signal(varargin{indicesVarargin}, 'subclassFlag', 1);
+            if ~isempty(indFreq), self.Freq = varargin{indFreq};end
             if ~subclassFlag
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling FreqSignal constructor';
-                self.setDefaults;
+                self = self.setDefaults;
                 self.checkInstance;
             end
         end
@@ -52,22 +52,63 @@ classdef FreqSignal < Signal
         
         %% set, get and check methods
         
-        % set default values
-        function self = setDefaults(self)
-            
-        end
-        
-        % check instance properties
-        function checkInstance(self)
-            
-        end
-        
         % set freq
         function self = set.Freq(self, freq)
             if ~isnumeric(freq) || ~isvector(freq)
                 error('''Freq'' property must be set as a numeric vector');
             end
             self.Freq = freq;
+        end
+        
+        % set default values
+        function self = setDefaults(self)
+            self = self.setDefaultChannelTags;
+            self = self.setDefaultDimOrder;
+            self = self.setDefaultFreq;
+        end
+        
+        % set default DimOrder property
+        function self = setDefaultDimOrder(self)
+            if isempty(self.DimOrder)
+                nDims = ndims(self.Data);
+                self.DimOrder{1} = 'freq';
+                self.DimOrder(2:nDims-1) = arrayfun(@(x) ['dim' num2str(x)],2:nDims-1,'UniformOutput',0); % for optional supplementary dimensions but not advised. Create a subclass if nDims > 2 is necessary
+                self.DimOrder{nDims} = 'chan';
+            end
+        end
+        
+        % set default Freq property
+        function self = setDefaultFreq(self)
+            if isempty(self.Freq)
+                nSamplesFreq = size(self.Data, 1);
+                self.Freq = 0:nSamplesFreq-1;
+                warning('Freq property has been set at default value, ie. 0:nSamples-1');
+            end
+        end
+        
+        % check instance properties
+        function checkInstance(self)
+            self.checkData;
+            self.checkChannelTags;
+            self.checkDimOrder;
+            self.checkFreq;
+        end
+        
+        % check DimOrder property
+        function checkDimOrder(self)
+            if size(self.DimOrder,2) ~= ndims(self.Data)
+                error('the number of dimensions in DimOrder property does not correspond to the number of dimensions in Data property');
+            end
+            if ~strcmpi(self.DimOrder{1},'freq') || ~strcmpi(self.DimOrder{end},'chan')
+                error('1st dimension in DimOrder property must be ''freq'' and last must be ''chan''');
+            end
+        end
+        
+        % check Freq property
+        function checkFreq(self)
+            if size(self.Freq, 2) ~= size(self.Data, self.dimIndex('freq'))
+                error('Freq property and first dimension of Data property should be the same length');
+            end
         end
         
         

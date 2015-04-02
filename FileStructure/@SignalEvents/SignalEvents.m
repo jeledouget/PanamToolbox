@@ -39,13 +39,12 @@ classdef SignalEvents
             if nargin > 0 && ~isempty(eventname)
                 self.EventName = eventname;
             end
-%             self.checkInstance;
         end
         
         
         %% set, get and check methods
         
-        % set time
+        % set Time property
         function self = set.Time(self, time)
             if isnumeric(time) && isvector(time)
                 self.Time = time;
@@ -54,7 +53,7 @@ classdef SignalEvents
             end
         end
         
-        % set duration
+        % set Duration property
         function self = set.Duration(self, duration)
             if isnumeric(duration) && isvector(duration)
                 self.Duration = duration;
@@ -70,7 +69,6 @@ classdef SignalEvents
         %% external methods
         
         % to do
-        checkInstance(self);
         event = offsetTime(self, offset);
         
         
