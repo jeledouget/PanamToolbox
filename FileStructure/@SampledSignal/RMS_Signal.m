@@ -1,4 +1,4 @@
-% Method for class 'Signal'
+% Method for class 'SampledSignal'
 % RMS_Signal: compute the Root Mean Square of the Signal over a defined Time Window
 % around each time point. Default window is 1s
 % NaNs are affected when the RMS can't be computed (not enough points on
@@ -21,19 +21,21 @@ end
 RmsSignal = self;
 
 % compute RMS
-temp_data = RmsSignal.Data .^ 2; % square signal
-nSamplesHalf = round(timeWindow * RmsSignal.Fech / 2); % number of samples 
-for ii = 1:length(RmsSignal.Data)
-    if ii <= nSamplesHalf || ii >= size(temp_data,2) - nSamplesHalf
-        RmsSignal.Data(:,ii) = nan;
+squaredData = RmsSignal.Data .^ 2; % square signal
+nSamplesHalf = round(timeWindow * RmsSignal.Fs / 2); % number of samples
+dims = size(RmsSignal.Data);
+for ii = 1:size(RmsSignal.Data,1)
+    if ii <= nSamplesHalf || ii >= size(squaredData,1)-nSamplesHalf
+        RmsSignal.Data(ii,:) = nan;
     else
-        RmsSignal.Data(:,ii) = sqrt(mean(temp_data(:,ii-nSamplesHalf:ii+nSamplesHalf),2));
+        dataTemp = reshape(squaredData(ii-nSamplesHalf:ii+nSamplesHalf,:),[2*nSamplesHalf+1, dims(2:end)]);
+        RmsSignal.Data(ii,:) = reshape(sqrt(mean(dataTemp,1)), 1, []);
     end
 end
 
 % history
-zeroMeanSignal.History{end+1,1} = datestr(clock);
-zeroMeanSignal.History{end,2} = ...
+RmsSignal.History{end+1,1} = datestr(clock);
+RmsSignal.History{end,2} = ...
         ['Root Mean Square of the signal over a time window of ' num2str(timeWindow) 's'];
 
 end

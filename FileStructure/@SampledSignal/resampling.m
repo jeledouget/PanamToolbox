@@ -1,5 +1,5 @@
-% Method for class 'Signal'
-% Resample a 'Signal' object to a specified sampling frequency
+% Method for class 'SampledSignal'
+% Resample a 'SampledSignal' object to a specified sampling frequency
 % INPUTS
     % newFreq : new sampling frequency
 % OUTPUT
@@ -9,21 +9,29 @@
 
 function resampledSignal = resampling(self, newFreq)
 
+% dimensions of data
+dims = size(self.Data);
+
 % copy of the object
 resampledSignal = self;
 
 % get old Freq
-oldFreq = self.Fech;
+oldFreq = self.Fs;
 
 % compute resampling
-resampledSignal.Data = transpose(resample(self.Data',newFreq, oldFreq));
-resampledSignal.Time = self.Time(1)+ 1. / newFreq * (0:size(resampledSignal.Data,2)-1);
-resampledSignal.Fech = newFreq;
+data = resample(self.Data,newFreq, oldFreq);
+dims(1) = size(data,1);
+resampledSignal.Data = reshape(data, dims);
+resampledSignal.Time = self.Time(1)+ 1. / newFreq * (0:size(resampledSignal.Data,1)-1);
+resampledSignal.Fs = newFreq;
+
+% check
+resampledSignal.checkTime;
 
 % history
-zeroMeanSignal.History{end+1,1} = datestr(clock);
-zeroMeanSignal.History{end,2} = ...
-        ['Resampling : from ' num2str(oldFreq) ' to ' nul2str(newFreq)];
+resampledSignal.History{end+1,1} = datestr(clock);
+resampledSignal.History{end,2} = ...
+        ['Resampling : from ' num2str(oldFreq) ' to ' num2str(newFreq)];
 
 end
 
