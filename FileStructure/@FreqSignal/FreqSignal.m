@@ -1,6 +1,6 @@
 classdef FreqSignal < Signal
     
-    %FREQSIGNAL Class for freq-sampled signal objects
+    % FREQSIGNAL Class for freq-sampled signal objects
     % A signal has a Data and Freq component
     % 1st Dimension of Data property is for freq
     %
@@ -107,7 +107,7 @@ classdef FreqSignal < Signal
         % check Freq property
         function checkFreq(self)
             if size(self.Freq, 2) ~= size(self.Data, self.dimIndex('freq'))
-                error('Freq property and first dimension of Data property should be the same length');
+                error(['Freq property and dimension ' num2str(self.dimIndex('freq')) ' of Data property should be the same length']);
             end
         end
         

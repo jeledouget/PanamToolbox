@@ -1,12 +1,12 @@
 classdef Signal
     
-    %SIGNAL Class for signal objects
+    % SIGNAL Class for signal objects
     %
-    %Properties :
-    %Data = numeric matrix with values of the signal
-    %DimOrder = cell of strings with dimensions of the signal values (eg. {'time','channels'})
-    %Infos = information about the signal (1 x 1 containers.Map) : can include TrialName, TrialNumber, Units, etc.;
-    %History = history of operations on the Signal instance (n x 2 string cells)
+    % Properties :
+    % Data = numeric matrix with values of the signal
+    % DimOrder = cell of strings with dimensions of the signal values (eg. {'time','channels'})
+    % Infos = information about the signal (1 x 1 containers.Map) : can include TrialName, TrialNumber, Units, etc.;
+    % History = history of operations on the Signal instance (n x 2 string cells)
     
     
     

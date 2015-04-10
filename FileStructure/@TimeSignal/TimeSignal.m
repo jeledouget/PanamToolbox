@@ -112,7 +112,7 @@ classdef TimeSignal < Signal
         % check Time property
         function checkTime(self)
             if size(self.Time, 2) ~= size(self.Data, self.dimIndex('time'))
-                error('Time property and first dimension of Data property should be the same length');
+                error(['Time property and dimension ' num2str(self.dimIndex('time')) ' of Data property should be the same length']);
             end
         end
         

@@ -1,6 +1,6 @@
 classdef TimeFreqSignal < TimeSignal & FreqSignal
     
-    %TIMEFREQSIGNAL Class for time-frequency representations
+    % TIMEFREQSIGNAL Class for time-frequency representations
     % 1st Dimension of Data property is for time
     % 2nd Dimension of Data property id for freq
     
@@ -36,9 +36,13 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
                     end
                 end
             end
-            self@FreqSignal('subclassFlag',1);
+            if ~isempty(indFreq)
+                argFreqSignal = {'subclassFlag',1, 'freq',varargin{indFreq}};
+            else
+                argFreqSignal = {'subclassFlag',1};
+            end
+            self@FreqSignal(argFreqSignal{:});
             self@TimeSignal(varargin{indicesVarargin},'subclassFlag',1);
-            if ~isempty(indFreq), self.Freq = varargin{indFreq};end
             if ~subclassFlag % only if the constructor is not called from a subclass
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling TimeFreqSignal constructor';
