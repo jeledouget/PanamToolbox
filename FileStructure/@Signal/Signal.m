@@ -13,7 +13,7 @@ classdef Signal
     %% properties
     
     properties
-        Data; % numeric matrix with values of the signal; see set.Data
+        Data = []; % numeric matrix with values of the signal; see set.Data
         ChannelTags@cell vector = {}; % ids for last dimension of data (usually channels, eg. {'C01D','C12D'})
         DimOrder@cell vector = {}; % cell of strings with dimensions of the signal values (eg. {'time','channels'})
         Infos@containers.Map = containers.Map; % information about the signal (1 x 1 containers.Map) : can include TrialName, TrialNumber, Units, etc.;
@@ -77,6 +77,15 @@ classdef Signal
             self = self.setDefaultDimOrder;
         end
         
+        % set default Data property
+        function self = setDefaultData(self)
+            if isempty(self.Data)
+                s = size(self.Data);
+                nChannels = s(end);
+                self.ChannelTags = arrayfun(@(x) ['chan' num2str(x)],1:nChannels,'UniformOutput',0);
+            end
+        end
+        
         % set default ChannelTags property
         function self = setDefaultChannelTags(self)
             if isempty(self.ChannelTags)
@@ -101,14 +110,7 @@ classdef Signal
             self.checkChannelTags;
             self.checkDimOrder;
         end
-        
-        % check Data property
-        function checkData(self)
-            if isempty(self.Data)
-                error('Data property is empty: cannot instantiate Signal');
-            end
-        end
-        
+                
         % check ChannelTags property
         function checkChannelTags(self)
             if size(self.ChannelTags,2) ~= size(self.Data, ndims(self.Data))

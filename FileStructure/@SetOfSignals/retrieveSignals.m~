@@ -31,12 +31,11 @@ for ii = 1:length(selectedSignals)
 end
 self.Temp.RemovedSignals(selectedSignals) = [];
 if isempty(self.Temp.RemovedSignals)
-    self.Temp = rmfield(self.Temp, 'RemovedSignals');
-end
+    self.Temp = 
 
 % history
 newSet.History{end+1,1} = datestr(clock);
 newSet.History{end,2} = ...
-        'Retrieval of signals';
+        ['Retrieval of signals ' selectedSignals];
 
 end
