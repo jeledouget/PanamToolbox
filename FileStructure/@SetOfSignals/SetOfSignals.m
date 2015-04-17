@@ -107,7 +107,7 @@ classdef SetOfSignals
             self.Temp = [];
         end
         
-        % apply a functino to all of the signals in the Signals property
+        % apply a function to all of the signals in the Signals property
         function setOut = apply(self, func, varargin)
             setOut = self;
             for ii = 1:numel(self.Signals)
@@ -117,6 +117,9 @@ classdef SetOfSignals
         
         
         %% external methods
+        
+        newSet = removeSignals(self, selectedSignals, keepInTemp);
+        newSet = retrieveSignals(self, selectedSignals);
         
         
     end

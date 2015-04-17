@@ -13,7 +13,7 @@ classdef SignalEvents
     
     properties
         Time = 0; % time vector - start times of the events
-        Duration = 0; % duration of events
+        Duration; % duration of events
         EventName@char = 'DefaultEvent'; % event id
         SupplInfo@containers.Map = containers.Map; % include optional information for the Event
     end
@@ -39,6 +39,7 @@ classdef SignalEvents
             if nargin > 0 && ~isempty(eventname)
                 self.EventName = eventname;
             end
+            self = self.setDefaults;
         end
         
         
@@ -59,6 +60,28 @@ classdef SignalEvents
                 self.Duration = duration;
             else
                 error('duration must be a numeric vector');
+            end
+        end
+        
+        % set defaults values
+        function self = setDefaults(self)
+            self = self.setDefaultDuration;
+        end
+        
+        % set default value for Duration property to 0 for each event
+        function self = setDefaultDuration(self)
+            self.Duration = zeros(1, size(self.Time,2));
+        end
+        
+        % check instance
+        function checkInstance(self)
+            self.checkDuration;
+        end
+        
+        % check Duration property
+        function checkDuration(self)
+            if size(self.Time,2) ~= size(self.Duration,2)
+                error('Time and Duration properties for class SignalEvents must be numeric vectors with same length');
             end
         end
         
