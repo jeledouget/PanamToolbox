@@ -146,6 +146,10 @@ classdef Signal
         
         zeroMeanSignal = meanRemoval(self,dim)
         
+        % to do
+        sortedSignal = sort(self, options)
+        normalizedSignal = normalize(self, options)
+        avgSignal = average(self, options)
         
     end
 end

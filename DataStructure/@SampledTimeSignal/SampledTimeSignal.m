@@ -1,6 +1,6 @@
-classdef SampledSignal < TimeSignal
+classdef SampledTimeSignal < TimeSignal
     
-    % SAMPLEDSIGNAL Class for time-sampled signal objects with regular time space
+    % SAMPLEDTIMESIGNAL Class for time-sampled signal objects with regular time space
     % 1st Dimension of Data property is for time
     %
     % Properties:
@@ -22,7 +22,7 @@ classdef SampledSignal < TimeSignal
         
         %% constructor
         
-        function self = SampledSignal(varargin)
+        function self = SampledTimeSignal(varargin)
             subclassFlag = 0;
             indicesVarargin = []; % initiate vector for superclass constructor
             indFs = [];
@@ -50,7 +50,7 @@ classdef SampledSignal < TimeSignal
             if ~isempty(indZerosample), self.Temp.zerosample = varargin{indZerosample};end
             if ~subclassFlag
                 self.History{end+1,1} = datestr(clock);
-                self.History{end,2} = 'Calling SampledSignal constructor';
+                self.History{end,2} = 'Calling SampledTimeSignal constructor';
                 self = self.setDefaults;
                 self.checkInstance;
                 self = self.clearTemp;
@@ -104,7 +104,7 @@ classdef SampledSignal < TimeSignal
         
         % check instance properties
         function checkInstance(self)
-            self.checkData;
+%             self.checkData;
             self.checkChannelTags;
             self.checkDimOrder;
             self.checkTime;
@@ -136,6 +136,12 @@ classdef SampledSignal < TimeSignal
         TKEOSignal = TKEO(self)
         resampledSignal = resampling(self, newFreq)
         RmsSignal = RMS_Signal(self, timeWindow)
+        
+        % to do
+        
+        spectogramSignal = spectogram(self, options)
+        fftSignal = fft(self, options)
+        tfSignal = timefrequency(self, options)
         
         
     end

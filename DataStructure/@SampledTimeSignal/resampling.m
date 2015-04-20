@@ -1,5 +1,5 @@
-% Method for class 'SampledSignal'
-% Resample a 'SampledSignal' object to a specified sampling frequency
+% Method for class 'SampledTimeSignal'
+% Resample a 'SampledTimeSignal' object to a specified sampling frequency
 % INPUTS
     % newFreq : new sampling frequency
 % OUTPUT

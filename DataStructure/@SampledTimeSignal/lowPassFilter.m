@@ -1,5 +1,5 @@
-% Method for class 'Signal'
-% Low-pass filtering of a 'Signal' object
+% Method for class 'SampledTimeSignal'
+% Low-pass filtering of a 'SampledTimeSignal' object
 % A Butterworth filter is applied 
 % The user has handle over cutoff frequency and filter order
 % Default filter order is 2
@@ -10,7 +10,7 @@
     % order : order of the filter (default = 2)
     
 % OUTPUT
-    % lpFilteredSignal : low-pass filtered 'Signal' object
+    % lpFilteredSignal : low-pass filtered 'SampledTimeSignal' object
 
 % SEE ALSO
 % BandPassFilter, HighPassFilter, NotchFilter

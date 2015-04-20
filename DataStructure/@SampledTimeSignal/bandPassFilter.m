@@ -1,5 +1,5 @@
-% Method for class 'SampledSignal'
-% Band-pass filtering of a 'SampledSignal' object
+% Method for class 'SampledTimeSignal'
+% Band-pass filtering of a 'SampledTimeSignal' object
 % A Butterworth filter is applied 
 % The user has handle over cutoff frequency and filter order
 % Default filter order is 2

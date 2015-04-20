@@ -16,9 +16,21 @@ function newSet = removeSignals(self, selectedSignals, keepInTemp)
 % copy of the object
 newSet = self;
 
+% copy in Temp property if selected
+if nargin > 2 && keepInTemp
+    if isfield(newSet.Temp, 'RemovedSignals')
+        newSet.Temp.RemovedSignals(end+1:end+length(selectedSignals)) = newSet.Signals(selectedSignals);
+    else
+        newSet.Temp.RemovedSignals = newSet.Signals(selectedSignals);
+    end
+end
+
+% remove selected Signals
+newSet.Signals(selectedSignals) = [];
+
 % history
 newSet.History{end+1,1} = datestr(clock);
 newSet.History{end,2} = ...
-        ['Retrieval of signals ' selectedSignals];
+        ['Remove signals ' selectedSignals];
 
 end

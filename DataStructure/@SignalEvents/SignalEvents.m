@@ -5,7 +5,7 @@ classdef SignalEvents
     % Properties:
     % Time = time vector - start time of the Events
     % EventName = event id
-    % SupplInfo = containers.Map including optional information for the Event
+    % Info = containers.Map including optional information for the Event
     
     
     
@@ -14,8 +14,8 @@ classdef SignalEvents
     properties
         Time = 0; % time vector - start times of the events
         Duration; % duration of events
-        EventName@char = 'DefaultEvent'; % event id
-        SupplInfo@containers.Map = containers.Map; % include optional information for the Event
+        EventName@char = ''; % event id
+        Info@containers.Map = containers.Map; % include optional information for the Event
     end
     
     
@@ -28,7 +28,7 @@ classdef SignalEvents
         
         function self = SignalEvents(eventname, time, duration, supplinfo)
             if nargin > 3
-                self.SupplInfo = supplinfo;
+                self.Info = supplinfo;
             end
             if nargin > 2 && ~isempty(duration)
                 self.Duration = duration;

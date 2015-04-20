@@ -121,6 +121,12 @@ classdef SetOfSignals
         newSet = removeSignals(self, selectedSignals, keepInTemp);
         newSet = retrieveSignals(self, selectedSignals);
         
+        % to do
+        plot(self, options)
+        newSet = concatenate(self, otherSets)
+        newSet = sort(self, options)
+        
+        
         
     end
     

@@ -1,5 +1,5 @@
-% Method for class 'SampledSignal'
-% Compute TKEO of a 'SampledSignal' object
+% Method for class 'SampledTimeSignal'
+% Compute TKEO of a 'SampledTimeSignal' object
 % cf : Teager Kaiser energy operator signal conditioning improves EMG onset detection (Solnik et al., 2010)
 % INPUTS
 % OUTPUT

@@ -1,4 +1,4 @@
-% Method for class 'SampledSignal'
+% Method for class 'SampledTimeSignal'
 % 50Hz notch filtering of a 'Signal' object
 % A Butterworth filter is applied 
 % The user has handle over the width of the notched frequency window and filter order

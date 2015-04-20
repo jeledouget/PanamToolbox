@@ -2,14 +2,14 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
     
     % TIMEFREQSIGNAL Class for time-frequency representations
     % 1st Dimension of Data property is for time
-    % 2nd Dimension of Data property id for freq
+    % 2nd Dimension of Data property is for freq
     
     
     
     %% properties
     
     properties
-%         Freq; % numeric vector for frequency samples, or cell array (eg. {'alpha','beta'})
+        
     end
     
     
@@ -84,7 +84,7 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         
         % check instance properties
         function checkInstance(self)
-            self.checkData;
+%             self.checkData;
             self.checkChannelTags;
             self.checkDimOrder;
             self.checkTime;
@@ -115,6 +115,8 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         
         %% external methods
         
+        % to do
+        plot(self, options);
         
     end
 end

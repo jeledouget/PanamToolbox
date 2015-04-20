@@ -18,9 +18,9 @@ end
 
 % find the closest point
 if value == +Inf
-    ind = length(vect);
+    ind = find(vect == max(vect));
 elseif value == -Inf
-    ind = 1;
+    ind = find(vect == min(vect));
 else
     ind = find(abs(vect - value) == min(abs(vect - value)));
 end
