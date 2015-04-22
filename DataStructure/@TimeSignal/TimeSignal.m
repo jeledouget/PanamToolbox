@@ -124,9 +124,10 @@ classdef TimeSignal < Signal
         %% external methods
         
         timeWindowedSignal = timeWindow(thisObj, minTime, maxTime)
+        h = plot(self, commonOptions, specificOptions)
+        f = subplots(self, commonOptions, specificOptions)
         
         % to do
-        plot(self, options)
         alignedSignal = alignToEvent(self, options)
         
         

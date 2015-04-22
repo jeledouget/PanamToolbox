@@ -1,6 +1,6 @@
 % Method for class 'FreqSignal' and subclasses
-%  freqWindow : restrain the freq course of the 'Signal' object to the
-%  frequencies between 'minFreq' and 'maxFreq'
+% freqWindow : restrain the freq course of the 'Signal' object to the
+% frequencies between 'minFreq' and 'maxFreq'
 % INPUTS
     % minFreq : freq to begin the trial
     % maxFreq : freq to end to trial

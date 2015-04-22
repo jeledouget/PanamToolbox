@@ -117,9 +117,8 @@ classdef FreqSignal < Signal
         
         %% external methods
         
-        % to do
-        h = plot(self, commonOptions, specdificOptions)
-        subplots(self, varargin)
+        h = plot(self, commonOptions, specificOptions)
+        f = subplots(self, commonOptions, specificOptions)
         
         
     end

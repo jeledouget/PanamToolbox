@@ -112,11 +112,20 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         
         %% other methods
         
+        % No plot method
+        function plot(varargin)
+            error('plot method not applicable for TimeFreqSignal objects')
+        end
+        
+        % No subplots method
+        function subplots(varargin)
+            error('subplots method not applicable for TimeFreqSignal objects')
+        end
+        
         
         %% external methods
         
         % to do
-        plot(self, options);
         
     end
 end

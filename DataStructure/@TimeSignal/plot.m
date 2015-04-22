@@ -1,5 +1,5 @@
 % PLOT
-% plot the 'FreqSignal' as data vs. frequency bins
+% plot the 'TimeSignal' as data vs. time bins
 % valid only if number of dimensions <= 2 in Data property
 % plot the different channels on the same plot
 
@@ -38,11 +38,11 @@ for ii = 1:size(self.Data,2)
         specificOptions_current{jj} = specificOptions{jj}{ii};
     end
     options = [commonOptions, specificOptions_current];
-    h = plot(self.Freq, self.Data(:,ii), options{:});
+    h = plot(self.Time, self.Data(:,ii), options{:});
     hold on
 end
 
-xlabel('Frequency')
+xlabel('Time')
 legend(self.ChannelTags{:})
 legend hide
 hold off
