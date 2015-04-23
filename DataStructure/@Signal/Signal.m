@@ -150,6 +150,7 @@ classdef Signal
         sortedSignal = sort(self, options)
         normalizedSignal = normalize(self, options)
         avgSignal = average(self, options)
+        newSignal = concatenate(self, otherSignals)
         
     end
 end
