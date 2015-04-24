@@ -1,7 +1,7 @@
 % CONCATENATE
 % method to concatenate several SetOfSignals instances
 % INPUTS
-    % otherSets : cell of SetOfSignals to concatenate to self
+    % otherSets : vector cell of SetOfSignals to concatenate to self
     % dimension : dimension of the Signals property along which to
     % concatenate the otherSets
     % forceMode : allow or not concatenation when DimOrder property differ
@@ -33,7 +33,7 @@ end
 allDimensions = [size(self.Signals), cellfun(@(x) size(x.Signals), otherSets, 'UniformOutput',0)];
 allDimensions = cellfun(@(x) setdiff(x, x(dimension)), allDimensions, 'UniformOutput', 0);
 if ~isequal(allDimensions{:})
-    error('the dimensiosn for concatenation do not match ; did you correctly specofy the concatenation dimension ?');
+    error('the dimensions for concatenation do not match ; did you correctly specify the concatenation dimension ?');
 end
 
 % check input : DimOrder

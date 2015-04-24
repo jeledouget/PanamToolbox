@@ -15,7 +15,7 @@ zeroMeanSignal = self;
 
 % handle dimensions
 if ischar(dim)
-    dim = self.DimIndex(dim);
+    dim = self.dimIndex(dim);
 end
 
 % mean removal

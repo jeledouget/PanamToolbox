@@ -106,7 +106,7 @@ classdef Signal
                 
         % check instance properties
         function checkInstance(self)
-            self.checkData;
+%             self.checkData;
             self.checkChannelTags;
             self.checkDimOrder;
         end
@@ -150,7 +150,8 @@ classdef Signal
         sortedSignal = sort(self, options)
         normalizedSignal = normalize(self, options)
         avgSignal = average(self, options)
-        newSignal = concatenate(self, otherSignals)
+        newSignal = concatenate(self, otherSignals, dim)
+        
         
     end
 end
