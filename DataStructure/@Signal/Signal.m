@@ -145,12 +145,14 @@ classdef Signal
         %% external methods
         
         zeroMeanSignal = meanRemoval(self,dim)
+        newSignal = concatenate(self, otherSignals, dim)
+        newSignal = deleteChannels(self, channels)
+        newSignal = selectChannels(self, channels)
         
         % to do
         sortedSignal = sort(self, options)
         normalizedSignal = normalize(self, options)
         avgSignal = average(self, options)
-        newSignal = concatenate(self, otherSignals, dim)
         
         
     end

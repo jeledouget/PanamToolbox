@@ -11,6 +11,12 @@
     
 function freqWindowedSignal = freqWindow(self, minFreq, maxFreq)
 
+% check that Freq property is numeric
+if ~(self.isNumFreq)
+    error('freqWindow method only applies to FreqSignal objects with a numeric Freq property');
+end
+
+
 % handle default params
 if nargin < 2 || isempty(minFreq)
     minFreq = -Inf;

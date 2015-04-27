@@ -3,7 +3,7 @@
 % valid only if number of dimensions <= 2 in Data property
 
 
-function f = subplots(self, commonOptions, specificOptions)
+function h = subplots(self, commonOptions, specificOptions)
 
 
 % TODO : check inputs
@@ -33,7 +33,7 @@ end
 
 
 % plot
-f = figure;
+figure;
 [horDim, vertDim] = panam_subplotDimensions(nChannels);
 for ii = 1:nChannels
     specificOptions_current = specificOptions;
@@ -41,10 +41,17 @@ for ii = 1:nChannels
         specificOptions_current{jj} = specificOptions{jj}{ii};
     end
     options = [commonOptions, specificOptions_current];
-    subplot(horDim, vertDim, ii)
-    plot(self.Time, self.Data(:,ii), options{:});
+    h(ii) = subplot(horDim, vertDim, ii);
+    if self.isNumTime % Time property is a nueric vector
+        plot(self.Time, self.Data(:,ii), options{:});
+    else
+        plot(self.Data(:,ii), options{:});
+        set(gca,'XTick',1:length(self.Time), 'XTickLabel', self.Time);
+        a = axis;
+        axis([a(1)-1 a(2)+1 a(3) a(4)]);
+    end
     xlabel('Time')
-    legend(self.ChannelTags{ii})
+    legend(h(ii), self.ChannelTags{ii})
     legend hide
 end
 

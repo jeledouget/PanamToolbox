@@ -38,8 +38,18 @@ for ii = 1:size(self.Data,2)
         specificOptions_current{jj} = specificOptions{jj}{ii};
     end
     options = [commonOptions, specificOptions_current];
-    h = plot(self.Freq, self.Data(:,ii), options{:});
+    if self.isNumFreq % numeric freq vector
+        h = plot(self.Freq, self.Data(:,ii), options{:});
+    else
+        h = plot(self.Data(:,ii), options{:});
+    end
     hold on
+end
+
+if ~self.isNumFreq
+    set(gca,'XTick',1:length(self.Freq), 'XTickLabel', self.Freq);
+    a = axis;
+    axis([a(1)-1 a(2)+1 a(3) a(4)]);
 end
 
 xlabel('Frequency')

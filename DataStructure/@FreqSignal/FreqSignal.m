@@ -11,7 +11,7 @@ classdef FreqSignal < Signal
     %% properties
     
     properties
-        Freq; % numeric vector for frequency samples
+        Freq; % numeric vector for frequency samples, or cell of freq tags
     end
     
     
@@ -54,8 +54,8 @@ classdef FreqSignal < Signal
         
         % set freq
         function self = set.Freq(self, freq)
-            if ~isnumeric(freq) || ~isvector(freq)
-                error('''Freq'' property must be set as a numeric vector');
+            if ~(isnumeric(freq) && isvector(freq)) && ~(iscell(freq) && all(cellfun(@ischar, freq)))
+                error('Freq property must be set as a numeric vector or a cell of freq tags of type char');
             end
             self.Freq = freq;
         end
@@ -114,11 +114,23 @@ classdef FreqSignal < Signal
         
         %% other methods
         
+        function isNum = isNumFreq(self)
+            if isnumeric(self.Freq)
+                isNum = 1;
+            elseif iscell(self.Freq) && all(cellfun(@ischar, self.Freq))
+                isNum = 0;
+            else
+                error('Freq property must be a numeric vector or a cell vector of type char');
+            end
+        end
+        
         
         %% external methods
         
+        freqWindowedSignal = freqWindow(self, minFreq, maxFreq)
         h = plot(self, commonOptions, specificOptions)
-        f = subplots(self, commonOptions, specificOptions)
+        h = subplots(self, commonOptions, specificOptions)
+        avgSignal = avgFreq(self, freqBands, freqTags)
         
         
     end

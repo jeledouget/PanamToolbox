@@ -13,7 +13,7 @@ classdef TimeSignal < Signal
     
     properties
         Events@containers.Map = containers.Map; % container in which keys are events id (triggers, etc.) and values are instances of SignalEvents array
-        Time; % numeric vector for time samples
+        Time; % numeric vector for time samples, or cell of time tags
     end
     
     
@@ -59,8 +59,8 @@ classdef TimeSignal < Signal
         
         % set time
         function self = set.Time(self, time)
-            if ~isnumeric(time) || ~isvector(time)
-                error('''Time'' property must be set as a numeric vector');
+            if ~(isnumeric(time) && isvector(time)) && ~(iscell(time) && all(cellfun(@ischar, time)))
+                error('Time property must be set as a numeric vector or a cell of time tags of type char');
             end
             self.Time = time;
         end
@@ -97,6 +97,7 @@ classdef TimeSignal < Signal
             self.checkChannelTags;
             self.checkDimOrder;
             self.checkTime;
+            self.checkEvents;
         end
         
         % check DimOrder property
@@ -116,16 +117,50 @@ classdef TimeSignal < Signal
             end
         end
         
+        % check Events property
+        function checkEvents(self)
+            keys = self.Events.keys;
+            for ii = 1:length(keys)
+                if ~isa(self.Events(keys{ii}), 'SignalEvents')
+                    error('Events must be a containers.Map with ''char'' keys and ''SignalEvents'' values');
+                end
+            end
+        end
         
         
         %% other methods
         
+        % is Time property discrete or numeric vector ?
+        function isNum = isNumTime(self)
+            if isnumeric(self.Time)
+                isNum = 1;
+            elseif iscell(self.Time) && all(cellfun(@ischar, self.Time))
+                isNum = 0;
+            else
+                error('Time property must be a numeric vector or a cell vector of type char');
+            end
+        end
 
+        % from SampledTimeSignal to TimeSignal
+        function timeSignal = subclass2TimeSignal(self)
+            timeSignal = TimeSignal('data', self.Data, ...
+                                 'time', self.Time, ...
+                                 'channeltags', self.ChannelTags, ...
+                                 'dimOrder', self.DimOrder, ...
+                                 'infos', self.Infos, ...
+                                 'events', self.Events);
+            timeSignal.History = self.History;
+            timeSignal.History{end+1,1} = datestr(clock);
+            timeSignal.History{end,2} = 'Calling subclass2TimeSignal converter';
+        end
+        
+        
         %% external methods
         
         timeWindowedSignal = timeWindow(thisObj, minTime, maxTime)
         h = plot(self, commonOptions, specificOptions)
-        f = subplots(self, commonOptions, specificOptions)
+        h = subplots(self, commonOptions, specificOptions)
+        avgSignal = avgTime(self, timeBands, timeTags)
         
         % to do
         alignedSignal = alignToEvent(self, options)

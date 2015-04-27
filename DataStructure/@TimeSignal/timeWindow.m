@@ -11,6 +11,11 @@
     
 function timeWindowedSignal = timeWindow(self, minTime, maxTime)
 
+% check that Time property is numeric
+if ~(self.isNumTime)
+    error('timeWindow method only applies to TimeSignal objects with a numeric Time property');
+end
+
 % handle default params
 if nargin < 2 || isempty(minTime)
     minTime = -Inf;
