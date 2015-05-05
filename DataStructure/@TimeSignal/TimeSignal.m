@@ -161,6 +161,7 @@ classdef TimeSignal < Signal
         h = plot(self, commonOptions, specificOptions)
         h = subplots(self, commonOptions, specificOptions)
         avgSignal = avgTime(self, timeBands, timeTags)
+        newSignal = concatenate(self, otherSignals, dim, subclassFlag)
         
         % to do
         alignedSignal = alignToEvent(self, options)

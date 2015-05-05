@@ -36,7 +36,7 @@ if ischar(dim)
     dimName = dim;
     dim = self.dimIndex(dim);
 else
-    dimName = dim;
+    dimName = self.DimOrder(dim);
 end
 
 % check input : consistency of dimensions
@@ -57,6 +57,12 @@ if strcmpi(dimName, 'chan')
     newSignal.ChannelTags = cat(2, self.ChannelTags, tmp{:});
     if(length(unique(newSignal.ChannelTags)) < length(newSignal.ChannelTags))
         warning('WARNING : non-unicity in the names of channels in the created Signal object');
+    end
+else % channels must be the same
+    tmp = cellfun(@(x) x.ChannelTags, otherSignals, 'UniformOutput', 0);
+    channels = [{self.ChannelTags}, tmp];
+    if ~isequal(channels{:})
+        error('channels must be the same for concatenation');
     end
 end
 

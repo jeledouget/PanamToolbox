@@ -125,7 +125,9 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         
         %% external methods
         
+        newSignal = concatenate(self, otherSignals, dim, subclassFlag)
         % to do
+        
         
     end
 end

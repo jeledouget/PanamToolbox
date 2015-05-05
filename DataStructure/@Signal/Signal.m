@@ -145,7 +145,7 @@ classdef Signal
         %% external methods
         
         zeroMeanSignal = meanRemoval(self,dim)
-        newSignal = concatenate(self, otherSignals, dim)
+        newSignal = concatenate(self, otherSignals, dim, subclassFlag)
         newSignal = deleteChannels(self, channels)
         newSignal = selectChannels(self, channels)
         

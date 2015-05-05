@@ -131,6 +131,7 @@ classdef FreqSignal < Signal
         h = plot(self, commonOptions, specificOptions)
         h = subplots(self, commonOptions, specificOptions)
         avgSignal = avgFreq(self, freqBands, freqTags)
+        newSignal = concatenate(self, otherSignals, dim, subclassFlag)
         
         
     end

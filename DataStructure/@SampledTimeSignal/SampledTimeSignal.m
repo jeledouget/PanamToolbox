@@ -113,13 +113,13 @@ classdef SampledTimeSignal < TimeSignal
         % check Time property
         function checkTime(self)
             self.checkTime@TimeSignal;
-            % check sampling step ; allow 5% error per step, 1% error for average step
+            % check sampling step ; allow 10% error per step, 2% error for average step
             steps = self.Time(2:end) - self.Time(1:end-1);
-            if any(steps > 1.05/self.Fs) || any(steps < 0.95/self.Fs)
-                error('inconsistency between sampling frequency and actual time samples : over the 5% margin error for successive time steps');
+            if any(steps > 1.1/self.Fs) || any(steps < 0.9/self.Fs)
+                error('inconsistency between sampling frequency and actual time samples : over the 10% margin error for successive time steps');
             end
-            if (mean(steps) > 1.01/self.Fs) || (mean(steps) < 0.99/self.Fs)
-                error('inconsistency between sampling frequency and actual time samples : over the 1% margin error for average time step');
+            if (mean(steps) > 1.02/self.Fs) || (mean(steps) < 0.98/self.Fs)
+                error('inconsistency between sampling frequency and actual time samples : over the 2% margin error for average time step');
             end
         end
         
@@ -129,6 +129,7 @@ classdef SampledTimeSignal < TimeSignal
         
         %% external methods
         
+        newSignal = concatenate(self, otherSignals, dim, subclassFlag)
         lpFilteredSignal = lowPassFilter(self, cutoff, order)
         hpFilteredSignal = highPassFilter(self, cutoff, order)
         notchedSignal = notchFilter(self, width, order, freq)
