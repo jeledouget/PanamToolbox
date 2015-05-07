@@ -117,6 +117,7 @@ classdef SetOfSignals
         
         % to do
         newSet = sort(self, options)
+        avgSignals = averageSignals(self, dim)
         
                 
     end

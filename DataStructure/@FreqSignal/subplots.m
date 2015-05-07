@@ -5,9 +5,7 @@
 
 function h = subplots(self, commonOptions, specificOptions)
 
-
 % TODO : check inputs
-
 
 % default
 if nargin < 3 || isempty(specificOptions)
@@ -31,7 +29,6 @@ if ~isempty(cm)
     commonOptions(cm:cm+1) = [];
 end
 
-
 % plot
 figure;
 [horDim, vertDim] = panam_subplotDimensions(nChannels);
@@ -50,11 +47,11 @@ for ii = 1:nChannels
         a = axis;
         axis([a(1)-1 a(2)+1 a(3) a(4)]);
     end
+    
     xlabel('Frequency')
     legend(h(ii), self.ChannelTags{ii});
     legend hide
 end
-
 
 end
 

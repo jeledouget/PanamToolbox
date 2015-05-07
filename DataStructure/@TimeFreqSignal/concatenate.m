@@ -31,33 +31,32 @@ else
     dimName = self.DimOrder(dim);
 end
 
-if strcmpi(dimName, 'freq')
-    % check time bins are consistent
-    if (self.isNumTime && all(cellfun(@isNumTime, otherSignals))) || ...
-            (~self.isNumTime && all(~cellfun(@isNumTime, otherSignals)))
-        tmp = cellfun(@(x) x.Time, otherSignals,'UniformOutput',0);
-    else
-        error('to be concatenated time bins must be of same type (numeric OR char)');
-    end
-    time = [{self.Time}, tmp];
-    if self.isNumTime % check that the closest time bins in Time keep the indices
-        for ii=1:length(otherSignals)
-            if any(arrayfun(@(x) panam_closest(self.Time, otherSignals{ii}.Time(x)) - x, 1:length(otherSignals{ii}.Time)))
-                error('time vectors differ : concatenation impossible');
-            end
-        end
-    elseif ~isequal(time{:})
-        error('time bins must be the same for concatenation');
-    end
-    newSignal = self.concatenate@FreqSignal(otherSignals, dim, 1);
+% concatenation
+if (self.isNumFreq && all(cellfun(@isNumFreq, otherSignals))) || ...
+        (~self.isNumFreq && all(~cellfun(@isNumFreq, otherSignals)))
+    tmp = cellfun(@(x) x.Freq, otherSignals,'UniformOutput',0);
 else
-    if (self.isNumFreq && all(cellfun(@isNumFreq, otherSignals))) || ...
-            (~self.isNumFreq && all(~cellfun(@isNumFreq, otherSignals)))
-        tmp = cellfun(@(x) x.Freq, otherSignals,'UniformOutput',0);
-    else
-        error('to be concatenated frequencies must be of same type (numeric OR char)');
+    error('to be concatenated frequencies must be of same type (numeric OR char)');
+end
+% check frequencies are consistent
+freq = [{self.Freq}, tmp];
+if self.isNumFreq % check that the closest frequencies in Freq keep the indices
+    for ii=1:length(otherSignals)
+        if any(arrayfun(@(x) panam_closest(self.Freq, otherSignals{ii}.Freq(x)) - x, 1:length(otherSignals{ii}.Freq)))
+            error('frequency vectors differ : concatenation impossible');
+        end
     end
-    % check frequencies are consistent
+elseif ~isequal(freq{:})
+    error('frequencies must be the same for concatenation');
+end
+newSignal = self.concatenate@TimeSignal(otherSignals, dim, 1);
+    
+% if dimension is Frequency, concatenate frequencies, else check
+% frequencies are consistent
+if strcmpi(dimName, 'freq')
+    freq = [self.Freq, tmp{:}];
+    newSignal.Freq = freq;
+else % check frequencies are consistent
     freq = [{self.Freq}, tmp];
     if self.isNumFreq % check that the closest frequencies in Freq keep the indices
         for ii=1:length(otherSignals)
@@ -68,8 +67,13 @@ else
     elseif ~isequal(freq{:})
         error('frequencies must be the same for concatenation');
     end
-    newSignal = self.concatenate@TimeSignal(otherSignals, dim, 1);
 end
+
+% concatenate freqMarkers
+for ii = 1:length(otherSignals)
+    newSignal.FreqMarkers = [newSignal.FreqMarkers, otherSignals{ii}.FreqMarkers];
+end
+newSignal.FreqMarkers = newSignal.FreqMarkers.unifyMarkers;
 
 % history
 if ~subclassFlag

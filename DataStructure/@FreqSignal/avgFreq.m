@@ -21,14 +21,30 @@ if ~(self.isNumFreq)
     error('freqWindow method only applies to FreqSignal objects with a numeric Freq property');
 end
 
+% set default freqBands
+if nargin < 2 || isempty(freqBands)
+    freqBands = [self.Freq(1) self.Freq(end)];
+end
+
 % freqBands check
 if ~iscell(freqBands)
     freqBands = {freqBands};
 end
 
+% set default freqTags        
+if nargin < 3 || isempty(freqTags)
+    freqTags = cellfun(@(x) ['avg' num2str(x(1)) '-' num2str(x(2)) 'Hz'],freqBands,'UniformOutput',0);
+end
+
+
 % freqTags check
 if ~iscell(freqTags)
     freqTags = {freqTags};
+end
+
+% check length
+if length(freqBands) ~= length(freqTags)
+    error('freqTags and freqBands inputs should be the same length');
 end
 
 % compute average data
@@ -54,5 +70,10 @@ avgSignal.Freq = freqTags;
 
 % check
 avgSignal.checkInstance;
+
+% history
+avgSignal.History{end+1,1} = datestr(clock);
+avgSignal.History{end,2} = ...
+        'Average the FreqSignal over the Frequency dimension';
 
 end

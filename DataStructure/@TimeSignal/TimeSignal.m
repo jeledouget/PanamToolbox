@@ -12,7 +12,7 @@ classdef TimeSignal < Signal
     %% properties
     
     properties
-        Events@containers.Map = containers.Map; % container in which keys are events id (triggers, etc.) and values are instances of SignalEvents array
+        Events@SignalEvents vector; % vector of SignalEvents containing events for the TimeSignal
         Time; % numeric vector for time samples, or cell of time tags
     end
     
@@ -97,7 +97,6 @@ classdef TimeSignal < Signal
             self.checkChannelTags;
             self.checkDimOrder;
             self.checkTime;
-            self.checkEvents;
         end
         
         % check DimOrder property
@@ -117,15 +116,6 @@ classdef TimeSignal < Signal
             end
         end
         
-        % check Events property
-        function checkEvents(self)
-            keys = self.Events.keys;
-            for ii = 1:length(keys)
-                if ~isa(self.Events(keys{ii}), 'SignalEvents')
-                    error('Events must be a containers.Map with ''char'' keys and ''SignalEvents'' values');
-                end
-            end
-        end
         
         
         %% other methods

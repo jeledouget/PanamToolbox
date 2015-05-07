@@ -92,8 +92,11 @@ classdef SignalEvents
         
         %% external methods
         
+        newEvents = unifyEvents(self);
+        
         % to do
         event = offsetTime(self, offset);
+        
         
         
     end

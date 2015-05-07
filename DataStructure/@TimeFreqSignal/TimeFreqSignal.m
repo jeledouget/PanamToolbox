@@ -24,11 +24,14 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
             subclassFlag = 0; % default : not called from  a subclass constructor
             indicesVarargin = []; % initiate vector for superclass constructor
             indFreq = []; % default value for freq
+            indFreqMarkers = [];
             if nargin > 1
                 for i_argin = 1 : 2 : length(varargin)
                     switch lower(varargin{i_argin})
                         case 'freq'
                             indFreq = i_argin + 1;
+                        case 'freqmarkers'
+                            indFreqMarkers = i_argin + 1;
                         case 'subclassflag'
                             subclassFlag = varargin{i_argin + 1};
                         otherwise
@@ -36,10 +39,12 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
                     end
                 end
             end
+            argFreqSignal = {'subclassFlag',1};
             if ~isempty(indFreq)
-                argFreqSignal = {'subclassFlag',1, 'freq',varargin{indFreq}};
-            else
-                argFreqSignal = {'subclassFlag',1};
+                argFreqSignal = [argFreqSignal, 'freq',varargin{indFreq}];
+            end
+            if ~isempty(indFreqMarkers)
+                argFreqSignal = [argFreqSignal, 'freqmarkers', varargin(indFreqMarkers)];
             end
             self@FreqSignal(argFreqSignal{:});
             self@TimeSignal(varargin{indicesVarargin},'subclassFlag',1);

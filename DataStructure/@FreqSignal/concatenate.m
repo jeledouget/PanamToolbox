@@ -63,12 +63,17 @@ else % check frequencies are consistent
     end
 end
 
+% concatenate freqMarkers
+for ii = 1:length(otherSignals)
+    newSignal.FreqMarkers = [newSignal.FreqMarkers, otherSignals{ii}.FreqMarkers];
+end
+newSignal.FreqMarkers = newSignal.FreqMarkers.unifyMarkers;
 
 % history
 if ~subclassFlag
     newSignal.History{end+1,1} = datestr(clock);
     newSignal.History{end,2} = ...
-        'Concatenation of Signals';
+        ['Concatenation of FreqSignal objects on dimension' dimName];
 end
 
 end

@@ -1,8 +1,9 @@
-freqTest = FreqSignal('data',rand(31,5), 'freq', 0:2:60);
+freqTest = FreqSignal('data',rand(31,5), 'freq', 0:2:60, 'freqmarkers', [FreqMarkers('peakAlpha',11), FreqMarkers('peakBeta',25)]);
 sampledTest = SampledTimeSignal('data',rand(201,5), 'fs', 200);
-events = SignalEvents('sound trigger', [0.1 0.6]);
-sampledTest.Events('GO') = events;
-timefreqTest = TimeFreqSignal('data', rand(201,31,5), 'time', sort(rand(1,201)), 'freq', 0:2:60, 'events', sampledTest.Events);
+events = SignalEvents('GO', [0.1 0.6]);
+sampledTest.Events = events;
+timefreqTest = TimeFreqSignal('data', rand(201,31,5), 'time', sort(rand(1,201)), 'freq', 0:2:60, 'events', sampledTest.Events,...
+    'freqmarkers', [FreqMarkers('peakAlpha',11), FreqMarkers('peakBeta',25)]);
 for ii = 1:20
     signals(ii) = SampledTimeSignal('data',rand(201,5), 'fs', 100);
 end

@@ -65,18 +65,9 @@ end
 
 % concatenate events
 for ii = 1:length(otherSignals)
-    for k = otherSignals{ii}.Events.keys
-        if newSignal.Events.isKey(k{1})
-            newSignal.Events(k{1}).Time = [newSignal.Events(k{1}).Time otherSignals{ii}.Events(k{1}).Time];
-            newSignal.Events(k{1}).Duration = [newSignal.Events(k{1}).Time otherSignals{ii}.Events(k{1}).Duration];
-            [~, tmp] = unique(newSignal.Events(k{1}).Time);
-            newSignal.Events(k{1}).Time = newSignal.Events(k{1}).Time(tmp);
-            newSignal.Events(k{1}).Duration = newSignal.Events(k{1}).Duration(tmp);
-        else
-            newSignal.Events(k{1}) = otherSignals{ii}.Events(k{1});
-        end
-    end
+    newSignal.Events = [newSignal.Events, otherSignals{ii}.Events];
 end
+newSignal.Events = newSignal.Events.unifyEvents;
 
 % history
 if ~subclassFlag

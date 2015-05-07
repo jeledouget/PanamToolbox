@@ -12,6 +12,7 @@ classdef FreqSignal < Signal
     
     properties
         Freq; % numeric vector for frequency samples, or cell of freq tags
+        FreqMarkers@FreqMarkers vector; % container in which keys are events id (triggers, etc.) and values are instances of SignalEvents array
     end
     
     
@@ -26,11 +27,14 @@ classdef FreqSignal < Signal
             subclassFlag = 0;
             indicesVarargin = []; % initiate vector for superclass constructor
             indFreq = [];
+            indFreqMarkers = [];
             if nargin > 1
                 for i_argin = 1 : 2 : length(varargin)
                     switch lower(varargin{i_argin})
                         case 'freq'
                             indFreq = i_argin + 1;
+                        case 'freqmarkers'
+                            indFreqMarkers = i_argin + 1;
                         case 'subclassflag'
                             subclassFlag = varargin{i_argin + 1};
                         otherwise
@@ -41,6 +45,7 @@ classdef FreqSignal < Signal
             % call Signal constructor
             self@Signal(varargin{indicesVarargin}, 'subclassFlag', 1);
             if ~isempty(indFreq), self.Freq = varargin{indFreq};end
+            if ~isempty(indFreqMarkers), self.FreqMarkers = varargin{indFreqMarkers};end
             if ~subclassFlag
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling FreqSignal constructor';
