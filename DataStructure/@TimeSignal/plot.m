@@ -46,7 +46,7 @@ for ii = 1:size(self.Data,2)
     hold on
 end
 
-if ~isNumTime
+if ~self.isNumTime
     set(gca,'XTick',1:length(self.Time), 'XTickLabel', self.Time);
     a = axis;
     axis([a(1)-1 a(2)+1 a(3) a(4)]);

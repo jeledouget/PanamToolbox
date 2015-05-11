@@ -151,7 +151,7 @@ classdef Signal
         
         % to do
         sortedSignal = sort(self, options)
-        normalizedSignal = normalize(self, options)
+        normalizedSignal = normalize(self, dims, values, operation)
         avgSignal = average(self, options)
         
         
