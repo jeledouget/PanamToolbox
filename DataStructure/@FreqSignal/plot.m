@@ -20,15 +20,17 @@ end
 
 % colormap for channels
 cm = find(strcmpi(commonOptions,'colormap'));
+nChannels = length(self.ChannelTags);
 if ~isempty(cm)
-    nChannels = length(self.ChannelTags);
     cmap = commonOptions{cm+1};
-    eval(['cmap = ' cmap '(nChannels);']);
-    cmap = mat2cell(cmap, ones(1,nChannels),3);
-    specificOptions{end+1} = 'color';
-    specificOptions{end+1} = cmap;
     commonOptions(cm:cm+1) = [];
+else
+    cmap = 'lines'; % default colormap
 end
+eval(['cmap = ' cmap '(nChannels);']);
+cmap = mat2cell(cmap, ones(1,nChannels),3);
+specificOptions{end+1} = 'color';
+specificOptions{end+1} = cmap;
 
 % common options for freqMarkers
 isFreqMarkers = 1; % default : show FreqMarkers
@@ -69,7 +71,6 @@ if isFreqMarkers
         argFmSpecific = [argFmSpecific specificOptions{fm+1}];
         specificOptions(fm:fm+1) = [];
     end
-    
 end
 
 
@@ -98,9 +99,13 @@ if isFreqMarkers % draw lines for Freq
     if self.isNumFreq
         a  = axis;
         for ii = 1:length(self.FreqMarkers)
-            for jj = 1:length(self.FreqMarkers(ii).Freq)
-                freq = self.FreqMarkers(ii).Freq(jj);
-                plot([freq freq], [a(3) a(4)], argFmCommon{:}, argFmSpecific{:});
+            argFmSpecific_current = argFmSpecific;
+            for jj = 2:2:length(argFmSpecific)
+                argFmSpecific_current{jj} = argFmSpecific{jj}{ii};
+            end
+            for kk = 1:length(self.FreqMarkers(ii).Freq)
+                freq = self.FreqMarkers(ii).Freq(kk);
+                plot([freq freq], [a(3) a(4)], argFmCommon{:}, argFmSpecific_current{:});
                 legendTmp = [legendTmp self.FreqMarkers(ii).MarkerName];
             end
         end
@@ -110,7 +115,7 @@ if isFreqMarkers % draw lines for Freq
 end
 
 if ~self.isNumFreq
-    set(gca,'XTick',1:length(self.Freq), 'XTickLabel', self.Freq);
+    set(gca,'XTick', 1:length(self.Freq), 'XTickLabel', self.Freq);
     a = axis;
     axis([a(1)-1 a(2)+1 a(3) a(4)]);
 end
