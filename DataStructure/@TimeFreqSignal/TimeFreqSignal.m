@@ -3,6 +3,7 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
     % TIMEFREQSIGNAL Class for time-frequency representations
     % 1st Dimension of Data property is for time
     % 2nd Dimension of Data property is for freq
+    % last dimension is for channels
     
     
     
@@ -117,21 +118,31 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         
         %% other methods
         
-        % No plot method
-        function plot(varargin)
-            error('plot method not applicable for TimeFreqSignal objects')
-        end
+        % conversion to FreqSignal
+       
         
-        % No subplots method
-        function subplots(varargin)
-            error('subplots method not applicable for TimeFreqSignal objects')
-        end
+        % conversion to TimeSignal
         
         
+                
         %% external methods
         
+        freqSignal = tf2freqSignal(self, time);
+        timeSignal = tf2timeSignal(self, freq);
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
+        
         % to do
+        newSignal = average(self, options) % average elements of a TimeFreqSignal matrix
+        h = plot(self, commonOptions, specificOptions)
+        h = subplots(self, commonOptions, specificOptions)
+        h = freqPlot(self, freq, commonOptions, specificOptions)
+        h = freqSubplots(self, freq, commonOptions, specificOptions)
+        h = freqColorPlot(self, freq, commonOptions, specificOptions)
+        h = freqColorSubplots(self, freq, commonOptions, specificOptions)
+        h = timePlot(self, freq, commonOptions, specificOptions)
+        h = timeSubplots(self, times, commonOptions, specificOptions)
+        h = timeColorPlot(self, freq, commonOptions, specificOptions)
+        h = timeColorSubplots(self, times, commonOptions, specificOptions)
         
         
     end

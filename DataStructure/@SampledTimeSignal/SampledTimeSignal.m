@@ -143,7 +143,7 @@ classdef SampledTimeSignal < TimeSignal
         spectogramSignal = spectogram(self, options)
         fftSignal = fft(self, options)
         tfSignal = timefrequency(self, options)
-        
+        newSignal = average(self, options)  % average elements of a SampledTimeSignal matrix
         
     end
 end

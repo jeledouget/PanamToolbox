@@ -18,6 +18,9 @@ end
 % number of channels
 nChannels = length(self.ChannelTags);
 
+% default color
+commonOptions = [{'color','k'} commonOptions];
+
 % colormap
 cm = find(strcmpi(commonOptions,'colormap'));
 if ~isempty(cm)
@@ -29,6 +32,48 @@ if ~isempty(cm)
     commonOptions(cm:cm+1) = [];
 end
 
+% common options for freqMarkers
+isFreqMarkers = 1; % default : show FreqMarkers
+fm = find(strcmpi(commonOptions,'freqmarkers'));
+argFmCommon = {'LineWidth',2}; % default
+if ~isempty(fm)
+    if ischar(commonOptions{fm+1})
+        if strcmpi(commonOptions{fm+1}, 'no')
+            isFreqMarkers = 0;
+        else % void char, or 'yes' ...
+            % do nothing
+        end
+    else
+        argFmCommon = [argFmCommon commonOptions{fm+1}];
+    end
+    commonOptions(fm:fm+1) = [];
+end
+
+% specific options and colorbars for freqMarkers
+if isFreqMarkers
+    argFmSpecific = {}; % init
+    % colormap for freqMarkers
+    cm = find(strcmpi(argFmCommon,'colormap'));
+    nMarkers = length(self.FreqMarkers);
+    if ~isempty(cm)
+        cmap = argFmCommon{cm+1};
+        argFmCommon(cm:cm+1) = [];
+    else
+        cmap = 'lines'; % default colormap
+    end
+    eval(['cmap = ' cmap '(nMarkers);']);
+    cmap = mat2cell(cmap, ones(1,nMarkers),3);
+    argFmSpecific{end+1} = 'color';
+    argFmSpecific{end+1} = cmap;
+    % other options
+    fm = find(strcmpi(specificOptions,'freqmarkers'));
+    if ~isempty(fm)
+        argFmSpecific = [argFmSpecific specificOptions{fm+1}];
+        specificOptions(fm:fm+1) = [];
+    end
+end
+
+
 % plot
 figure;
 [horDim, vertDim] = panam_subplotDimensions(nChannels);
@@ -39,6 +84,8 @@ for ii = 1:nChannels
     end
     options = [commonOptions, specificOptions_current];
     h(ii) = subplot(horDim, vertDim, ii);
+    hold on
+    legendTmp = {}; % init legend
     if self.isNumFreq % Freq property is a numeric vector
         plot(self.Freq, self.Data(:,ii), options{:});
     else
@@ -47,9 +94,30 @@ for ii = 1:nChannels
         a = axis;
         axis([a(1)-1 a(2)+1 a(3) a(4)]);
     end
+    legendTmp = [legendTmp, self.ChannelTags{ii}];
+    
+    % plot freqMarkers
+    if isFreqMarkers % draw lines for Freq
+        if self.isNumFreq
+            a  = axis;
+            for jj = 1:length(self.FreqMarkers)
+                argFmSpecific_current = argFmSpecific;
+                for kk = 2:2:length(argFmSpecific)
+                    argFmSpecific_current{kk} = argFmSpecific{kk}{jj};
+                end
+                for kk = 1:length(self.FreqMarkers(jj).Freq)
+                    freq = self.FreqMarkers(jj).Freq(kk);
+                    plot([freq freq], [a(3) a(4)], argFmCommon{:}, argFmSpecific_current{:});
+                    legendTmp = [legendTmp self.FreqMarkers(jj).MarkerName];
+                end
+            end
+        else
+            warning('impossible to draw FreqMarkers when Freq is not numeric');
+        end
+    end
     
     xlabel('Frequency')
-    legend(h(ii), self.ChannelTags{ii});
+    legend(h(ii), legendTmp);
     legend hide
 end
 

@@ -149,10 +149,12 @@ classdef Signal
         newSignal = deleteChannels(self, channels)
         newSignal = selectChannels(self, channels)
         
+        
         % to do
         sortedSignal = sort(self, options)
         normalizedSignal = normalize(self, dims, values, operation)
-        avgSignal = average(self, options)
+        avgSignal = average(self, options) % average elements of a Signal matrix
+        newSignal = avgChannel(self, channels, avgChannelName, keepChannels)
         
         
     end

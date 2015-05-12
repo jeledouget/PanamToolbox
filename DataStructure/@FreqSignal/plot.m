@@ -18,24 +18,10 @@ if nargin < 2 || isempty(commonOptions)
     commonOptions = {};
 end
 
-% colormap for channels
-cm = find(strcmpi(commonOptions,'colormap'));
-nChannels = length(self.ChannelTags);
-if ~isempty(cm)
-    cmap = commonOptions{cm+1};
-    commonOptions(cm:cm+1) = [];
-else
-    cmap = 'lines'; % default colormap
-end
-eval(['cmap = ' cmap '(nChannels);']);
-cmap = mat2cell(cmap, ones(1,nChannels),3);
-specificOptions{end+1} = 'color';
-specificOptions{end+1} = cmap;
-
 % common options for freqMarkers
-isFreqMarkers = 1; % default : show FreqMarkers
+isFreqMarkers = 1; % default : show Events
 fm = find(strcmpi(commonOptions,'freqmarkers'));
-argFmCommon = {}; % default
+argFmCommon = {'LineWidth',2}; % default
 if ~isempty(fm)
     if ischar(commonOptions{fm+1})
         if strcmpi(commonOptions{fm+1}, 'no')
@@ -49,6 +35,29 @@ if ~isempty(fm)
     commonOptions(fm:fm+1) = [];
 end
 
+% colormap for channels
+cm = find(strcmpi(commonOptions,'colormap'));
+nChannels = length(self.ChannelTags);
+if ~isempty(cm)
+    cmap = commonOptions{cm+1};
+    commonOptions(cm:cm+1) = [];
+else
+    cmap = 'lines'; % default colormap
+end
+if isFreqMarkers
+    nFreqMarkers = length(self.FreqMarkers);
+    if strcmpi(cmap, 'lines')
+        eval(['cmap = ' cmap '(nChannels + nFreqMarkers);']);
+    else
+        eval(['cmap = cat(1,' cmap '(nChannels), lines(nFreqMarkers));']);
+    end
+    cmap = mat2cell(cmap, ones(1,nChannels + nFreqMarkers),3);
+else
+    eval(['cmap = ' cmap '(nChannels);']);
+    cmap = mat2cell(cmap, ones(1,nChannels),3);
+end
+specificOptions = [{'color', cmap(1:nChannels)} specificOptions];
+
 % specific options and colorbars for freqMarkers
 if isFreqMarkers
     argFmSpecific = {}; % init
@@ -56,15 +65,15 @@ if isFreqMarkers
     cm = find(strcmpi(argFmCommon,'colormap'));
     nMarkers = length(self.FreqMarkers);
     if ~isempty(cm)
-        cmap = argFmCommon{cm+1};
+        cmap_fm = argFmCommon{cm+1};
         argFmCommon(cm:cm+1) = [];
+        eval(['cmap_fm = ' cmap_fm '(nMarkers);']);
+        cmap_fm = mat2cell(cmap_fm, ones(1,nMarkers),3);
     else
-        cmap = 'lines'; % default colormap
+        cmap_fm = cmap(nChannels+1:end);
     end
-    eval(['cmap = ' cmap '(nMarkers);']);
-    cmap = mat2cell(cmap, ones(1,nMarkers),3);
     argFmSpecific{end+1} = 'color';
-    argFmSpecific{end+1} = cmap;
+    argFmSpecific{end+1} = cmap_fm;
     % other options
     fm = find(strcmpi(specificOptions,'freqmarkers'));
     if ~isempty(fm)
@@ -73,10 +82,8 @@ if isFreqMarkers
     end
 end
 
-
-
 % plot
-h = axes; 
+h = gca; 
 hold on
 nChannels = size(self.Data,2);
 legendTmp = {};
@@ -121,7 +128,7 @@ if ~self.isNumFreq
 end
 
 xlabel('Frequency')
-legend(self.ChannelTags{:}, legendTmp)
+legend(legendTmp)
 legend hide
 hold off
 

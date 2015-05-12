@@ -138,6 +138,11 @@ classdef FreqSignal < Signal
         avgSignal = avgFreq(self, freqBands, freqTags)
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
         
+        % to do
+        newSignal = average(self, options) % average elements of a FreqSignal matrix
+        h = colorPlot(self, options)
+        h = colorSubplots(self, options)
+        
         
     end
 end

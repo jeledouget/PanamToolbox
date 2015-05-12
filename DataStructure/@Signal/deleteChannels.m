@@ -24,7 +24,7 @@ if ~isnumeric(channels) || ~isvector(channels)
 end
 
 % order channels
-channels= sort(channels);
+channels = sort(channels);
 
 % delete channels
 tmp =  self.Data;

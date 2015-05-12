@@ -20,6 +20,9 @@ end
 % number of channels
 nChannels = length(self.ChannelTags);
 
+% default color : black. If a color is specified, it will overload this one
+commonOptions = [{'color','k'} commonOptions];
+
 % colormap
 cm = find(strcmpi(commonOptions,'colormap'));
 if ~isempty(cm)
@@ -31,6 +34,46 @@ if ~isempty(cm)
     commonOptions(cm:cm+1) = [];
 end
 
+% common options for events
+isEvents = 1; % default : show Events
+ev = find(strcmpi(commonOptions,'events'));
+argEvCommon = {'LineWidth',2}; % default
+if ~isempty(ev)
+    if ischar(commonOptions{ev+1})
+        if strcmpi(commonOptions{ev+1}, 'no')
+            isEvents = 0;
+        else % void char, or 'yes' ...
+            % do nothing
+        end
+    else
+        argEvCommon = [argEvCommon commonOptions{ev+1}];
+    end
+    commonOptions(ev:ev+1) = [];
+end
+
+% specific options and colorbars for freqMarkers
+if isEvents
+    argEvSpecific = {}; % init
+    % colormap for freqMarkers
+    cm = find(strcmpi(argEvCommon,'colormap'));
+    nEvents = length(self.Events);
+    if ~isempty(cm)
+        cmap = argEvCommon{cm+1};
+        argEvCommon(cm:cm+1) = [];
+    else
+        cmap = 'lines'; % default colormap
+    end
+    eval(['cmap = ' cmap '(nEvents);']);
+    cmap = mat2cell(cmap, ones(1,nEvents),3);
+    argEvSpecific{end+1} = 'color';
+    argEvSpecific{end+1} = cmap;
+    % other options
+    ev = find(strcmpi(specificOptions,'events'));
+    if ~isempty(ev)
+        argEvSpecific = [argEvSpecific specificOptions{ev+1}];
+        specificOptions(ev:ev+1) = [];
+    end
+end
 
 % plot
 figure;
@@ -42,7 +85,9 @@ for ii = 1:nChannels
     end
     options = [commonOptions, specificOptions_current];
     h(ii) = subplot(horDim, vertDim, ii);
-    if self.isNumTime % Time property is a nueric vector
+    hold on
+    legendTmp = {}; % init legend
+    if self.isNumTime % Time property is a numeric vector
         plot(self.Time, self.Data(:,ii), options{:});
     else
         plot(self.Data(:,ii), options{:});
@@ -50,8 +95,30 @@ for ii = 1:nChannels
         a = axis;
         axis([a(1)-1 a(2)+1 a(3) a(4)]);
     end
+    legendTmp = [legendTmp, self.ChannelTags{ii}];
+    
+    % plot events
+    if isEvents % draw lines for Events
+        if self.isNumTime
+            a  = axis;
+            for jj = 1:length(self.Events)
+                argEvSpecific_current = argEvSpecific;
+                for kk = 2:2:length(argEvSpecific)
+                    argEvSpecific_current{kk} = argEvSpecific{kk}{jj};
+                end
+                for kk = 1:length(self.Events(jj).Time)
+                    t = self.Events(jj).Time(kk);
+                    plot([t t], [a(3) a(4)], argEvCommon{:}, argEvSpecific_current{:});
+                    legendTmp = [legendTmp self.Events(jj).EventName];
+                end
+            end
+        else
+            warning('impossible to draw Events when Time is not numeric');
+        end
+    end
+    
     xlabel('Time')
-    legend(h(ii), self.ChannelTags{ii})
+    legend(h(ii), legendTmp)
     legend hide
 end
 
