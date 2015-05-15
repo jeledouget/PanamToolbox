@@ -1,7 +1,15 @@
 % SUBPLOTS
 % plot the 'TimeSignal' as data vs. time bins, one subplot per channel
 % valid only if number of dimensions <= 2 in Data property
-
+% INPUTS :
+    % commonOptions : cell of key-values pairs for plot properties that will
+    % be shared by plots of all channels
+    % specificOptions : cell of key-values pairs for plot properties that
+    % will are specific to each channels ; each values of key-value pair
+    % must be cell of length nChannels
+% OUTPUTS :
+    % h : handle to the axes of the plot
+    
 
 function h = subplots(self, commonOptions, specificOptions)
 

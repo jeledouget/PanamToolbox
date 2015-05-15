@@ -156,8 +156,6 @@ classdef TimeSignal < Signal
         % to do
         alignedSignal = alignToEvent(self, options)
         newSignal = average(self, options)  % average elements of a TimeSignal matrix
-        h = colorPlot(self, options)
-        h = colorSubplots(self, options)
         
         
     end
