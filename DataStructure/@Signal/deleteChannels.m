@@ -37,5 +37,11 @@ tmp = permute(tmp, [nDims, 2:nDims-1, 1]);
 newSignal.Data = tmp;
 newSignal.ChannelTags(channels) = [];
 
+% history
+newSignal.History{end+1,1} = datestr(clock);
+newSignal.History{end,2} = ...
+    ['Delete channels ' sprintf('%s ', self.ChannelTags{channels})];
+
+
 end
 

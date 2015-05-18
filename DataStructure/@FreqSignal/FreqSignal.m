@@ -140,7 +140,7 @@ classdef FreqSignal < Signal
         
         % to do
         newSignal = average(self, options) % average elements of a FreqSignal matrix
-        h = colorPlot(self, commonOptions, specificOptions)
+        h = colorPlot(self, commonOptions, specificOptions, varargin)
         h = colorSubplots(self, commonOptions, specificOptions)
         
         

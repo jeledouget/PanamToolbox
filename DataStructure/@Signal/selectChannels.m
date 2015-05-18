@@ -20,11 +20,11 @@ if iscell(channels) &&  all(cellfun(@ischar, channels))
     channels = cell2mat(cellfun(@(x) find(strcmpi(x, self.ChannelTags)), channels, 'UniformOutput', 0));
 end
 if ~isnumeric(channels) || ~isvector(channels)
-    error('at this point, channels soulb be a numeric vector');
+    error('at this point, channels should be a numeric vector');
 end
 
 % order channels
-channels= sort(channels);
+channels = sort(channels);
 
 % delete channels
 tmp =  self.Data;
@@ -37,7 +37,10 @@ tmp = permute(tmp, [nDims, 2:nDims-1, 1]);
 newSignal.Data = tmp;
 newSignal.ChannelTags = newSignal.ChannelTags(channels);
 
-
+% history
+newSignal.History{end+1,1} = datestr(clock);
+newSignal.History{end,2} = ...
+    ['Keep selected channels : ' sprintf('%s ', self.ChannelTags{channels})];
 
 end
 

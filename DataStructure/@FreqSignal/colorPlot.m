@@ -1,6 +1,6 @@
 % COLORPLOT
 % plot the 'FreqSignal' elements as columns of a colorplot (data vs.
-% frequency bins)
+% frequency bins). Each element must have the same Freq property
 % valid only if number of dimensions <= 2 in Data property
 % WARNING : if severalcahnnels are present, they will be averaged or
 % superimposed. default : averaged
@@ -16,29 +16,60 @@
 
 function h = colorPlot(self, commonOptions, specificOptions, varargin)
 
-% check input
-if ~all(arrayfun(@isNumFreq, self)) || ~any(arrayfun(@isNumFreq, self))
-    error('Freq property of the elements of the FreqSignal must be all numeric or all discrete');
+% defaults
+if nargin < 3 || isempty(specificOptions)
+    specificOptions = {};
+end
+if nargin < 2 || isempty(commonOptions)
+    commonOptions = {};
 end
 if nargin > 1 && ~iscell(commonOptions)
     commonOptions = [commonOptions, specificOptions, varargin];
     specificOptions = {};
 end
 
+% check input
+if ~all(arrayfun(@isNumFreq, self)) || ~any(arrayfun(@isNumFreq, self))
+    error('Freq property of the elements of the FreqSignal must be all numeric or all discrete');
+end
+
 % make self a column
 self = self(:);
+
+% check that Freq property is the same for each element of self
+if numel(self) > 1 && ~isequal(self.Freq)
+    lengths = arrayfun(@(x) length(x.Freq), self);
+    if any(lengths(2:end) - lengths(1:end-1)) % lengths of Freq differ among elements of self
+        error('Freq properties are not of the same length : colorPlot cannot be applied');
+    elseif self(1).isNumFreq
+        averageFreq = mean(reshape([self.Freq],[],numel(self)),2);
+        for ii = 1:numel(self)
+            orderFreq{ii} = arrayfun(@(x) panam_closest(averageFreq, x), self(ii).Freq);
+        end
+        if isequal(orderFreq{:}, 1:lengths(1))
+            warning('frequencies are not exacatly the same in all elements of the FreqSignal');
+        else
+            error('Frequencies should be the same so that mutiple-element FreqSignal object can ba color-plotted');
+        end
+    else % discrete Frequencies
+        error('Frequencies should have the same name so that mutiple-element FreqSignal object can ba color-plotted');
+    end
+elseif self(1).isNumFreq
+    averageFreq = mean(reshape([self.Freq],[],numel(self)),2);
+end
 
 % several channels : average or superimpose ?
 handleChannels = 'average'; % default : average channels
 hc = find(strcmpi(commonOptions,'handlechannels'));
 if ~isempty(hc)
-    if find(strcmpi(hc, {'average', 'avg'}))
+    if find(strcmpi(commonOptions{hc+1}, {'average', 'avg'}))
         handleChannels = 'average';
-    elseif find(strcmpi(hc, { 'superimpose', 'stack'}))
-        handleChannels = 'superimpose;
+    elseif find(strcmpi(commonOptions{hc+1}, {'superimpose', 'stack'}))
+        handleChannels = 'superimpose';
     else
         error('handlechannels options must be ''average'' or ''superimpose''');
     end
+    commonOptions(hc:hc+1) = [];
 end
 
 % common options for FreqMarkers
@@ -68,7 +99,7 @@ if ~isempty(cm)
 else
     cmap = 'lines'; % default colormap
 end
-eval(['cmap = ' cmap '(nChannelsMax));']);
+eval(['cmap = ' cmap '(nChannelsMax);']);
 cmap = mat2cell(cmap, ones(1,nChannelsMax),3);
     
 % specific options and colorbars for freqMarkers
@@ -98,28 +129,92 @@ if isMarkers
     end
 end
 
+% create data
+switch handleChannels
+    case 'average'
+        for ii = 1:numel(self)
+            self(ii) = self(ii).avgChannel;
+        end
+    case 'superimpose'
+        % do nothing
+end
+data = [];
+for ii = 1:numel(self)
+    data = cat(2, data, self(ii).Data);
+end
+
+% smooth data with gaussian filter
+sm = find(strcmpi(commonOptions,'smooth'));
+if ~isempty(sm)
+    nPointsSmoothHor = commonOptions{sm+1}(1);
+    nPointsSmoothVert = commonOptions{sm+1}(2);
+    try 
+        stdDevSmoothHor = commonOptions{sm+1}(3);
+    catch
+        stdDevSmoothHor = nPointsSmoothHor;
+    end
+    try
+        stdDevSmoothVert = commonOptions{sm+1}(4);
+    catch
+        stdDevSmoothVert = nPointsSmoothVert;
+    end
+else
+    nPointsSmoothHor = 1;
+    nPointsSmoothVert = 1;
+    stdDevSmoothHor = 1;
+    stdDevSmoothVert = 1;
+end
+gaussFilter = customgauss([nPointsSmoothVert nPointsSmoothHor], stdDevSmoothVert, stdDevSmoothHor,0,0,1,[0 0]);
+ratio = sum(sum(gaussFilter));
+data = conv2(data, gaussFilter, 'same') / ratio;
+
+
 % plot
 h = gca; 
 hold on
+set(gca,'YDir','normal');
+if self(1).isNumFreq
+    imagesc(averageFreq,[],data);
+else
+    imagesc(1:size(data,1),[],data);
+end
+axis tight
+
+% plot FreqMarkers
 legendTmp = {};
-for kk = 1:numel(self)
-    specificOptions_element = [{'color', cmap(1:nChannels(kk))} specificOptions];
-    for ii = 1:nChannels(kk)
-        specificOptions_current = specificOptions_element;
-        for jj = 2:2:length(specificOptions_element)
-            specificOptions_current{jj} = specificOptions_element{jj}{ii};
+if isMarkers % draw lines for Freq
+    if self(1).isNumFreq
+        a  = axis;
+        for ii = 1:length(allMarkers)
+            argFmSpecific_current = argFmSpecific;
+            for jj = 2:2:length(argFmSpecific)
+                argFmSpecific_current{jj} = argFmSpecific{jj}{ii};
+            end
+            for kk = 1:length(allMarkers(ii).Freq)
+                t = allMarkers(ii).Freq(kk);
+                plot([t t], [a(3) a(4)], argFmCommon{:}, argFmSpecific_current{:});
+                legendTmp = [legendTmp allMarkers(ii).MarkerName];
+            end
         end
-        options = [commonOptions, specificOptions_current];
-        if self(kk).isNumFreq % numeric freq vector
-            plot(self(kk).Freq, self(kk).Data(:,ii), options{:});
-        else
-            plot(self(kk).Data(:,ii), options{:});
-        end
-        legendTmp = [legendTmp, self(kk).ChannelTags{ii}];
+    else
+        warning('impossible to draw FreqMarkers when Freq is not numeric');
     end
 end
 
+if ~self(1).isNumFreq
+    freqs = {self.Freq};
+    if ~isequal(freqs{:})
+        warning('freqs differ between elements of the FreqSignal');
+    else
+        set(gca,'XTick',1:length(self.Freq), 'XTickLabel', self.Freq);
+    end
+    a = axis;
+    axis([a(1)-1 a(2)+1 a(3) a(4)]);
+end
 
-
+xlabel('Frequency')
+legend(legendTmp)
+legend hide
+hold off
 
 end
