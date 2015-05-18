@@ -1,7 +1,9 @@
-% PLOT
-% plot the 'FreqSignal' as data vs. frequency bins
+% COLORPLOT
+% plot the 'FreqSignal' elements as columns of a colorplot (data vs.
+% frequency bins)
 % valid only if number of dimensions <= 2 in Data property
-% plot the different channels on the same plot
+% WARNING : if severalcahnnels are present, they will be averaged or
+% superimposed. default : averaged
 % INPUTS :
     % commonOptions : cell of key-values pairs for plot properties that will
     % be shared by plots of all channels
@@ -10,12 +12,11 @@
     % must be cell of length nChannels
 % OUTPUTS :
     % h : handle to the axes of the plot
-    
-
-function h = plot(self, commonOptions, specificOptions)
 
 
-% TODO : check inputs
+function h = colorPlot(self, commonOptions, specificOptions, varargin)
+
+% check input
 if ~all(arrayfun(@isNumFreq, self)) || ~any(arrayfun(@isNumFreq, self))
     error('Freq property of the elements of the FreqSignal must be all numeric or all discrete');
 end
@@ -27,12 +28,17 @@ end
 % make self a column
 self = self(:);
 
-% default
-if nargin < 3 || isempty(specificOptions)
-    specificOptions = {};
-end
-if nargin < 2 || isempty(commonOptions)
-    commonOptions = {};
+% several channels : average or superimpose ?
+handleChannels = 'average'; % default : average channels
+hc = find(strcmpi(commonOptions,'handlechannels'));
+if ~isempty(hc)
+    if find(strcmpi(hc, {'average', 'avg'}))
+        handleChannels = 'average';
+    elseif find(strcmpi(hc, { 'superimpose', 'stack'}))
+        handleChannels = 'superimpose;
+    else
+        error('handlechannels options must be ''average'' or ''superimpose''');
+    end
 end
 
 % common options for FreqMarkers
@@ -52,7 +58,7 @@ if ~isempty(fm)
     commonOptions(fm:fm+1) = [];
 end
 
-% colormap for channels
+% colormap for main plot
 cm = find(strcmpi(commonOptions,'colormap'));
 nChannels = arrayfun(@(x) length(x.ChannelTags), self);
 nChannelsMax = max(nChannels);
@@ -62,23 +68,14 @@ if ~isempty(cm)
 else
     cmap = 'lines'; % default colormap
 end
+eval(['cmap = ' cmap '(nChannelsMax));']);
+cmap = mat2cell(cmap, ones(1,nChannelsMax),3);
+    
+% specific options and colorbars for freqMarkers
 if isMarkers
     allMarkers = [self.FreqMarkers];
     allMarkers = allMarkers.unifyMarkers;
     nMarkers = length(allMarkers);
-    if strcmpi(cmap, 'lines')
-        eval(['cmap = ' cmap '(nChannelsMax + nEvents);']);
-    else
-        eval(['cmap = cat(1,' cmap '(nChannelsMax), lines(nEvents));']);
-    end
-    cmap = mat2cell(cmap, ones(1,nChannelsMax + nMarkers),3);
-else
-    eval(['cmap = ' cmap '(nChannelsMax);']);
-    cmap = mat2cell(cmap, ones(1,nChannelsMax),3);
-end
-    
-% specific options and colorbars for freqMarkers
-if isMarkers
     argFmSpecific = {}; % init
     % colormap for FreqMarkers
     cm = find(strcmpi(argFmCommon,'colormap'));
@@ -88,7 +85,8 @@ if isMarkers
         eval(['cmap_fm = ' cmap_fm '(nMarkers);']);
         cmap_fm = mat2cell(cmap_fm, ones(1,nMarkers),3);
     else
-        cmap_fm = cmap(nChannelsMax+1:end);
+        cmap_fm = lines(nMarkers);
+        cmap_fm = mat2cell(cmap_fm, ones(1,nMarkers),3);
     end
     argFmSpecific{end+1} = 'color';
     argFmSpecific{end+1} = cmap_fm;
@@ -121,41 +119,7 @@ for kk = 1:numel(self)
     end
 end
 
-% plot FreqMarkers
-if isMarkers % draw lines for Freq
-    if self(1).isNumFreq
-        a  = axis;
-        for ii = 1:length(allMarkers)
-            argFmSpecific_current = argFmSpecific;
-            for jj = 2:2:length(argFmSpecific)
-                argFmSpecific_current{jj} = argFmSpecific{jj}{ii};
-            end
-            for kk = 1:length(allMarkers(ii).Freq)
-                t = allMarkers(ii).Freq(kk);
-                plot([t t], [a(3) a(4)], argFmCommon{:}, argFmSpecific_current{:});
-                legendTmp = [legendTmp allMarkers(ii).MarkerName];
-            end
-        end
-    else
-        warning('impossible to draw FreqMarkers when Freq is not numeric');
-    end
-end
 
-if ~self(1).isNumFreq
-    freqs = {self.Freq};
-    if ~isequal(freqs{:})
-        warning('freqs differ between elements of the FreqSignal');
-    else
-        set(gca,'XTick',1:length(self.Freq), 'XTickLabel', self.Freq);
-    end
-    a = axis;
-    axis([a(1)-1 a(2)+1 a(3) a(4)]);
-end
 
-xlabel('Frequency')
-legend(legendTmp)
-legend hide
-hold off
 
 end
-

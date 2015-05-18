@@ -6,17 +6,25 @@
     % commonOptions : cell of key-values pairs for plot properties that will
     % be shared by plots of all channels
     % specificOptions : cell of key-values pairs for plot properties that
-    % will are specific to each channels ; each values of key-value pair
-    % must be cell of length nChannels
+    % are specific to each channel ; each values of key-value pair
+    % must be a cell of length nChannels
 % OUTPUTS :
     % h : handle to the axes of the plot
 
 
-function h = plot(self, commonOptions, specificOptions)
-
+function h = plot(self, commonOptions, specificOptions, varargin)
 
 % TODO : check inputs
+if ~all(arrayfun(@isNumTime, self)) || ~any(arrayfun(@isNumTime, self))
+    error('Time property of the elements of the TimeSignal must be all numeric or all discrete');
+end
+if nargin > 1 && ~iscell(commonOptions)
+    commonOptions = [commonOptions, specificOptions, varargin];
+    specificOptions = {};
+end
 
+% make self a column
+self = self(:);
 
 % default
 if nargin < 3 || isempty(specificOptions)
@@ -45,7 +53,8 @@ end
 
 % colormap for channels
 cm = find(strcmpi(commonOptions,'colormap'));
-nChannels = length(self.ChannelTags);
+nChannels = arrayfun(@(x) length(x.ChannelTags), self);
+nChannelsMax = max(nChannels);
 if ~isempty(cm)
     cmap = commonOptions{cm+1};
     commonOptions(cm:cm+1) = [];
@@ -53,35 +62,35 @@ else
     cmap = 'lines'; % default colormap
 end
 if isEvents
-    nEvents = length(self.Events);
+    allEvents = [self.Events];
+    allEvents = allEvents.unifyEvents;
+    nEvents = length(allEvents);
     if strcmpi(cmap, 'lines')
-        eval(['cmap = ' cmap '(nChannels + nEvents);']);
+        eval(['cmap = ' cmap '(nChannelsMax + nEvents);']);
     else
-        eval(['cmap = cat(1,' cmap '(nChannels), lines(nEvents));']);
+        eval(['cmap = cat(1,' cmap '(nChannelsMax), lines(nEvents));']);
     end
-    cmap = mat2cell(cmap, ones(1,nChannels + nEvents),3);
+    cmap = mat2cell(cmap, ones(1,nChannelsMax + nEvents),3);
 else
-    eval(['cmap = ' cmap '(nChannels);']);
-    cmap = mat2cell(cmap, ones(1,nChannels),3);
+    eval(['cmap = ' cmap '(nChannelsMax);']);
+    cmap = mat2cell(cmap, ones(1,nChannelsMax),3);
 end
-specificOptions = [{'color', cmap(1:nChannels)} specificOptions];
     
-% specific options and colorbars for freqMarkers
+% specific options and colorbars for Events
 if isEvents
     argEvSpecific = {}; % init
     % colormap for Events
     cm = find(strcmpi(argEvCommon,'colormap'));
-    nEvents = length(self.Events);
     if ~isempty(cm)
-        cmap_fm = argEvCommon{cm+1};
+        cmap_ev = argEvCommon{cm+1};
         argEvCommon(cm:cm+1) = [];
-        eval(['cmap_fm = ' cmap_fm '(nEvents);']);
-        cmap_fm = mat2cell(cmap_fm, ones(1,nEvents),3);
+        eval(['cmap_ev = ' cmap_ev '(nEvents);']);
+        cmap_ev = mat2cell(cmap_ev, ones(1,nEvents),3);
     else
-        cmap_fm = cmap(nChannels+1:end);
+        cmap_ev = cmap(nChannelsMax+1:end);
     end
     argEvSpecific{end+1} = 'color';
-    argEvSpecific{end+1} = cmap_fm;
+    argEvSpecific{end+1} = cmap_ev;
     % other options
     fm = find(strcmpi(specificOptions,'events'));
     if ~isempty(fm)
@@ -93,35 +102,37 @@ end
 % plot
 h = gca; 
 hold on
-nChannels = size(self.Data,2);
 legendTmp = {};
-for ii = 1:nChannels
-    specificOptions_current = specificOptions;
-    for jj = 2:2:length(specificOptions)
-        specificOptions_current{jj} = specificOptions{jj}{ii};
+for kk = 1:numel(self)
+    specificOptions_element = [{'color', cmap(1:nChannels(kk))} specificOptions];
+    for ii = 1:nChannels(kk)
+        specificOptions_current = specificOptions_element;
+        for jj = 2:2:length(specificOptions_element)
+            specificOptions_current{jj} = specificOptions_element{jj}{ii};
+        end
+        options = [commonOptions, specificOptions_current];
+        if self(kk).isNumTime % numeric time vector
+            plot(self(kk).Time, self(kk).Data(:,ii), options{:});
+        else
+            plot(self(kk).Data(:,ii), options{:});
+        end
+        legendTmp = [legendTmp, self(kk).ChannelTags{ii}];
     end
-    options = [commonOptions, specificOptions_current];
-    if self.isNumTime % numeric time vector
-        plot(self.Time, self.Data(:,ii), options{:});
-    else
-        plot(self.Data(:,ii), options{:});
-    end
-    legendTmp = [legendTmp, self.ChannelTags{ii}];
 end
 
 % plot Events
 if isEvents % draw lines for Time
-    if self.isNumTime
+    if self(1).isNumTime
         a  = axis;
-        for ii = 1:length(self.Events)
+        for ii = 1:length(allEvents)
             argEvSpecific_current = argEvSpecific;
             for jj = 2:2:length(argEvSpecific)
                 argEvSpecific_current{jj} = argEvSpecific{jj}{ii};
             end
-            for kk = 1:length(self.Events(ii).Time)
-                t = self.Events(ii).Time(kk);
+            for kk = 1:length(allEvents(ii).Time)
+                t = allEvents(ii).Time(kk);
                 plot([t t], [a(3) a(4)], argEvCommon{:}, argEvSpecific_current{:});
-                legendTmp = [legendTmp self.Events(ii).EventName];
+                legendTmp = [legendTmp allEvents(ii).EventName];
             end
         end
     else
@@ -129,8 +140,13 @@ if isEvents % draw lines for Time
     end
 end
 
-if ~self.isNumTime
-    set(gca,'XTick',1:length(self.Time), 'XTickLabel', self.Time);
+if ~self(1).isNumTime
+    times = {self.Time};
+    if ~isequal(times{:})
+        warning('times differ between elements of the TimeSignal');
+    else
+        set(gca,'XTick',1:length(self.Time), 'XTickLabel', self.Time);
+    end
     a = axis;
     axis([a(1)-1 a(2)+1 a(3) a(4)]);
 end
