@@ -123,6 +123,16 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         
         % conversion to TimeSignal
         
+        % non-applicable methods
+        function colorSubplots(self)
+            error('non-applicable mehod');
+        end
+        function colorPlot(self)
+            error('non-applicable mehod');
+        end
+        function avgElements(self)
+            error('non-applicable mehod');
+        end
         
                 
         %% external methods
@@ -144,6 +154,7 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         h = timeColorPlot(self, freq, commonOptions, specificOptions)
         h = timeColorSubplots(self, times, commonOptions, specificOptions)
         
+               
         
     end
 end

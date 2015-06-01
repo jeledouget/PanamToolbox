@@ -12,7 +12,7 @@
     % h : handle to the axes of the plot
     
 
-function h = plot(self, commonOptions, specificOptions)
+function h = plot(self, commonOptions, specificOptions, varargin)
 
 
 % TODO : check inputs
@@ -37,19 +37,25 @@ end
 
 % common options for FreqMarkers
 isMarkers = 1; % default : show Markers
-fm = find(strcmpi(commonOptions,'freqmarkers'));
-argFmCommon = {'LineWidth',2}; % default
-if ~isempty(fm)
-    if ischar(commonOptions{fm+1})
-        if strcmpi(commonOptions{fm+1}, 'no')
+isAvgMarkers = 1; % default : average the freq markers (one value per Freq tag only)
+fmType = find(strcmpi(commonOptions,'freqmarkers')); % 'avg' (average markers), 'all' (show all markers, not averaged), ou 'no' (hide markers)
+if ~isempty(fmType)
+        if strcmpi(commonOptions{fmType+1}, 'no')
             isMarkers = 0;
-        else % void char, or 'yes' ...
+        elseif strcmpi(commonOptions{fmType+1}, 'all')
+            isAvgMarkers = 0;
+        elseif strcmpi(commonOptions{fmType+1}, 'avg')
             % do nothing
+        else
+            warning('after ''freqmarkers'' option, parameter should be ''all'', ''avg'' or ''no'' ; here considered ''avg'' by default');
         end
-    else
-        argFmCommon = [argFmCommon commonOptions{fm+1}];
-    end
-    commonOptions(fm:fm+1) = [];
+        commonOptions(fmType:fmType+1) = [];
+end
+fmOptions = find(strcmpi(commonOptions,'fmOptions'));
+argFmCommon = {'LineWidth',2}; % default
+if ~isempty(fmOptions)
+    argFmCommon = [argFmCommon commonOptions{fmOptions+1}];
+    commonOptions(fmOptions:fmOptions+1) = [];
 end
 
 % colormap for channels
@@ -64,12 +70,16 @@ else
 end
 if isMarkers
     allMarkers = [self.FreqMarkers];
-    allMarkers = allMarkers.unifyMarkers;
+    if isAvgMarkers
+        allMarkers = allMarkers.avgMarkers;
+    else
+        allMarkers = allMarkers.unifyMarkers;
+    end
     nMarkers = length(allMarkers);
     if strcmpi(cmap, 'lines')
-        eval(['cmap = ' cmap '(nChannelsMax + nEvents);']);
+        eval(['cmap = ' cmap '(nChannelsMax + nMarkers);']);
     else
-        eval(['cmap = cat(1,' cmap '(nChannelsMax), lines(nEvents));']);
+        eval(['cmap = cat(1,' cmap '(nChannelsMax), lines(nMarkers));']);
     end
     cmap = mat2cell(cmap, ones(1,nChannelsMax + nMarkers),3);
 else
@@ -93,10 +103,10 @@ if isMarkers
     argFmSpecific{end+1} = 'color';
     argFmSpecific{end+1} = cmap_fm;
     % other options
-    fm = find(strcmpi(specificOptions,'freqmarkers'));
-    if ~isempty(fm)
-        argFmSpecific = [argFmSpecific specificOptions{fm+1}];
-        specificOptions(fm:fm+1) = [];
+    fmOptions = find(strcmpi(specificOptions,'fmOptions'));
+    if ~isempty(fmOptions)
+        argFmSpecific = [argFmSpecific specificOptions{fmOptions+1}];
+        specificOptions(fmOptions:fmOptions+1) = [];
     end
 end
 

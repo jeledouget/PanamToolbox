@@ -1,14 +1,19 @@
 % Method for class 'FreqMarkers' and subclasses
 %  unifyMarkers : acts on a vector FreqMarkers object : make all the
 %  MarkerName unique by appending Freq when MarkerName match.
-%  Also makes freq unique for each MarkerName
+%  Also can make freq unique for each MarkerName (default behaviour)
 % INPUTS
 % OUTPUT
     % newMarkers : modified FreqMarkers vector with unique MarkerName and
     % unique Freq for each element
 
 
-function newMarkers = unifyMarkers(self)
+function newMarkers = unifyMarkers(self, uniqueFreq)
+
+% default
+if nargin < 2  || isempty(uniqueFreq)
+    uniqueFreq = 1;
+end
 
 % append time to common type of events
 indToKeep = [];
@@ -23,9 +28,11 @@ end
 % keep unique events    
 newMarkers = self(sort(indToKeep));
 
-% keep unique times in events
-for ii = 1:length(newMarkers)
-    newMarkers(ii).Freq = unique(newMarkers(ii).Freq, 'first');
+% keep unique freqs in markers
+if uniqueFreq
+    for ii = 1:length(newMarkers)
+        newMarkers(ii).Freq = unique(newMarkers(ii).Freq, 'first');
+    end
 end
 
 end

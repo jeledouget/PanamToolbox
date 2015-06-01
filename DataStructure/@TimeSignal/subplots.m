@@ -11,7 +11,7 @@
 % h : handle to the axes of the plot
 
 
-function h = subplots(self, commonOptions, specificOptions)
+function h = subplots(self, commonOptions, specificOptions, varargin)
 
 
 % TODO : check inputs
@@ -35,21 +35,27 @@ if nargin < 2 || isempty(commonOptions)
     commonOptions = {};
 end
 
-% common options for events
+% common options for Events
 isEvents = 1; % default : show Events
-ev = find(strcmpi(commonOptions,'events'));
-argEvCommon = {'LineWidth',2}; % default
-if ~isempty(ev)
-    if ischar(commonOptions{ev+1})
-        if strcmpi(commonOptions{ev+1}, 'no')
+isAvgEvents = 1; % default : average the events (one value per Freq tag only)
+evType = find(strcmpi(commonOptions,'events')); % 'avg' (average  events), 'all' (show all events, not averaged), ou 'no' (hide events)
+if ~isempty(evType)
+        if strcmpi(commonOptions{evType+1}, 'no')
             isEvents = 0;
-        else % void char, or 'yes' ...
+        elseif strcmpi(commonOptions{evType+1}, 'all')
+            isAvgEvents = 0;
+        elseif strcmpi(commonOptions{evType+1}, 'avg')
             % do nothing
+        else
+            warning('after ''events'' option, parameter should be ''all'', ''avg'' or ''no'' ; here considered ''avg'' by default');
         end
-    else
-        argEvCommon = [argEvCommon commonOptions{ev+1}];
-    end
-    commonOptions(ev:ev+1) = [];
+        commonOptions(evType:evType+1) = [];
+end
+evOptions = find(strcmpi(commonOptions,'evOptions'));
+argEvCommon = {'LineWidth',2}; % default
+if ~isempty(evOptions)
+    argEvCommon = [argEvCommon commonOptions{evOptions+1}];
+    commonOptions(evOptions:evOptions+1) = [];
 end
 
 % channels
@@ -76,7 +82,11 @@ else
 end
 if isEvents
     allEvents = [self.Events];
-    allEvents = allEvents.unifyEvents;
+    if isAvgEvents
+        allEvents = allEvents.avgEvents;
+    else
+        allEvents = allEvents.unifyEvents;
+    end
     nEvents = length(allEvents);
     if strcmpi(cmap, 'lines')
         eval(['cmap = ' cmap '(nSignals + nEvents);']);

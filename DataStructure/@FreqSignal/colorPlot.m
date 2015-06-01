@@ -2,7 +2,7 @@
 % plot the 'FreqSignal' elements as columns of a colorplot (data vs.
 % frequency bins). Each element must have the same Freq property
 % valid only if number of dimensions <= 2 in Data property
-% WARNING : if severalcahnnels are present, they will be averaged or
+% WARNING : if several channels are present, they will be averaged or
 % superimposed. default : averaged
 % INPUTS :
     % commonOptions : cell of key-values pairs for plot properties that will
@@ -74,38 +74,35 @@ end
 
 % common options for FreqMarkers
 isMarkers = 1; % default : show Markers
-fm = find(strcmpi(commonOptions,'freqmarkers'));
-argFmCommon = {'LineWidth',2}; % default
-if ~isempty(fm)
-    if ischar(commonOptions{fm+1})
-        if strcmpi(commonOptions{fm+1}, 'no')
+isAvgMarkers = 1; % default : average the freq markers (one value per Freq tag only)
+fmType = find(strcmpi(commonOptions,'freqmarkers')); % 'avg' (average markers), 'all' (show all markers, not averaged), ou 'no' (hide markers)
+if ~isempty(fmType)
+        if strcmpi(commonOptions{fmType+1}, 'no')
             isMarkers = 0;
-        else % void char, or 'yes' ...
+        elseif strcmpi(commonOptions{fmType+1}, 'all')
+            isAvgMarkers = 0;
+        elseif strcmpi(commonOptions{fmType+1}, 'avg')
             % do nothing
+        else
+            warning('after ''freqmarkers'' option, parameter should be ''all'', ''avg'' or ''no'' ; here considered ''avg'' by default');
         end
-    else
-        argFmCommon = [argFmCommon commonOptions{fm+1}];
-    end
-    commonOptions(fm:fm+1) = [];
+        commonOptions(fmType:fmType+1) = [];
+end
+fmOptions = find(strcmpi(commonOptions,'fmOptions'));
+argFmCommon = {'LineWidth',2}; % default
+if ~isempty(fmOptions)
+    argFmCommon = [argFmCommon commonOptions{fmOptions+1}];
+    commonOptions(fmOptions:fmOptions+1) = [];
 end
 
-% colormap for main plot
-cm = find(strcmpi(commonOptions,'colormap'));
-nChannels = arrayfun(@(x) length(x.ChannelTags), self);
-nChannelsMax = max(nChannels);
-if ~isempty(cm)
-    cmap = commonOptions{cm+1};
-    commonOptions(cm:cm+1) = [];
-else
-    cmap = 'lines'; % default colormap
-end
-eval(['cmap = ' cmap '(nChannelsMax);']);
-cmap = mat2cell(cmap, ones(1,nChannelsMax),3);
-    
 % specific options and colorbars for freqMarkers
 if isMarkers
     allMarkers = [self.FreqMarkers];
-    allMarkers = allMarkers.unifyMarkers;
+    if isAvgMarkers
+        allMarkers = allMarkers.avgMarkers;
+    else
+        allMarkers = allMarkers.unifyMarkers;
+    end
     nMarkers = length(allMarkers);
     argFmSpecific = {}; % init
     % colormap for FreqMarkers
@@ -122,10 +119,10 @@ if isMarkers
     argFmSpecific{end+1} = 'color';
     argFmSpecific{end+1} = cmap_fm;
     % other options
-    fm = find(strcmpi(specificOptions,'freqmarkers'));
-    if ~isempty(fm)
-        argFmSpecific = [argFmSpecific specificOptions{fm+1}];
-        specificOptions(fm:fm+1) = [];
+    fmOptions = find(strcmpi(specificOptions,'fmOptions'));
+    if ~isempty(fmOptions)
+        argFmSpecific = [argFmSpecific specificOptions{fmOptions+1}];
+        specificOptions(fmOptions:fmOptions+1) = [];
     end
 end
 
@@ -142,6 +139,7 @@ data = [];
 for ii = 1:numel(self)
     data = cat(2, data, self(ii).Data);
 end
+data = data';
 
 % smooth data with gaussian filter
 sm = find(strcmpi(commonOptions,'smooth'));
@@ -212,6 +210,7 @@ if ~self(1).isNumFreq
     axis([a(1)-1 a(2)+1 a(3) a(4)]);
 end
 
+set(gca,'YTick',[]);
 xlabel('Frequency')
 legend(legendTmp)
 legend hide

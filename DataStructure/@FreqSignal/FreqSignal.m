@@ -44,8 +44,8 @@ classdef FreqSignal < Signal
             end
             % call Signal constructor
             self@Signal(varargin{indicesVarargin}, 'subclassFlag', 1);
-            if ~isempty(indFreq), self.Freq = varargin{indFreq};end
-            if ~isempty(indFreqMarkers), self.FreqMarkers = varargin{indFreqMarkers};end
+            if ~isempty(indFreq) && ~isempty(varargin{indFreq}), self.Freq = varargin{indFreq};end
+            if ~isempty(indFreqMarkers) && ~isempty(varargin{indFreqMarkers}), self.FreqMarkers = varargin{indFreqMarkers};end
             if ~subclassFlag
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling FreqSignal constructor';
@@ -133,15 +133,15 @@ classdef FreqSignal < Signal
         %% external methods
         
         freqWindowedSignal = freqWindow(self, minFreq, maxFreq)
-        h = plot(self, commonOptions, specificOptions)
-        h = subplots(self, commonOptions, specificOptions)
+        h = plot(self, commonOptions, specificOptions, varargin)
+        h = subplots(self, commonOptions, specificOptions, varargin)
         avgSignal = avgFreq(self, freqBands, freqTags)
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
+        h = colorPlot(self, commonOptions, specificOptions, varargin)
+        h = colorSubplots(self, commonOptions, specificOptions, varargin)
+        newSignal = avgElements(self, options) % average elements of a FreqSignal matrix
         
         % to do
-        newSignal = average(self, options) % average elements of a FreqSignal matrix
-        h = colorPlot(self, commonOptions, specificOptions, varargin)
-        h = colorSubplots(self, commonOptions, specificOptions)
         
         
     end

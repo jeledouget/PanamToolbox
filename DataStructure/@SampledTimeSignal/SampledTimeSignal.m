@@ -45,9 +45,9 @@ classdef SampledTimeSignal < TimeSignal
                 end
             end
             self@TimeSignal(varargin{indicesVarargin}, 'subclassflag', 1);
-            if ~isempty(indFs), self.Fs = varargin{indFs};end 
-            if ~isempty(indTstart), self.Temp.tstart = varargin{indTstart};end
-            if ~isempty(indZerosample), self.Temp.zerosample = varargin{indZerosample};end
+            if ~isempty(indFs) && ~isempty(varargin{indFs}), self.Fs = varargin{indFs};end 
+            if ~isempty(indTstart) && ~isempty(varargin{indTstart}), self.Temp.tstart = varargin{indTstart};end
+            if ~isempty(indZerosample) && ~isempty(varargin{indZerosample}), self.Temp.zerosample = varargin{indZerosample};end
             if ~subclassFlag
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling SampledTimeSignal constructor';
@@ -143,7 +143,7 @@ classdef SampledTimeSignal < TimeSignal
         spectogramSignal = spectogram(self, options)
         fftSignal = fft(self, options)
         tfSignal = timefrequency(self, options)
-        newSignal = average(self, options)  % average elements of a SampledTimeSignal matrix
+        newSignal = avgElements(self)  % average elements of a SampledTimeSignal matrix
         
     end
 end

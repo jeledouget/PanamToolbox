@@ -44,8 +44,8 @@ classdef TimeSignal < Signal
                 end
             end                
             self@Signal(varargin{indicesVarargin}, 'subclassFlag', 1);
-            if ~isempty(indTime), self.Time = varargin{indTime};end
-            if ~isempty(indEvents), self.Events = varargin{indEvents};end
+            if ~isempty(indTime) && ~isempty(varargin{indTime}), self.Time = varargin{indTime};end
+            if ~isempty(indEvents) && ~isempty(varargin{indEvents}), self.Events = varargin{indEvents};end
             if ~subclassFlag
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling TimeSignal constructor';
@@ -148,14 +148,16 @@ classdef TimeSignal < Signal
         %% external methods
         
         timeWindowedSignal = timeWindow(thisObj, minTime, maxTime)
-        h = plot(self, commonOptions, specificOptions)
-        h = subplots(self, commonOptions, specificOptions)
+        h = plot(self, commonOptions, specificOptions, varargin)
+        h = subplots(self, commonOptions, specificOptions, varargin)
+        h = colorPlot(self, commonOptions, specificOptions, varargin)
+        h = colorSubplots(self, commonOptions, specificOptions, varargin)
         avgSignal = avgTime(self, timeBands, timeTags)
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
+        newSignal = avgElements(self, subclassFlag)  % average elements of a TimeSignal matrix
         
         % to do
         alignedSignal = alignToEvent(self, options)
-        newSignal = average(self, options)  % average elements of a TimeSignal matrix
         
         
     end

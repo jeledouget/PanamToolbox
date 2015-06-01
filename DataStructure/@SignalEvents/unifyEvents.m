@@ -4,11 +4,16 @@
 %  Also makes times unique for each EventName
 % INPUTS
 % OUTPUT
-    % newEvents : modified SignalEvents vector with unique EventName and
-    % unique Times for each element
+% newEvents : modified SignalEvents vector with unique EventName and
+% unique Times for each element
 
 
-function newEvents = unifyEvents(self)
+function newEvents = unifyEvents(self, uniqueTimes)
+
+% default
+if nargin < 2  || isempty(uniqueTimes)
+    uniqueTimes = 1;
+end
 
 % append time to common type of events
 indToKeep = [];
@@ -20,14 +25,16 @@ for name = unique(lower({self.EventName}))
     end
     indToKeep(end+1) = indEvent(1);
 end
-        
-% keep unique events    
+
+% keep unique events
 newEvents = self(sort(indToKeep));
 
 % keep unique times in events
-for ii = 1:length(newEvents)
-    [newEvents(ii).Time ind] = unique(newEvents(ii).Time, 'first');
-    newEvents(ii).Duration = newEvents(ii).Duration(ind);
+if uniqueTimes
+    for ii = 1:length(newEvents)
+        [newEvents(ii).Time ind] = unique(newEvents(ii).Time, 'first');
+        newEvents(ii).Duration = newEvents(ii).Duration(ind);
+    end
 end
 
 end
