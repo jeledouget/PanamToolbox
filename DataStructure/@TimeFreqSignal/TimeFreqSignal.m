@@ -125,21 +125,19 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         
         % non-applicable methods
         function colorSubplots(self)
-            error('non-applicable mehod');
+            error('non-applicable method');
         end
         function colorPlot(self)
-            error('non-applicable mehod');
-        end
-        function avgElements(self)
-            error('non-applicable mehod');
+            error('non-applicable method');
         end
         
                 
         %% external methods
         
-        freqSignal = tf2freqSignal(self, time);
-        timeSignal = tf2timeSignal(self, freq);
+        freqSignal = tf2freqSignal(self, time)
+        timeSignal = tf2timeSignal(self, freq)
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
+        avgSignal = avgElements(self)
         
         % to do
         newSignal = average(self, options) % average elements of a TimeFreqSignal matrix
@@ -155,6 +153,5 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         h = timeColorSubplots(self, times, commonOptions, specificOptions)
         
                
-        
     end
 end

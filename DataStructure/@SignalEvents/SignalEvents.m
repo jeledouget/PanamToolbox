@@ -93,11 +93,12 @@ classdef SignalEvents
         %% external methods
         
         newEvents = unifyEvents(self, uniqueTimes);
-        newEvents = avgEvents(self)    
+        newEvents = avgEvents(self)
+        [newEvents, time] = offsetTime(self, offset, varargin)
+        listedEvents = asList(self)
+        sortedEvents = sortByTime(self)
         
-        % to do
-        event = offsetTime(self, offset);
-        
+        % to do        
         
         
     end

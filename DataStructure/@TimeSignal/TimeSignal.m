@@ -155,9 +155,9 @@ classdef TimeSignal < Signal
         avgSignal = avgTime(self, timeBands, timeTags)
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
         newSignal = avgElements(self, subclassFlag)  % average elements of a TimeSignal matrix
+        offsetSignal = offsetTime(self, offset, varargin)
         
         % to do
-        alignedSignal = alignToEvent(self, options)
         
         
     end

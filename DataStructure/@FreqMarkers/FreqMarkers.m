@@ -66,7 +66,8 @@ classdef FreqMarkers
         %% external methods
         
         newEvents = unifyMarkers(self, uniqueFreq)
-        newMarkers = avgMarkers(self)      
+        newMarkers = avgMarkers(self) 
+        
         
     end
     

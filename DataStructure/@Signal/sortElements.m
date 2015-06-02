@@ -39,11 +39,5 @@ end
 % sort
 sortedSignal.Signals = sortedSignal.Signals(order);
     
-% history
-if ~subclassFlag
-    sortedSignal.History{end+1,1} = datestr(clock);
-    sortedSignal.History{end,2} = ...
-        'Sort the elements of the Signal object';
-end
 
 end

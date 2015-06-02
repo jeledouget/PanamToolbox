@@ -14,10 +14,10 @@ for key = map.keys
     if isnumeric(value)
         if length(value) <= 50
             fprintf('%4.2g,',value(1:end-1));
-            fprintf('%4.2g\n\n ',value(end));
+            fprintf('%4.2g\n ',value(end));
         else
             fprintf('%4.2g,',value(1:49));
-            fprintf('%4.2g...\n\n ',value(50));
+            fprintf('%4.2g...\n ',value(50));
         end
     else % make it a cell
         if ~iscell(value)
@@ -29,14 +29,14 @@ for key = map.keys
             catch
                 disp(value(1:end));
             end
-            fprintf('\n\n');
+            fprintf('\n');
         else
             try
                 disp(value{1:50});
             catch
                 disp(value(1:50));
             end
-            fprintf('\n\n');
+            fprintf('\n');
         end
     end
     

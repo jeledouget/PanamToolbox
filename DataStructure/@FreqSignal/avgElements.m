@@ -2,12 +2,12 @@
 %  avgElements : average the elements of a FreqSignal object
 % elements must have the same dimensions
 % INPUTS
-    % 
+%
 % OUTPUT
-    % avgSignal : between-elements FreqSignal average
+% avgSignal : between-elements FreqSignal average
 
 
-function avgSignal = avgElements(self)
+function avgSignal = avgElements(self, subclassFlag)
 
 % check input
 if ~all(arrayfun(@isNumFreq, self)) || ~any(arrayfun(@isNumFreq, self))
@@ -46,8 +46,10 @@ if ~isempty(markers)
 end
 
 % history
-avgSignal.History{end+1,1} = datestr(clock);
-avgSignal.History{end,2} = ...
+if ~subclassFlag
+    avgSignal.History{end+1,1} = datestr(clock);
+    avgSignal.History{end,2} = ...
         'Average the elements of the FreqSignal object';
+end
 
 end

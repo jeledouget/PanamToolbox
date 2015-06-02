@@ -114,10 +114,10 @@ classdef SetOfSignals
         newSet = removeSignals(self, selectedSignals, keepInTemp);
         newSet = retrieveSignals(self, selectedSignals);
         newSet = concatenate(self, otherSets, dimension, forceMode)
+        newSet = sort(self, filter)
+        avgSet = avgSignals(self)
         
         % to do
-        newSet = sort(self, options)
-        avgSignals = averageSignals(self, dim)
         
                 
     end

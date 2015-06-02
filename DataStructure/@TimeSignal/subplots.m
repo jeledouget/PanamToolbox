@@ -62,10 +62,10 @@ end
 nChannels = arrayfun(@(x) length(x.ChannelTags), self);
 if length(unique(nChannels)) == 1 % channel length always the same
     nChannels = max(nChannels);
-    if isequal(self.ChannelTags) % are ChannelTags the same for all elements of self ?
-        warning('channels do not have the same names among different elements of the TimeSignal object');
+    if numel(self) < 2 || isequal(self.ChannelTags) % are ChannelTags the same for all elements of self ?
         identicChannels = 1;
     else
+        warning('channels do not have the same names among different elements of the TimeSignal object');
         identicChannels = 0;
     end
 else
