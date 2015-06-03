@@ -141,7 +141,7 @@ classdef SampledTimeSignal < TimeSignal
         
         % to do
         
-        spectogramSignal = spectogram(self, options)
+        spectogramSignal = spectrogram(self, options)
         fftSignal = fft(self, options)
         tfSignal = timefrequency(self, options)
         

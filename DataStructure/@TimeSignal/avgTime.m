@@ -25,9 +25,17 @@ end
 if ~iscell(timeBands)
     timeBands = {timeBands};
 end
+for ii = 1:length(timeBands)
+    if isscalar(timeBands{ii}) % in case of one time extraction
+        timeBands{ii} = [timeBands{ii} timeBands{ii}];
+    end
+end
 
-% timeTags check
-if ~iscell(timeTags)
+% set default freqTags
+isDefTimeTags = 0;
+if nargin < 3 || isempty(timeTags)
+    isDefTimeTags = 1;
+elseif ~iscell(timeTags)
     timeTags = {timeTags};
 end
 
@@ -37,9 +45,19 @@ data = zeros(length(timeBands), prod(dims(2:end)));
 for ii = 1:length(timeBands)
     minTime = timeBands{ii}(1);
     maxTime = timeBands{ii}(2);
+    if maxTime < min(self.Time) || minTime > max(self.Time)
+        warning('some input Time are out of range');
+    end
     [minSample valMinTime] = panam_closest(self.Time, minTime);
     [maxSample valMaxTime] = panam_closest(self.Time, maxTime);
     data(ii,:) = nanmean(self.Data(minSample:maxSample,:),1);
+    if isDefTimeTags
+        if valMinTime == valMaxTime
+            timeTags{ii} = num2str(valMaxTime,2);
+        else
+            timeTags{ii} = ['avg' num2str(valMinTime,2) '-' num2str(valMaxTime,2)];
+        end
+    end
 end
 data = reshape(data, [length(timeBands) dims(2:end)]);
 
@@ -54,6 +72,11 @@ avgSignal.Time = timeTags;
 
 % check
 avgSignal.checkInstance;
+
+% history
+avgSignal.History{end+1,1} = datestr(clock);
+avgSignal.History{end,2} = ...
+        'Average the time dimension';
 
 end
 

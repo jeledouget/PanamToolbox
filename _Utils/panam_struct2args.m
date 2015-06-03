@@ -9,12 +9,8 @@
 function kvPairs = panam_struct2args(struct)
 
 
-% check input
-if ~isstruct(struct) || isempty(struct)
-    error('input must be a non-empty structure');
-end
-
 % affectation
+kvPairs = {};
 fields = fieldnames(struct);
 for ii = 1:length(fields)
     kvPairs{2*ii - 1} = fields{ii};

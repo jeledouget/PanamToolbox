@@ -30,12 +30,22 @@ end
 if ~iscell(freqBands)
     freqBands = {freqBands};
 end
-
-% set default freqTags        
-if nargin < 3 || isempty(freqTags)
-    freqTags = cellfun(@(x) ['avg' num2str(x(1)) '-' num2str(x(2)) 'Hz'],freqBands,'UniformOutput',0);
+for ii = 1:length(freqBands)
+    if isscalar(freqBands{ii}) % in case of one frequency extraction
+        freqBands{ii} = [freqBands{ii} freqBands{ii}];
+    end
 end
 
+% set default freqTags
+if nargin < 3 || isempty(freqTags)
+    for ii = 1:length(freqBands)
+        if freqBands{ii}(1) == freqBands{ii}(2)
+            freqTags{ii} = [num2str(freqBands{ii}(2)) 'Hz'];
+        else
+            freqTags{ii} = ['avg' num2str(freqBands{ii}(1)) '-' num2str(freqBands{ii}(2)) 'Hz'];
+        end
+    end
+end
 
 % freqTags check
 if ~iscell(freqTags)

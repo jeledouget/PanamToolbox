@@ -134,23 +134,14 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
                 
         %% external methods
         
-        freqSignal = tf2freqSignal(self, time)
-        timeSignal = tf2timeSignal(self, freq)
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
         avgSignal = avgElements(self)
+        freqSignal = toFreq(self, time, varargin)
         
         % to do
-        newSignal = average(self, options) % average elements of a TimeFreqSignal matrix
         h = plot(self, commonOptions, specificOptions)
         h = subplots(self, commonOptions, specificOptions)
-        h = freqPlot(self, freq, commonOptions, specificOptions)
-        h = freqSubplots(self, freq, commonOptions, specificOptions)
-        h = freqColorPlot(self, freq, commonOptions, specificOptions)
-        h = freqColorSubplots(self, freq, commonOptions, specificOptions)
-        h = timePlot(self, freq, commonOptions, specificOptions)
-        h = timeSubplots(self, times, commonOptions, specificOptions)
-        h = timeColorPlot(self, freq, commonOptions, specificOptions)
-        h = timeColorSubplots(self, times, commonOptions, specificOptions)
+        timeSignal = toTime(self, freq, freqTag)
         
                
     end
