@@ -2,22 +2,44 @@
 %  avgTime : average Time property according to specified windows of time,
 %  and affect a time tag to each averaged window
 % INPUTS
-    % timeBands : cell of 1x2 vectors with first time and last time for the
-    % window of averaging
-    % timeTags = cell of char with the time tags
+% timeBands : cell of 1x2 vectors with first time and last time for the
+% window of averaging
+% timeTags = cell of char with the time tags
 % OUTPUT
-    % avgSignal : time-averaged TimeSignal object, with non-numeric Time
-    % property(cell of tags)
+% avgSignal : time-averaged TimeSignal object, with non-numeric Time
+% property(cell of tags)
 
 
 
-function avgSignal = avgTime(self, timeBands, timeTags)
+function avgSignal = avgTime(self, varargin)
 
 % check input
 self.checkInstance;
 
-% check that Time property is numeric
-if ~(self.isNumTime)
+% varargin
+if strcmpi(varargin{1}, 'indices')
+    isIndices = 1;
+    timeBands = varargin{2};
+    if length(varargin) > 2
+        timeTags = varargin{3};
+        if ischar(timeTags)
+            timeTags = {timeTags};
+        end
+    end
+else
+    isIndices = 0;
+    timeBands = varargin{1};
+    if length(varargin) > 1
+        timeTags = varargin{2};
+        if ischar(timeTags)
+            timeTags = {timeTags};
+        end
+    end
+end
+
+
+% check that Time property is numeric, except if average on indices
+if ~isIndices && ~(self.isNumTime)
     error('timeWindow method only applies to TimeSignal objects with a numeric Time property');
 end
 
@@ -32,31 +54,48 @@ for ii = 1:length(timeBands)
 end
 
 % set default freqTags
-isDefTimeTags = 0;
-if nargin < 3 || isempty(timeTags)
-    isDefTimeTags = 1;
-elseif ~iscell(timeTags)
-    timeTags = {timeTags};
+isDefTimeTags = 1; % default
+if exist('timeTags','var')
+    isDefTimeTags = 0;
 end
 
 % compute average data
 dims = size(self.Data);
 data = zeros(length(timeBands), prod(dims(2:end)));
 for ii = 1:length(timeBands)
-    minTime = timeBands{ii}(1);
-    maxTime = timeBands{ii}(2);
-    if maxTime < min(self.Time) || minTime > max(self.Time)
-        warning('some input Time are out of range');
+    if isIndices
+        minSample = timeBands{ii}(1);
+        maxSample = timeBands{ii}(2);
+        if self.isNumTime
+            valMinTime = self.Time(minSample);
+            valMaxTime = self.Time(maxSample);
+        end
+    else
+        minTime = timeBands{ii}(1);
+        maxTime = timeBands{ii}(2);
+        [minSample valMinTime] = panam_closest(self.Time, minTime);
+        [maxSample valMaxTime] = panam_closest(self.Time, maxTime);
     end
-    [minSample valMinTime] = panam_closest(self.Time, minTime);
-    [maxSample valMaxTime] = panam_closest(self.Time, maxTime);
+    isExtractUniqueTime = (timeBands{ii}(1) == timeBands{ii}(2));
+    modifiedInput = 0;
+    if ~isExtractUniqueTime && (maxTime < min(self.Time) || minTime > max(self.Time))
+        warning(['input number ' num2str(ii) ' has time out of range ; closest time is selected']);
+        modifiedInput = 1;
+    end
     data(ii,:) = nanmean(self.Data(minSample:maxSample,:),1);
     if isDefTimeTags
-        if valMinTime == valMaxTime
-            timeTags{ii} = num2str(valMaxTime,2);
+        if self.isNumTime
+            if isExtractUniqueTime
+                timeTags{ii} = num2str(valMaxTime,2);
+            else
+                timeTags{ii} = ['avg:' num2str(valMinTime,2) '-' num2str(valMaxTime,2)];
+            end
         else
-            timeTags{ii} = ['avg' num2str(valMinTime,2) '-' num2str(valMaxTime,2)];
+            timeTags{ii} = ['avg' num2str(ii)];
         end
+    end
+    if modifiedInput
+        timeTags{ii} = [timeTags{ii} ' - ModifiedFromInput'];
     end
 end
 data = reshape(data, [length(timeBands) dims(2:end)]);
@@ -76,7 +115,7 @@ avgSignal.checkInstance;
 % history
 avgSignal.History{end+1,1} = datestr(clock);
 avgSignal.History{end,2} = ...
-        'Average the time dimension';
+    'Average / Extraction on the time dimension';
 
 end
 

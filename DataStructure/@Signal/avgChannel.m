@@ -43,14 +43,14 @@ if ~isnumeric(channels) || ~isvector(channels)
 end
 
 % average
-avgData = mean(self.Data(:,channels), self.dimIndex('chan'));
-switch keepChannels
-    case 1
-        newSignal.Data = cat(self.dimIndex('chan'), self.Data, avgData);
-        newSignal.ChannelTags = [self.ChannelTags, avgChannelName];
-    case 0
-        newSignal.Data = avgData;
-        newSignal.ChannelTags = {avgChannelName};
+self = self.selectChannels(channels);
+avgData = mean(self.Data, self.dimIndex('chan'));
+if keepChannels
+    newSignal.Data = cat(self.dimIndex('chan'), self.Data, avgData);
+    newSignal.ChannelTags = [self.ChannelTags, avgChannelName];
+else
+    newSignal.Data = avgData;
+    newSignal.ChannelTags = {avgChannelName};
 end
 
 % history

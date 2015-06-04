@@ -10,7 +10,7 @@
 function avgSignal = avgElements(self, subclassFlag)
 
 % check input
-if ~all(arrayfun(@isNumFreq, self)) || ~any(arrayfun(@isNumFreq, self))
+if ~(all(arrayfun(@isNumFreq, self)) || ~any(arrayfun(@isNumFreq, self)))
     error('Freq property of the elements of the FreqSignal must be all numeric or all discrete');
 end
 
@@ -30,7 +30,8 @@ if numel(self) > 1 && ~isequal(self.Freq)
             error('Frequencies should be the same');
         end
     else % discrete Frequencies
-        error('Frequencies should have the same tag. Check Freq properties');
+        averageFreq = self(1).Freq;
+        warning('Frequencies do not have the same tag. Check Freq properties');
     end
 elseif self(1).isNumFreq
     averageFreq = mean(reshape([self.Freq],[],numel(self)),2);

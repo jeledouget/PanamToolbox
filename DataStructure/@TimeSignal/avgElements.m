@@ -16,7 +16,7 @@ if nargin <2 || isempty(subclassFlag)
 end
 
 % check input
-if ~all(arrayfun(@isNumTime, self)) || ~any(arrayfun(@isNumTime, self))
+if ~(all(arrayfun(@isNumTime, self)) || ~any(arrayfun(@isNumTime, self)))
     error('Time property of the elements of the TimeSignal must be all numeric or all discrete');
 end
 
@@ -35,8 +35,9 @@ if numel(self) > 1 && ~isequal(self.Time)
         else
             error('Time should be the same');
         end
-    else % discrete Timeuencies
-        error('Times should have the same tag. Check Time properties');
+    else % discrete Times
+        averageTime = self(1).Time;
+        warning('Times do not have the same tag. Check Time properties');
     end
 elseif self(1).isNumTime
     averageTime = mean(reshape([self.Time],[],numel(self)),2);

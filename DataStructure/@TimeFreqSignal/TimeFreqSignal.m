@@ -118,17 +118,12 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         
         %% other methods
         
-        % conversion to FreqSignal
-       
-        
-        % conversion to TimeSignal
-        
-        % non-applicable methods
-        function colorSubplots(self)
-            error('non-applicable method');
+        % plot
+        function h = colorSubplots(self, varargin)
+            h = self.subplots(varargin{:});
         end
-        function colorPlot(self)
-            error('non-applicable method');
+        function h = colorPlot(self, varargin)
+            h = self.plot(varargin{:});
         end
         
                 
@@ -137,11 +132,11 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
         avgSignal = avgElements(self)
         freqSignal = toFreq(self, time, varargin)
+        timeSignal = toTime(self, freq, varargin)
         
         % to do
-        h = plot(self, commonOptions, specificOptions)
-        h = subplots(self, commonOptions, specificOptions)
-        timeSignal = toTime(self, freq, freqTag)
+        h = plot(self, commonOptions, specificOptions, varargin)
+        h = subplots(self, commonOptions, specificOptions, varargin)
         
                
     end
