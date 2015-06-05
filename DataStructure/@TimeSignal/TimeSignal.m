@@ -12,7 +12,7 @@ classdef TimeSignal < Signal
     %% properties
     
     properties
-        Events@SignalEvents vector; % vector of SignalEvents containing events for the TimeSignal
+        Events@SignalEvents vector = SignalEvents.empty; % vector of SignalEvents containing events for the TimeSignal
         Time; % numeric vector for time samples, or cell of time tags
     end
     
@@ -143,6 +143,8 @@ classdef TimeSignal < Signal
             timeSignal.History{end+1,1} = datestr(clock);
             timeSignal.History{end,2} = 'Calling subclass2TimeSignal converter';
         end
+        
+        % convert to FieldTrip
         
         
         %% external methods

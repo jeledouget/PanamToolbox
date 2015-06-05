@@ -12,7 +12,7 @@ classdef FreqSignal < Signal
     
     properties
         Freq; % numeric vector for frequency samples, or cell of freq tags
-        FreqMarkers@FreqMarkers vector; % container in which keys are events id (triggers, etc.) and values are instances of SignalEvents array
+        FreqMarkers@FreqMarkers vector = FreqMarkers.empty; % container in which keys are events id (triggers, etc.) and values are instances of SignalEvents array
     end
     
     
