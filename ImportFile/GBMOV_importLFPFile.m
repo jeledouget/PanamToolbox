@@ -21,6 +21,9 @@ acquisitionList = {'RealGait','RealGaitAI', 'VirtualGait', 'Rest', 'GNG', 'MSup'
 if nargin < 2 || isempty(acquisition)
     choice = menu('Which acquisition ?', acquisitionList{:});
     acquisition = acquisitionList{choice};
+else
+    ind = strcmpi(acquisition, acquisitionList);
+    acquisition = acquisitionList{ind};
 end
 
 
@@ -119,10 +122,15 @@ try speedCondition = tmp{3};end
 try subjectNumber = str2num(subjectCode(end-1:end));end
 
 % output file name
-if exist('speedCondition','var')
-    fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition '_' speedCondition];
-else
-    fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition];
+switch acquisition
+    case 'RealGait'
+        fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition '_' speedCondition '_' acquisition];
+    case 'GNG'
+         fileNameOut = [acquisition '_' session '_' subjectCode '_' medCondition];
+    case 'Rest'
+        fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition '_' acquisition];
+    otherwise
+        fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition];
 end
 
 % fill infos (containers.Map)
@@ -132,7 +140,13 @@ try infos('session') = session;end
 try infos('type') = type;end
 try infos('units') = units;end
 try infos('subjCode') = subjectCode;end
-try infos('subjNumber') = subjectNumber;end
+try 
+    if ~isempty(subjectNumber)
+        infos('subjNumber') = subjectNumber;
+    else
+        infos('subjNumber') = nan;
+    end
+end
 
 try infosSet('protocole') = protocole;end
 try infosSet('acquisition') = acquisition;end
@@ -163,7 +177,7 @@ end
 
 
 % affect output
-signal = TimeSignal('data', data, 'time', time, 'events', events, 'channeltags', channelTags, 'infos', infos);
+signal = SampledTimeSignal('data', data,'fs',fs, 'time', time, 'events', events, 'channeltags', channelTags, 'infos', infos);
 outSignalSet = SetOfSignals('signals', signal, 'infos', infosSet);
 
 

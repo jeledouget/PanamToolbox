@@ -6,7 +6,7 @@ classdef SignalEvents
     % Time = time vector - start time of the Events
     % Duration = duration of each event
     % EventName = event id
-    % Info = containers.Map including optional information for the Event
+    % Infos = containers.Map including optional information for the Event
     
     
     
@@ -16,7 +16,7 @@ classdef SignalEvents
         Time = 0; % time vector - start times of the events
         Duration; % duration of events
         EventName@char = ''; % event id
-        Info@containers.Map = containers.Map; % include optional information for the Event
+        Infos@containers.Map = containers.Map; % include optional information for the Event
     end
     
     
@@ -27,9 +27,9 @@ classdef SignalEvents
         
         %% constructor
         
-        function self = SignalEvents(eventname, time, duration, info)
+        function self = SignalEvents(eventname, time, duration, infos)
             if nargin > 3
-                self.Info = info;
+                self.Infos = infos;
             end
             if nargin > 2 && ~isempty(duration)
                 self.Duration = duration;

@@ -6,7 +6,7 @@ classdef FreqMarkers
     % Time = time vector - start time of the Events
     % Duration = duration of each event
     % EventName = event id
-    % Info = containers.Map including optional information for the Event
+    % Infos = containers.Map including optional information for the Event
     
     
     
@@ -15,7 +15,7 @@ classdef FreqMarkers
     properties
         Freq = 0; % time vector - start times of the events
         MarkerName@char = ''; % event id
-        Info@containers.Map = containers.Map; % include optional information for the Event
+        Infos@containers.Map = containers.Map; % include optional information for the Event
     end
     
     
@@ -26,9 +26,9 @@ classdef FreqMarkers
         
         %% constructor
         
-        function self = FreqMarkers(markername, freq, info)
+        function self = FreqMarkers(markername, freq, infos)
             if nargin > 2
-                self.Info = info;
+                self.Infos = infos;
             end
             if nargin > 1 && ~isempty(freq)
                 self.Freq = freq;
@@ -66,7 +66,8 @@ classdef FreqMarkers
         %% external methods
         
         newEvents = unifyMarkers(self, uniqueFreq)
-        newMarkers = avgMarkers(self) 
+        newMarkers = avgMarkers(self)
+        listedMarkers = asList(self)
         
         
     end

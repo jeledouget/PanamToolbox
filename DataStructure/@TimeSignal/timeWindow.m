@@ -4,12 +4,17 @@
 % INPUTS
     % minTime : time to begin the trial
     % maxTime : time to end to trial
+    % mode : mode of panam_closest : 'normal', 'inf' ou 'sup'
 % OUTPUT
     % timeWindowedSignal :  time-windowed 'TimeSignal' object
 
     
     
-function timeWindowedSignal = timeWindow(self, minTime, maxTime)
+function timeWindowedSignal = timeWindow(self, minTime, maxTime, mode)
+
+if nargin < 3 || isempty(mode)
+    mode = 'normal';
+end
 
 % check that Time property is numeric
 if ~(self.isNumTime)
@@ -28,12 +33,17 @@ end
 timeWindowedSignal = self;
 
 % extract the time-window
-minSample = panam_closest(self.Time, minTime);
-maxSample = panam_closest(self.Time, maxTime);
+minSample = panam_closest(self.Time, minTime, mode);
+maxSample = panam_closest(self.Time, maxTime, mode);
 timeWindowedSignal.Time = timeWindowedSignal.Time(1,minSample:maxSample);
 dims = size(timeWindowedSignal.Data);
 dims(1) = maxSample - minSample + 1;
 timeWindowedSignal.Data = reshape(timeWindowedSignal.Data(minSample:maxSample,:), dims);
+
+% handle events
+timeWindowedSignal.Events = timeWindowedSignal.Events.asList;
+indToRemove = arrayfun(@(x) (x.Time > maxTime || x.Time < minTime), timeWindowedSignal.Events);
+timeWindowedSignal.Events(indToRemove) = [];
 
 % history
 timeWindowedSignal.History{end+1,1} = datestr(clock);

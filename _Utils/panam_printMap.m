@@ -19,7 +19,8 @@ for key = map.keys
             fprintf('%4.2g,',value(1:49));
             fprintf('%4.2g...\n ',value(50));
         end
-    else % make it a cell
+    else
+        % make it a cell
         if ~iscell(value)
             value = {value};
         end

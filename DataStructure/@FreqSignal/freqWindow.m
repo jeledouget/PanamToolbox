@@ -43,6 +43,12 @@ switch self.dimIndex('freq')
         error('To use Freq-windowing, frequencies must be 1st or 2nd dimension in Data property');
 end
 
+% handle markers
+freqWindowedSignal.FreqMarkers = freqWindowedSignal.FreqMarkers.asList;
+indToRemove = arrayfun(@(x) (x.Freq > maxFreq || x.Freq < minFreq), freqWindowedSignal.FreqMarkers);
+freqWindowedSignal.FreqMarkers(indToRemove) = [];
+
+
 % history
 freqWindowedSignal.History{end+1,1} = datestr(clock);
 freqWindowedSignal.History{end,2} = ...
