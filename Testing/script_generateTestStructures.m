@@ -11,6 +11,6 @@ for ii = 1:20
 end
 setTest  = SetOfSignals('signals', signals);
 
-
+load('/export/dataCENIR/data/GB_MOV/02_Data/03_LFP_Marion/StructuresForTest/GNG_POSTOP_ARDSY_OFF.mat')
 clear signals ii
 clc

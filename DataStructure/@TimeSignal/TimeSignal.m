@@ -149,7 +149,8 @@ classdef TimeSignal < Signal
         
         %% external methods
         
-        timeWindowedSignal = timeWindow(thisObj, minTime, maxTime)
+        epochedSignal = epoching(self, eventname,varargin)
+        timeWindowedSignal = timeWindow(thisObj, minTime, maxTime, mode)
         h = plot(self, commonOptions, specificOptions, varargin)
         h = subplots(self, commonOptions, specificOptions, varargin)
         h = colorPlot(self, commonOptions, specificOptions, varargin)

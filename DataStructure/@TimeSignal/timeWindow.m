@@ -12,8 +12,11 @@
     
 function timeWindowedSignal = timeWindow(self, minTime, maxTime, mode)
 
-if nargin < 3 || isempty(mode)
+if nargin < 4 || isempty(mode)
     mode = 'normal';
+end
+if ischar(mode)
+    mode = {mode, mode};
 end
 
 % check that Time property is numeric
@@ -33,8 +36,8 @@ end
 timeWindowedSignal = self;
 
 % extract the time-window
-minSample = panam_closest(self.Time, minTime, mode);
-maxSample = panam_closest(self.Time, maxTime, mode);
+minSample = panam_closest(self.Time, minTime, mode{1});
+maxSample = panam_closest(self.Time, maxTime, mode{2});
 timeWindowedSignal.Time = timeWindowedSignal.Time(1,minSample:maxSample);
 dims = size(timeWindowedSignal.Data);
 dims(1) = maxSample - minSample + 1;

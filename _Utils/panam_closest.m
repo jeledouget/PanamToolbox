@@ -58,7 +58,7 @@ switch mode
         else
             ind = find(abs(vect - value) == min(abs(vect - value)));
             if vect(ind) < value
-                if ind(1) < lenth(vect)
+                if ind(1) < length(vect)
                     ind = ind+1;
                 else
                     error('No superior value');
