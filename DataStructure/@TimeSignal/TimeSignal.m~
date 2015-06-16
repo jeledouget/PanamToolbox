@@ -131,20 +131,21 @@ classdef TimeSignal < Signal
             end
         end
 
-        % from subclass of TimeSignal to TimeSignal
+        % from SampledTimeSignal to TimeSignal
         function timeSignal = toTimeSignal(self)
-            args = panam_struct2args(self);
-            timeSignal = TimeSignal(args{:});
+            timeSignal = TimeSignal('data', self.Data, ...
+                                 'time', self.Time, ...
+                                 'channeltags', self.ChannelTags, ...
+                                 'dimOrder', self.DimOrder, ...
+                                 'infos', self.Infos, ...
+                                 'events', self.Events);
             timeSignal.History = self.History;
             timeSignal.History{end+1,1} = datestr(clock);
-            timeSignal.History{end,2} = 'Calling toTimeSignal converter';
+            timeSignal.History{end,2} = 'Calling subclass2TimeSignal converter';
         end
         
         % from TimeSignal to SampledTimeSignal
         function stSignal = toSampledTimeSignal(self)
-            args = panam_struct2args(self);
-            stSignal = SampledTimeSignal(args{:});
-        end
             
         
         %% external methods

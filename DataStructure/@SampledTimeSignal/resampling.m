@@ -6,7 +6,6 @@
     % resampledSignal : resampled 'Signal' object
 
 
-
 function resampledSignal = resampling(self, newFreq)
 
 % dimensions of data

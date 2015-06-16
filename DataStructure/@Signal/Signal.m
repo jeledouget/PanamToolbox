@@ -152,6 +152,7 @@ classdef Signal
         normalizedSignal = normalize(self, dims, values, operation)
         newSignal = avgChannel(self, channels, avgChannelName, keepChannels)
         sortedSignal = sortElements(self, filter)
+        operatedSignal = operateOnData(self, func, varargin)
         
         % to do
         

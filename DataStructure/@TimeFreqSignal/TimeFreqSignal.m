@@ -133,11 +133,11 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         avgSignal = avgElements(self)
         freqSignal = toFreq(self, time, varargin)
         timeSignal = toTime(self, freq, varargin)
+        ftStruct = toFieldTrip(self, varargin)
         
         % to do
         h = plot(self, commonOptions, specificOptions, varargin)
         h = subplots(self, commonOptions, specificOptions, varargin)
-        
                
     end
 end

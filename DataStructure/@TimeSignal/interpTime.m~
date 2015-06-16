@@ -1,0 +1,38 @@
+% Method for class 'TimeSignal' and subclasses
+%  interpTime : interpolate data to another vector of time samples
+% INPUTS
+    % minTime : time to begin the trial
+    % maxTime : time to end to trial
+    % mode : mode of panam_closest : 'normal', 'inf' ou 'sup'
+% OUTPUT
+    % interpSignal :  time-interpolated 'TimeSignal' object
+% WARNING : SampledTimeSignal objects will have their sampling frequency recalculated, 
+% or the object will be transformed in TimeSignal if no sampling frequency
+% is applicable
+
+    
+    
+function interpSignal = interpTime(self, newTime, varargin)
+
+interpSignal = self;
+
+% dims
+nDims = ndims(self);
+dimTime = self.dimIndex('time');
+oldTime = self.Time;
+data = permute(self.Data, [dimTime 1:dimTime-1 dimTime+1:nDims]);
+if isempty(varargin)
+    data = interp1(oldTime, data, newTime, 'spline');
+else
+    data = interp1(oldTime, data, newTime, varargin{:});
+end
+
+interpSignal.Data = permute(data, [2:dimTime-1 1
+
+
+% history
+interpSignal.History{end+1,1} = datestr(clock);
+interpSignal.History{end,2} = ...
+        ['Time Windowing the signal : from ' num2str(minTime) 's to ' num2str(maxTime) 's'];
+
+end

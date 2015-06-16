@@ -137,16 +137,16 @@ classdef SampledTimeSignal < TimeSignal
             res = all(abs(localFs - self.Fs) < 0.05*self.Fs) && abs(mean(localFs) - self.Fs) < 0.01*self.Fs;
         end
         
-        function checkedSignal = sampledOrNot(self)
-            if ~self.isWellSampled % first attempt
+        function checkedSignal = testSampling(self)
+            if any(abs(localFs - self.Fs) > 0.05*self.Fs) || abs(mean(localFs) - self.Fs) > 0.01*self.Fs % localFs should be equal to self.Fs at each point
                 self.Fs = (length(self.Time)-1) / (self.Time(end) - self.Time(1));
                 % second attempt with updated Fs
-                if ~self.isWellSampled
+                if any(abs(localFs - self.Fs) > 0.05*self.Fs) || abs(mean(localFs) - self.Fs) > 0.01*self.Fs
                     checkedSignal = self.toTimeSignal;
                     return;
                 end
             end
-            checkedSignal = self;
+            checkedSignal = self;     
         end
         
         

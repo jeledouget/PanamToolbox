@@ -140,9 +140,9 @@ classdef FreqSignal < Signal
         h = colorPlot(self, commonOptions, specificOptions, varargin)
         h = colorSubplots(self, commonOptions, specificOptions, varargin)
         avgSignal = avgElements(self, subclassFlag) % average elements of a FreqSignal matrix
+        ftStruct = toFieldTrip(self, varargin)
         
         % to do
-        
         
     end
 end

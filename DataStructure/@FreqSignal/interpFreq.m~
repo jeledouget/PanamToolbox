@@ -1,0 +1,37 @@
+% Method for class 'FreqSignal' and subclasses
+% interpFreq : interpolate data to another vector of freq samples
+% INPUTS
+% OUTPUT
+    % interpSignal :  freq-interpolated 'FreqSignal' object
+
+    
+    
+function interpSignal = interpFreq(self, newTime, newFreq, varargin)
+
+interpSignal = self;
+
+% dims
+nDims = ndims(self);
+dimTime = self.dimIndex('time');
+oldTime = self.Time;
+dimFreq = self.dimIndex('freq');
+oldFreq = self.Freq;
+[oT, oF] = meshgrid(oldTime, oldFreq);
+[nT, nF] = meshgrid(newTime, olFreq);
+data = permute(self.Data, [dimFreq 1:dimFreq-1 dimFreq+1:nDims]);
+if isempty(varargin)
+    data = interp1(oldFreq, data, newFreq, 'spline');
+else
+    data = interp1(oldFreq, data, newFreq, varargin{:});
+end
+
+% affect changes
+interpSignal.Data = permute(data, [2:dimFreq 1 dimFreq+1:nDims]);
+interpSignal.Freq = newFreq;
+
+% history
+interpSignal.History{end+1,1} = datestr(clock);
+interpSignal.History{end,2} = ...
+        'Interpolate data to a new frequency vector';
+
+end
