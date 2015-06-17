@@ -153,6 +153,7 @@ classdef Signal
         newSignal = avgChannel(self, channels, avgChannelName, keepChannels)
         sortedSignal = sortElements(self, filter)
         operatedSignal = operateOnData(self, func, varargin)
+        statSignal = computeStat(self, varargin)
         
         % to do
         

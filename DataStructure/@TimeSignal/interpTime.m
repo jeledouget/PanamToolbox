@@ -32,6 +32,11 @@ if isa(self, 'SampledTimeSignal')
     interpSignal = interpSignal.sampledOrNot;
 end
 
+% handle events
+interpSignal.Events = interpSignal.Events.asList;
+indToRemove = arrayfun(@(x) (x.Time > newTime(end) || x.Time < newTime(1)), interpSignal.Events);
+interpSignal.Events(indToRemove) = [];
+
 % history
 interpSignal.History{end+1,1} = datestr(clock);
 interpSignal.History{end,2} = ...

@@ -24,6 +24,11 @@ end
 interpSignal.Data = permute(data, [2:dimFreq 1 dimFreq+1:nDims]);
 interpSignal.Freq = newFreq;
 
+% handle markers
+interpSignal.FreqMarkers = interpSignal.FreqMarkers.asList;
+indToRemove = arrayfun(@(x) (x.Freq > newFreq(end) || x.Freq < newFreq(1)), interpSignal.FreqMarkers);
+interpSignal.FreqMarkers(indToRemove) = [];
+
 % history
 interpSignal.History{end+1,1} = datestr(clock);
 interpSignal.History{end,2} = ...

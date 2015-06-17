@@ -133,8 +133,12 @@ classdef SampledTimeSignal < TimeSignal
         
         
         function res = isWellSampled(self)
+            if length(self.Time) < 2
+                res = 1;
+            else
             localFs = 1 ./ (self.Time(2:end) - self.Time(1:end-1));
             res = all(abs(localFs - self.Fs) < 0.05*self.Fs) && abs(mean(localFs) - self.Fs) < 0.01*self.Fs;
+            end
         end
         
         function checkedSignal = sampledOrNot(self)

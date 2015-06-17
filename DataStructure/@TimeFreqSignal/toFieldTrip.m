@@ -20,7 +20,7 @@ self = self(:)';
 % required field : label
 % check that all labels are the same among elements of self
 if numel(self) > 1 && ~isequal(self.ChannelTags)
-    error('to creae a FieldTrip structure from this object, elements must have the same ChannelTags property');
+    error('to create a FieldTrip structure from this object, elements must have the same ChannelTags property');
 end
 ftStruct.label = self(1).ChannelTags;
 

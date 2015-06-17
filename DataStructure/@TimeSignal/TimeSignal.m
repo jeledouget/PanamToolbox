@@ -145,7 +145,14 @@ classdef TimeSignal < Signal
             args = panam_struct2args(self);
             stSignal = SampledTimeSignal(args{:});
         end
-            
+        
+        % is the TimeSignal sampled ?
+        function [res, fs] = isSampled(self)
+            localFs = 1 ./ (self.Time(2:end) - self.Time(1:end-1));
+            globalFs = (length(self.Time)-1) / (self.Time(end) - self.Time(1));
+            res = all(abs(localFs - globalFs) < 0.05*globalFs) && abs(mean(localFs) - globalFs) < 0.01*globalFs;
+            fs = -1 * (1-res) + res * globalFs;
+        end
         
         %% external methods
         
