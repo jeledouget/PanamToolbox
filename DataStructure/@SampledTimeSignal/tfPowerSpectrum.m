@@ -23,7 +23,7 @@ end
 if ~exist('tool','var') % default
     tool = 'fieldtrip';
 end
-    
+
 % compute
 switch lower(tool)
     % use of FieldTrip's ft_freqanalysis function

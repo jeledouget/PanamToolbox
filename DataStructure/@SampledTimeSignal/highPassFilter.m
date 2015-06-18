@@ -1,15 +1,15 @@
 % Method for class 'SampledTimeSignal'
 % High-pass filtering of a 'SampledTimeSignal' object
-% A Butterworth filter is applied 
+% A Butterworth filter is applied
 % The user has handle over cutoff frequency and filter order
 % Default filter order is 2
 % REQUIREMENTS
-    % dimensions must be 'time' and 'chan' ( no supplementary dimensions)
+% dimensions must be 'time' and 'chan' ( no supplementary dimensions)
 % INPUTS
-    % cutoff : cutoff frequency of the filter 
-    % order : order of the filter (default = 2)   
+% cutoff : cutoff frequency of the filter
+% order : order of the filter (default = 2)
 % OUTPUT
-    % hpFilteredSignal : high-pass filtered 'Signal' object
+% hpFilteredSignal : high-pass filtered 'Signal' object
 % SEE ALSO
 % BandPassFilter, LowPassFilter, NotchFilter
 
@@ -31,18 +31,20 @@ end
 % copy of the object
 hpFilteredSignal = self;
 
-% high-pass each channel
-for j = 1 : size(self.Data,self.dimIndex('chan'))
-    x = self.Data(:,j);
-    [b,a] = butter(order,(cutoff/(self.Fs/2)),'high');
-    x(isnan(x))=0;
-    x =  filtfilt (b,a,x);
-    hpFilteredSignal.Data(:,j) = x;
+for ii = 1:numel(self)
+    % high-pass each channel
+    for j = 1 : size(self(ii).Data,self(ii).dimIndex('chan'))
+        x = self(ii).Data(:,j);
+        [b,a] = butter(order,(cutoff/(self(ii).Fs/2)),'high');
+        x(isnan(x))=0;
+        x =  filtfilt (b,a,x);
+        hpFilteredSignal(ii).Data(:,j) = x;
+    end
+    
+    % history
+    hpFilteredSignal(ii).History{end+1,1} = datestr(clock);
+    hpFilteredSignal(ii).History{end,2} = ...
+        ['High-pass filtering : cutoff ' num2str(cutoff) 'Hz, filter order ' num2str(order)];
 end
 
-% history
-hpFilteredSignal.History{end+1,1} = datestr(clock);
-hpFilteredSignal.History{end,2} = ...
-        ['High-pass filtering : cutoff ' num2str(cutoff) 'Hz, filter order ' num2str(order)];
-    
 end

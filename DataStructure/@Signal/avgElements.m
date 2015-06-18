@@ -33,20 +33,16 @@ if isequal(self.ChannelTags) % same channels for all elements
     channels = self(1).ChannelTags;
 else
     channels = arrayfun(@(x) ['chan' num2str(x)],1:len(1),'UniformOutput',0);
-    warning('channels do not all have the same name');
-    
+    warning('channels do not all have the same name');   
 end
-
-% compute average of elements
-avgSignal = self(1);
-avgSignal.ChannelTags = channels;
-
 
 % assign output
 avgSignal = self(1);
+avgSignal.ChannelTags = channels;
 nDims = ndims(self(1).Data);
 data  = mean(cat(nDims+1,self.Data),nDims+1);
 avgSignal.Data = data;
+warning('Infos property is set at the first element''s Infos property; compute it separately if necessary');
 
 % check
 avgSignal.checkInstance;

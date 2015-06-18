@@ -48,7 +48,7 @@ classdef SampledTimeSignal < TimeSignal
             if ~isempty(indFs) && ~isempty(varargin{indFs}), self.Fs = varargin{indFs};end 
             if ~isempty(indTstart) && ~isempty(varargin{indTstart}), self.Temp.tstart = varargin{indTstart};end
             if ~isempty(indZerosample) && ~isempty(varargin{indZerosample}), self.Temp.zerosample = varargin{indZerosample};end
-            if ~subclassFlag
+            if ~subclassFlag && ~isempty(varargin)
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling SampledTimeSignal constructor';
                 self = self.setDefaults;

@@ -3,7 +3,7 @@
 % INPUTS
     % otherSignals : vector array or cell of Signals objects to concatenate to
     % self
-    % dim : key to the dimension along which mean remval is performed (ex :
+    % dim : key to the dimension along which mean concatenation is performed (ex :
     % time), or number of the dimension
 % OUTPUT
     % newSignal : 'FreqSignal' object with concatenation of otherSignals

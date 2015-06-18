@@ -108,6 +108,13 @@ if any(strcmpi(acquisition, {'RealGait', 'VirtualGait', 'RealGaitAI', 'Porte'}))
     end
 end
 
+% hand used to perform the task
+if any(strcmpi(acquisition, {'MSup', 'GNG'}))
+    choices =  {'Left', 'Right', 'Unknown'};
+    side = menu('Which hand / side has been used by the patient for the task ?',choices{:});
+    side = choices{side};
+end
+
 % check input parameters
 if exist('speedCondition','var')
     tmp = inputdlg({'Subject Code','Med Condition','Speed Condition'},...
@@ -136,10 +143,11 @@ end
 % fill infos (containers.Map)
 try infos('medCondition') = medCondition;end
 try infos('speedCondition') = speedCondition;end
+try infos('side') = side;end
 try infos('session') = session;end
 try infos('type') = type;end
 try infos('units') = units;end
-try infos('subjCode') = subjectCode;end
+try infos('subject') = subjectCode;end
 try 
     if ~isempty(subjectNumber)
         infos('subjNumber') = subjectNumber;

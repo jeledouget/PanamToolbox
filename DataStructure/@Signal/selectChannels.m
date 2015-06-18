@@ -29,11 +29,17 @@ channels = sort(channels);
 % delete channels
 tmp =  self.Data;
 nDims = ndims(self.Data);
-dims = size(self.Data);
-tmp = permute(tmp, [nDims, 2:nDims-1, 1]);
-tmp = tmp(channels,:);
-tmp = reshape(tmp, [length(channels), dims(2:nDims-1), dims(1)]);
-tmp = permute(tmp, [nDims, 2:nDims-1, 1]);
+if nDims == 2
+    tmp = tmp(:, channels);
+elseif nDims == 3
+    tmp = tmp(:,:,channels);
+else
+    dims = size(self.Data);
+    tmp = permute(tmp, [nDims, 2:nDims-1, 1]);
+    tmp = tmp(channels,:);
+    tmp = reshape(tmp, [length(channels), dims(2:nDims-1), dims(1)]);
+    tmp = permute(tmp, [nDims, 2:nDims-1, 1]);
+end
 newSignal.Data = tmp;
 newSignal.ChannelTags = newSignal.ChannelTags(channels);
 

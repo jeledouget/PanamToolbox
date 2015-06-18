@@ -46,7 +46,7 @@ classdef FreqSignal < Signal
             self@Signal(varargin{indicesVarargin}, 'subclassFlag', 1);
             if ~isempty(indFreq) && ~isempty(varargin{indFreq}), self.Freq = varargin{indFreq};end
             if ~isempty(indFreqMarkers) && ~isempty(varargin{indFreqMarkers}), self.FreqMarkers = varargin{indFreqMarkers};end
-            if ~subclassFlag
+            if ~subclassFlag && ~isempty(varargin)
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling FreqSignal constructor';
                 self = self.setDefaults;
@@ -132,7 +132,7 @@ classdef FreqSignal < Signal
         
         %% external methods
         
-        freqWindowedSignal = freqWindow(self, minFreq, maxFreq)
+        freqWindowedSignal = freqWindow(self, minFreq, maxFreq, mode)
         h = plot(self, commonOptions, specificOptions, varargin)
         h = subplots(self, commonOptions, specificOptions, varargin)
         avgSignal = avgFreq(self, freqBands, freqTags)

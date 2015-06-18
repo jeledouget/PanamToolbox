@@ -4,11 +4,11 @@
 % NaNs are affected when the RMS can't be computed (not enough points on
 % left or right side)
 % INPUTS
-    % timeWindow : length of the time window on which the RMS is computed (default = 1)
+% timeWindow : length of the time window on which the RMS is computed (default = 1)
 % OUTPUT
-    % RmsSignal : RMS signal
+% RmsSignal : RMS signal
 
-    
+
 
 function RmsSignal = RMS_Signal(self, timeWindow)
 
@@ -20,22 +20,24 @@ end
 % copy of the object
 RmsSignal = self;
 
-% compute RMS
-squaredData = RmsSignal.Data .^ 2; % square signal
-nSamplesHalf = round(timeWindow * RmsSignal.Fs / 2); % number of samples
-dims = size(RmsSignal.Data);
-for ii = 1:size(RmsSignal.Data,1)
-    if ii <= nSamplesHalf || ii >= size(squaredData,1)-nSamplesHalf
-        RmsSignal.Data(ii,:) = nan;
-    else
-        dataTemp = reshape(squaredData(ii-nSamplesHalf:ii+nSamplesHalf,:),[2*nSamplesHalf+1, dims(2:end)]);
-        RmsSignal.Data(ii,:) = reshape(sqrt(mean(dataTemp,1)), 1, []);
+for ii = 1:numel(self)
+    % compute RMS
+    squaredData = RmsSignal(ii).Data .^ 2; % square signal
+    nSamplesHalf = round(timeWindow * RmsSignal(ii).Fs / 2); % number of samples
+    dims = size(RmsSignal(ii).Data);
+    for jj = 1:size(RmsSignal(ii).Data,1)
+        if jj <= nSamplesHalf || jj >= size(squaredData,1)-nSamplesHalf
+            RmsSignal(ii).Data(jj,:) = nan;
+        else
+            dataTemp = reshape(squaredData(jj-nSamplesHalf:jj+nSamplesHalf,:),[2*nSamplesHalf+1, dims(2:end)]);
+            RmsSignal(ii).Data(jj,:) = reshape(sqrt(mean(dataTemp,1)), 1, []);
+        end
     end
-end
-
-% history
-RmsSignal.History{end+1,1} = datestr(clock);
-RmsSignal.History{end,2} = ...
+    
+    % history
+    RmsSignal(ii).History{end+1,1} = datestr(clock);
+    RmsSignal(ii).History{end,2} = ...
         ['Root Mean Square of the signal over a time window of ' num2str(timeWindow) 's'];
+end
 
 end

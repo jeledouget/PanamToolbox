@@ -13,8 +13,11 @@
 
 function avgSignal = avgFreq(self, varargin)
 
+% copy
+avgSignal = self;
+
 % check input
-self.checkInstance;
+arrayfun(@checkInstance, self);
 
 % varargin
 if strcmpi(varargin{1}, 'indices')
@@ -38,7 +41,7 @@ else
 end
 
 % check that Freq property is numeric, except if average on indices
-if ~isIndices && ~(self.isNumFreq)
+if ~isIndices && ~all(arrayfun(@isNumFreq, self(:)))
     error('freqWindow method only applies to FreqSignal objects with a numeric Freq property');
 end
 
@@ -58,62 +61,62 @@ if exist('freqTags','var')
     isDefFreqTags = 0;
 end
 
-% compute average data
-nDims = ndims(self.Data);
-dims = size(self.Data);
-dimFreq = self.dimIndex('freq');
-data = zeros(length(freqBands), prod(dims([1:dimFreq-1 dimFreq+1:nDims])));
-dataTmp = permute(self.Data, [dimFreq 1:dimFreq-1 dimFreq+1:nDims]);
-for ii = 1:length(freqBands)
-    if isIndices
-        minSample = freqBands{ii}(1);
-        maxSample = freqBands{ii}(2);
-        if self.isNumFreq
-            valMinFreq = self.Freq(minSample);
-            valMaxFreq = self.Freq(maxSample);
-        end
-    else
-        minFreq = freqBands{ii}(1);
-        maxFreq = freqBands{ii}(2);
-        [minSample valMinFreq] = panam_closest(self.Freq, minFreq);
-        [maxSample valMaxFreq] = panam_closest(self.Freq, maxFreq);
-    end
-    isExtractUniqueFreq = (freqBands{ii}(1) == freqBands{ii}(2));
-    modifiedInput = 0;
-    if ~isExtractUniqueFreq && (maxFreq < min(self.Freq) || minFreq > max(self.Freq))
-        warning(['input number ' num2str(ii) ' has freq out of range ; closest freq is selected']);
-        modifiedInput = 1;
-    end
-    data(ii,:) = nanmean(dataTmp(minSample:maxSample,:),1);
-    if isDefFreqTags
-        if self.isNumFreq
-            if isExtractUniqueFreq
-                freqTags{ii} = num2str(valMaxFreq,2);
-            else
-                freqTags{ii} = ['avg:' num2str(valMinFreq,2) '-' num2str(valMaxFreq,2)];
+for jj = 1:numel(self)
+    % compute average data
+    nDims = ndims(self(jj).Data);
+    dims = size(self(jj).Data);
+    dimFreq = self(jj).dimIndex('freq');
+    data = zeros(length(freqBands), prod(dims([1:dimFreq-1 dimFreq+1:nDims])));
+    dataTmp = permute(self(jj).Data, [dimFreq 1:dimFreq-1 dimFreq+1:nDims]);
+    for ii = 1:length(freqBands)
+        if isIndices
+            minSample = freqBands{ii}(1);
+            maxSample = freqBands{ii}(2);
+            if self(jj).isNumFreq
+                valMinFreq = self(jj).Freq(minSample);
+                valMaxFreq = self(jj).Freq(maxSample);
             end
         else
-            freqTags{ii} = ['avg' num2str(ii)];
+            minFreq = freqBands{ii}(1);
+            maxFreq = freqBands{ii}(2);
+            [minSample valMinFreq] = panam_closest(self(jj).Freq, minFreq);
+            [maxSample valMaxFreq] = panam_closest(self(jj).Freq, maxFreq);
+        end
+        isExtractUniqueFreq = (freqBands{ii}(1) == freqBands{ii}(2));
+        modifiedInput = 0;
+        if ~isExtractUniqueFreq && (maxFreq < min(self(jj).Freq) || minFreq > max(self(jj).Freq))
+            warning(['input number ' num2str(ii) ' has freq out of range ; closest freq is selected']);
+            modifiedInput = 1;
+        end
+        data(ii,:) = nanmean(dataTmp(minSample:maxSample,:),1);
+        if isDefFreqTags
+            if self(jj).isNumFreq
+                if isExtractUniqueFreq
+                    freqTags{ii} = num2str(valMaxFreq,2);
+                else
+                    freqTags{ii} = ['avg:' num2str(valMinFreq,2) '-' num2str(valMaxFreq,2)];
+                end
+            else
+                freqTags{ii} = ['avg' num2str(ii)];
+            end
+        end
+        if modifiedInput
+            freqTags{ii} = [freqTags{ii} ' - ModifiedFromInput'];
         end
     end
-    if modifiedInput
-        freqTags{ii} = [freqTags{ii} ' - ModifiedFromInput'];
-    end
+    data = reshape(data, [length(freqBands) dims([1:dimFreq-1 dimFreq+1:nDims])]);
+    data = permute(data, [2:dimFreq 1 dimFreq+1:nDims]);
+    
+    % assign output
+    avgSignal(jj).Data = data;
+    avgSignal(jj).Freq = freqTags;
+    
+    % check
+    avgSignal(jj).checkInstance;
+    
+    % history
+    avgSignal(jj).History{end+1,1} = datestr(clock);
+    avgSignal(jj).History{end,2} = ...
+        'Average / Extraction on the freq dimension';
 end
-data = reshape(data, [length(freqBands) dims([1:dimFreq-1 dimFreq+1:nDims])]);
-data = permute(data, [2:dimFreq 1 dimFreq+1:nDims]);
-
-% assign output
-avgSignal = self;
-avgSignal.Data = data;
-avgSignal.Freq = freqTags;
-
-% check
-avgSignal.checkInstance;
-
-% history
-avgSignal.History{end+1,1} = datestr(clock);
-avgSignal.History{end,2} = ...
-    'Average / Extraction on the freq dimension';
-
 end

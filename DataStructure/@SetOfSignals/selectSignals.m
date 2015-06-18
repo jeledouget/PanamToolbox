@@ -1,5 +1,5 @@
 % Method for class 'SetOfSignals'
-% Remove selected Signals from Signals property, possibly place them in
+% Keep selected Signals from Signals property, possibly place them in
 % hidden Temp property
 % INPUTS
     % selectedSignals : indices of the Signals to remove Signals
@@ -11,7 +11,7 @@
 
 
 
-function newSet = removeSignals(self, selectedSignals, keepInTemp)
+function newSet = selectSignals(self, selectedSignals, keepInTemp)
 
 % copy of the object
 newSet = self;

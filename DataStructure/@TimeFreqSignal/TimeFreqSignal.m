@@ -49,7 +49,7 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
             end
             self@FreqSignal(argFreqSignal{:});
             self@TimeSignal(varargin{indicesVarargin},'subclassFlag',1);
-            if ~subclassFlag % only if the constructor is not called from a subclass
+            if ~subclassFlag  && ~isempty(varargin)% only if the constructor is not called from a subclass
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling TimeFreqSignal constructor';
                 self = self.setDefaults;

@@ -52,7 +52,7 @@ classdef Signal
                     end
                 end
             end
-            if ~subclassFlag
+            if ~subclassFlag && ~isempty(varargin)
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling Signal constructor';
                 self = self.setDefaults;
@@ -144,7 +144,7 @@ classdef Signal
         
         %% external methods
         
-        zeroMeanSignal = meanRemoval(self,dim)
+        zeroMeanSignal = removeMean(self,dim)
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
         newSignal = deleteChannels(self, channels)
         newSignal = selectChannels(self, channels)
@@ -154,6 +154,8 @@ classdef Signal
         sortedSignal = sortElements(self, filter)
         operatedSignal = operateOnData(self, func, varargin)
         statSignal = computeStat(self, varargin)
+        outSignal = removeElements(self, filter)
+        selectedSignal = selectElements(self, filter)
         
         % to do
         

@@ -14,7 +14,7 @@
 function avgSignal = avgTime(self, varargin)
 
 % check input
-self.checkInstance;
+arrayfun(@checkInstance, self);
 
 % varargin
 if strcmpi(varargin{1}, 'indices')
@@ -37,9 +37,8 @@ else
     end
 end
 
-
 % check that Time property is numeric, except if average on indices
-if ~isIndices && ~(self.isNumTime)
+if ~isIndices && ~all(arrayfun(@isNumTime, self(:)))
     error('timeWindow method only applies to TimeSignal objects with a numeric Time property');
 end
 
@@ -59,63 +58,68 @@ if exist('timeTags','var')
     isDefTimeTags = 0;
 end
 
-% compute average data
-dims = size(self.Data);
-data = zeros(length(timeBands), prod(dims(2:end)));
-for ii = 1:length(timeBands)
-    if isIndices
-        minSample = timeBands{ii}(1);
-        maxSample = timeBands{ii}(2);
-        if self.isNumTime
-            valMinTime = self.Time(minSample);
-            valMaxTime = self.Time(maxSample);
-        end
-    else
-        minTime = timeBands{ii}(1);
-        maxTime = timeBands{ii}(2);
-        [minSample valMinTime] = panam_closest(self.Time, minTime);
-        [maxSample valMaxTime] = panam_closest(self.Time, maxTime);
-    end
-    isExtractUniqueTime = (timeBands{ii}(1) == timeBands{ii}(2));
-    modifiedInput = 0;
-    if ~isExtractUniqueTime && (maxTime < min(self.Time) || minTime > max(self.Time))
-        warning(['input number ' num2str(ii) ' has time out of range ; closest time is selected']);
-        modifiedInput = 1;
-    end
-    data(ii,:) = nanmean(self.Data(minSample:maxSample,:),1);
-    if isDefTimeTags
-        if self.isNumTime
-            if isExtractUniqueTime
-                timeTags{ii} = num2str(valMaxTime,2);
-            else
-                timeTags{ii} = ['avg:' num2str(valMinTime,2) '-' num2str(valMaxTime,2)];
-            end
-        else
-            timeTags{ii} = ['avg' num2str(ii)];
-        end
-    end
-    if modifiedInput
-        timeTags{ii} = [timeTags{ii} ' - ModifiedFromInput'];
-    end
-end
-data = reshape(data, [length(timeBands) dims(2:end)]);
-
-% assign output
+% init
 if isa(self, 'SampledTimeSignal')
-    avgSignal = self.subclass2TimeSignal;
+    avgSignal = self.toTimeSignal;
 else
     avgSignal = self;
 end
-avgSignal.Data = data;
-avgSignal.Time = timeTags;
+
+% compute
+for jj = 1:numel(self)
+    % compute average data
+    dims = size(self(jj).Data);
+    data = zeros(length(timeBands), prod(dims(2:end)));
+    for ii = 1:length(timeBands)
+        if isIndices
+            minSample = timeBands{ii}(1);
+            maxSample = timeBands{ii}(2);
+            if self(jj).isNumTime
+                valMinTime = self(jj).Time(minSample);
+                valMaxTime = self(jj).Time(maxSample);
+            end
+        else
+            minTime = timeBands{ii}(1);
+            maxTime = timeBands{ii}(2);
+            [minSample valMinTime] = panam_closest(self(jj).Time, minTime);
+            [maxSample valMaxTime] = panam_closest(self(jj).Time, maxTime);
+        end
+        isExtractUniqueTime = (timeBands{ii}(1) == timeBands{ii}(2));
+        modifiedInput = 0;
+        if ~isExtractUniqueTime && (maxTime < min(self(jj).Time) || minTime > max(self(jj).Time))
+            warning(['input number ' num2str(ii) ' has time out of range ; closest time is selected']);
+            modifiedInput = 1;
+        end
+        data(ii,:) = nanmean(self(jj).Data(minSample:maxSample,:),1);
+        if isDefTimeTags
+            if self(jj).isNumTime
+                if isExtractUniqueTime
+                    timeTags{ii} = num2str(valMaxTime,2);
+                else
+                    timeTags{ii} = ['avg:' num2str(valMinTime,2) '-' num2str(valMaxTime,2)];
+                end
+            else
+                timeTags{ii} = ['avg' num2str(ii)];
+            end
+        end
+        if modifiedInput
+            timeTags{ii} = [timeTags{ii} ' - ModifiedFromInput'];
+        end
+    end
+    data = reshape(data, [length(timeBands) dims(2:end)]);
+    
+    % assign output
+    avgSignal(jj).Data = data;
+    avgSignal(jj).Time = timeTags;
+    
+    % history
+    avgSignal(jj).History{end+1,1} = datestr(clock);
+    avgSignal(jj).History{end,2} = ...
+        'Average / Extraction on the time dimension';
+end
 
 % check
-avgSignal.checkInstance;
-
-% history
-avgSignal.History{end+1,1} = datestr(clock);
-avgSignal.History{end,2} = ...
-    'Average / Extraction on the time dimension';
+arrayfun(@checkInstance,avgSignal);
 
 end
 

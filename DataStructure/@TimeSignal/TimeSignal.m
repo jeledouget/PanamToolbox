@@ -46,7 +46,7 @@ classdef TimeSignal < Signal
             self@Signal(varargin{indicesVarargin}, 'subclassFlag', 1);
             if ~isempty(indTime) && ~isempty(varargin{indTime}), self.Time = varargin{indTime};end
             if ~isempty(indEvents) && ~isempty(varargin{indEvents}), self.Events = varargin{indEvents};end
-            if ~subclassFlag
+            if ~subclassFlag && ~isempty(varargin)
                 self.History{end+1,1} = datestr(clock);
                 self.History{end,2} = 'Calling TimeSignal constructor';
                 self = self.setDefaults;
@@ -133,17 +133,25 @@ classdef TimeSignal < Signal
 
         % from subclass of TimeSignal to TimeSignal
         function timeSignal = toTimeSignal(self)
-            args = panam_struct2args(self);
-            timeSignal = TimeSignal(args{:});
-            timeSignal.History = self.History;
-            timeSignal.History{end+1,1} = datestr(clock);
-            timeSignal.History{end,2} = 'Calling toTimeSignal converter';
+            timeSignal(numel(self)) = TimeSignal;
+            timeSignal = reshape(timeSignal, size(self));
+            for ii = 1:numel(self)
+                args = panam_struct2args(self(ii));
+                timeSignal(ii) = TimeSignal(args{:});
+                timeSignal(ii).History = self(ii).History;
+                timeSignal(ii).History{end+1,1} = datestr(clock);
+                timeSignal(ii).History{end,2} = 'Calling toTimeSignal converter';
+            end
         end
         
         % from TimeSignal to SampledTimeSignal
         function stSignal = toSampledTimeSignal(self)
-            args = panam_struct2args(self);
-            stSignal = SampledTimeSignal(args{:});
+            stSignal(numel(self)) = SampledTimeSignal;
+            stSignal = reshape(stSignal, size(self));
+            for ii = 1:numel(self)
+                args = panam_struct2args(self(ii));
+                stSignal(ii) = SampledTimeSignal(args{:});
+            end
         end
         
         % is the TimeSignal sampled ?
@@ -167,6 +175,7 @@ classdef TimeSignal < Signal
         newSignal = avgElements(self, subclassFlag)  % average elements of a TimeSignal matrix
         offsetSignal = offsetTime(self, offset, varargin)
         ftStruct = toFieldTrip(self, varargin)
+        adjustedSignal = adjustTime(self, varargin)
         
         % to do
         

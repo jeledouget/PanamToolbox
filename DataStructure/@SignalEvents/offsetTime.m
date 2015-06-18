@@ -27,7 +27,7 @@ elseif strcmpi(offset, 'eventnum')
     end
     time = self(evIndex).Time(evIndex2);
 else
-    temp = self.unifyMarkers(0);
+    temp = self.unifyEvents(0);
     evIndex = find(strcmpi({temp.EventName}, offset));
     if evIndex
         if ~isempty(varargin)

@@ -111,7 +111,7 @@ classdef SetOfSignals
         %% external methods
         
         output = apply(self, func, varargin)
-        output = applyToElements(self, func, varargin)
+        output = applyToElements(self, func, elementArgs,  varargin)
         newSet = removeSignals(self, selectedSignals, keepInTemp);
         newSet = retrieveSignals(self, selectedSignals);
         newSet = concatenate(self, otherSets, dimension, forceMode)

@@ -10,7 +10,8 @@ function sortedSignal = sortElements(self, filter)
 
 % check that self is a vector
 if ~isvector(self)
-    error('''sort'' method only applies to vector Signal object');
+    self = self(:);
+    warning('object has been ordered as a column');
 end
 
 % init
