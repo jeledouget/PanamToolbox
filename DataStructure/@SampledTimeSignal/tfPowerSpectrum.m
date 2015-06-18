@@ -43,12 +43,12 @@ switch lower(tool)
         defaultCfg.foi = 1:round(self.Fs/4);
         tmpMin = max(arrayfun(@(x) x.Time(1), self));
         tmpMax = min(arrayfun(@(x) x.Time(end), self));
-        if isfield(varargin, 'windowlength')
-            windowLength = varargin.windowlength;
+        if isfield(varargin, 'windowspace')
+            windowSpace = varargin.windowspace;
         else
-            windowLength = 0.02;
+            windowSpace = 0.02;
         end
-        defaultCfg.toi = tmpMin:windowLength:tmpMax;
+        defaultCfg.toi = tmpMin:windowSpace:tmpMax;
         defaultCfg.tapsmofrq = 4;
         defaultCfg.taper = 'dpss';
         defaultCfg.output = 'pow';
