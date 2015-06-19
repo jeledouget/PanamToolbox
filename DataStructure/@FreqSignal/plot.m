@@ -68,8 +68,11 @@ if ~isempty(cm)
 else
     cmap = 'lines'; % default colormap
 end
+
+
+allMarkers = [self.FreqMarkers];
+if isempty(allMarkers), isMarkers = 0;end
 if isMarkers
-    allMarkers = [self.FreqMarkers];
     if isAvgMarkers
         allMarkers = allMarkers.avgMarkers;
     else

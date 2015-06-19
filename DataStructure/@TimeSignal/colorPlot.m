@@ -96,8 +96,9 @@ if ~isempty(evOptions)
 end
 
 % specific options and colorbars for Events
+allEvents = [self.Events];
+if isempty(allEvents), isEvents = 0;end
 if isEvents
-    allEvents = [self.Events];
     if isAvgEvents
         allEvents = allEvents.avgEvents;
     else

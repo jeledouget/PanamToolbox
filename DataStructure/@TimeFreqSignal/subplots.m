@@ -68,8 +68,9 @@ if ~isempty(evOptions)
 end
 
 % specific options and colorbars for Events
+allEvents = [self.Events];
+if isempty(allEvents), isEvents = 0;end
 if isEvents
-    allEvents = [self.Events];
     if isAvgEvents
         allEvents = allEvents.avgEvents;
     else
@@ -122,8 +123,9 @@ if ~isempty(fmOptions)
 end
 
 % specific options and colorbars for freqMarkers
+allMarkers = [self.FreqMarkers];
+if isempty(allMarkers), isMarkers = 0;end
 if isMarkers
-    allMarkers = [self.FreqMarkers];
     if isAvgMarkers
         allMarkers = allMarkers.avgMarkers;
     else

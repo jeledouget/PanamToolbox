@@ -96,8 +96,9 @@ if ~isempty(fmOptions)
 end
 
 % specific options and colorbars for freqMarkers
+allMarkers = [self.FreqMarkers];
+if isempty(allMarkers), isMarkers = 0;end
 if isMarkers
-    allMarkers = [self.FreqMarkers];
     if isAvgMarkers
         allMarkers = allMarkers.avgMarkers;
     else

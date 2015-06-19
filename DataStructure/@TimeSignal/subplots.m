@@ -80,8 +80,11 @@ if ~isempty(cm)
 else
     cmap = 'lines'; % default colormap
 end
+
+
+allEvents = [self.Events];
+if isempty(allEvents), isEvents = 0;end
 if isEvents
-    allEvents = [self.Events];
     if isAvgEvents
         allEvents = allEvents.avgEvents;
     else
