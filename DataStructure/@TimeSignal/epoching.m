@@ -51,20 +51,14 @@ for ii = 1:numel(self)
             else
                 delay = [0 0];
             end
-            times1 = [ev(indEvent1).Time] + delay(1);
-            times2 = times1(2:end);
             if length(varargin) > 2 && ~isempty(varargin{3})
-                lastDelay = varargin{3};
+                maxLength = varargin{3};
             else
-                lastDelay = 'end';
+                maxLength = +Inf;
             end
-            if strcmpi(lastDelay, 'end')
-                times2(end+1) = self(ii).Time(end);
-            elseif isnumeric(lastDelay) % delay
-                times2(end+1) = times1(end) + lastDelay;
-            else
-                error('to epoch between successive identic events, optional input for last epoch must be the numeric delay from the last event or the string''end'' tto epoch as far as possible');
-            end                
+            times1 = [ev(indEvent1).Time] + delay(1);
+            times2 = min(times1(1:end-1) + maxLength,times1(2:end) + delay(2));  
+            times2(end+1) = min(times1(end) + maxLength, self(ii).Time(end));              
         end   
     end
    % apply epoch          

@@ -216,7 +216,7 @@ for ii = 1:nChannels
                     argFmSpecific_current{kk} = argFmSpecific{kk}{jj};
                 end
                 for kk = 1:length(allMarkers(jj).Freq)
-                    t = self(1).FreqMarkers(jj).Freq(kk);
+                    t = allMarkers(jj).Freq(kk);
                     plot([a(1) a(2)],[t t], argFmCommon{:}, argFmSpecific_current{:});
                     legendTmp = [legendTmp allMarkers(jj).MarkerName];
                 end
@@ -242,7 +242,7 @@ for ii = 1:nChannels
                     argEvSpecific_current{kk} = argEvSpecific{kk}{jj};
                 end
                 for kk = 1:length(allEvents(jj).Time)
-                    t = self(1).Events(jj).Time(kk);
+                    t = allEvents(jj).Time(kk);
                     plot([t t], [a(3) a(4)], argEvCommon{:}, argEvSpecific_current{:});
                     legendTmp = [legendTmp allEvents(jj).EventName];
                 end

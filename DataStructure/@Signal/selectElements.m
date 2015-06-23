@@ -6,7 +6,7 @@
     % selectedSignal : select Signal elements
 
 
-function selectedSignal = selectElements(self, filter)
+function [selectedSignal, res] = selectElements(self, filter)
 
 % init
 selectedSignal = self;
@@ -16,9 +16,16 @@ if isnumeric(filter)
     res = filter;
 elseif isfunc(filter)
     res = arrayfun(filter, self); % must be logical
+elseif isempty(filter)
+    res = [];
 end
 
-% sort
+% select
 selectedSignal = selectedSignal(res);
-    
+  
+if islogical(res)
+    res = find(res);
+end
+
+
 end

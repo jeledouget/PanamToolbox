@@ -28,7 +28,7 @@ for ii = 1:numel(self)
     % delete extra dimension
     self(ii).Data = permute(self(ii).Data, [1:freqInd-1 freqInd+1:nDims freqInd]);
     self(ii).DimOrder(freqInd) = [];
-    self(ii).Infos('freq') = self(ii).Freq; % save time tag before removal of Time
+    self(ii).Infos.freq = self(ii).Freq; % save time tag before removal of Time
     
     % delete kvPairs for Events, Time and History
     kvPairs = panam_struct2args(self(ii));

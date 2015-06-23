@@ -6,7 +6,7 @@
     % outSignal :  Signal matrix without removed elements
 
 
-function outSignal = removeElements(self, filter)
+function [outSignal, res] = removeElements(self, filter)
 
 % init
 outSignal = self;
@@ -16,9 +16,15 @@ if isnumeric(filter)
     res = filter;
 elseif isfunc(filter)
     res = arrayfun(filter, self); % must be logical
+elseif isempty(filter)
+    res = [];
 end
 
-% sort
+% remove
 outSignal(res) = [];
+
+if islogical(res)
+    res = find(res);
+end
 
 end

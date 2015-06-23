@@ -8,8 +8,11 @@ function output = applyToElements(self, func, elementArgs,  varargin)
 % element-specific arguments
 if isa(elementArgs, 'function_handle')
     elementArgs = arrayfun(elementArgs, self, 'UniformOutput',0);
-else
-
+elseif isnumeric(elementArgs)
+    elementArgs = num2cell(elementArgs);
+elseif isstruct(elementArgs)
+    elementArgs = arrayfun(@(x) x, elementArgs, 'UniformOutput',0);
+end
 
 % compute and store result of function on each element
 tmp = cell(size(self.Signals));

@@ -16,7 +16,7 @@ classdef SignalEvents
         Time = 0; % time vector - start times of the events
         Duration; % duration of events
         EventName@char = ''; % event id
-        Infos@containers.Map = containers.Map; % include optional information for the Event
+        Infos@struct;%containers.Map = containers.Map; % include optional information for the Event
     end
     
     

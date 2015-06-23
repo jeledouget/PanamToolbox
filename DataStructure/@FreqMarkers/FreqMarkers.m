@@ -15,7 +15,7 @@ classdef FreqMarkers
     properties
         Freq = 0; % time vector - start times of the events
         MarkerName@char = ''; % event id
-        Infos@containers.Map = containers.Map; % include optional information for the Event
+        Infos@struct;%containers.Map = containers.Map; % include optional information for the Event
     end
     
     

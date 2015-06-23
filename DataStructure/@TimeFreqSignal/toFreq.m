@@ -20,7 +20,7 @@ end
 freqSignal(numel(self)) = FreqSignal;
 freqSignal = reshape(freqSignal, size(self));
 
-for i = 1:numel(self)
+for ii = 1:numel(self)
     % data
     self(ii) = self(ii).avgTime(time, varargin{:});%  varargin can be a TimeTag
     timeInd = self(ii).dimIndex('time');
@@ -28,7 +28,7 @@ for i = 1:numel(self)
     % delete extra dimension
     self(ii).Data = permute(self(ii).Data, [1:timeInd-1 timeInd+1:nDims timeInd]);
     self(ii).DimOrder(timeInd) = [];
-    self(ii).Infos('time') = self(ii).Time; % save time tag before removal of Time
+    self(ii).Infos.time = self(ii).Time; % save time tag before removal of Time
     
     % delete kvPairs for Events, Time and History
     kvPairs = panam_struct2args(self(ii));

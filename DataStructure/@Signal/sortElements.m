@@ -38,7 +38,7 @@ elseif ischar(filter)
 end
 
 % sort
-sortedSignal.Signals = sortedSignal.Signals(order);
+sortedSignal = sortedSignal(order);
     
 
 end

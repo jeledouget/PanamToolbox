@@ -36,9 +36,9 @@ for ii = 1:numel(self)
     end
     
     % handle events
-    interpSignal.Events = interpSignal.Events.asList;
-    indToRemove = arrayfun(@(x) (x.Time > newTime(end) || x.Time < newTime(1)), interpSignal.Events);
-    interpSignal.Events(indToRemove) = [];
+    interpSignal(ii).Events = interpSignal(ii).Events.asList;
+    indToRemove = arrayfun(@(x) (x.Time > newTime(end) || x.Time < newTime(1)), interpSignal(ii).Events);
+    interpSignal(ii).Events(indToRemove) = [];
     
     % history
     interpSignal(ii).History{end+1,1} = datestr(clock);

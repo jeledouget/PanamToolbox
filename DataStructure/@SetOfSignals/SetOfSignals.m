@@ -16,7 +16,7 @@ classdef SetOfSignals
     
     properties
         Signals@Signal matrix; % matrix of 'Signal' or 'Signal' subclass instances
-        Infos@containers.Map = containers.Map; % common information to all the signals included in the Signals property
+        Infos@struct;%containers.Map = containers.Map; % common information to all the signals included in the Signals property
         DimOrder@cell vector = {}; % cell of strings with dimensions of the Signals property
         History@cell matrix; % history of operations on the SetOfSignals instance
     end
@@ -50,8 +50,10 @@ classdef SetOfSignals
             end
             self.History{end+1,1} = datestr(clock);
             self.History{end,2} = 'Calling SetOfSignals constructor';
-            self = self.setDefaults;
-            self.checkInstance;
+            if  ~isempty(varargin)
+                self = self.setDefaults;
+                self.checkInstance;
+            end
         end
         
         

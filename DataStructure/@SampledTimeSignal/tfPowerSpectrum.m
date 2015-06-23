@@ -34,6 +34,8 @@ switch lower(tool)
         if ~isempty(varargin)
             if ischar(varargin{1}) % kvPairs
                 varargin = panam_args2struct(varargin{:});
+            else
+                varargin = varargin{1};
             end
         else
             varargin = [];
@@ -56,7 +58,7 @@ switch lower(tool)
         defaultCfg.pad = []; % padding = data length
         defaultCfg.verbose = 0;
         % adjust cfg
-        cfg = setstructfields(defaultCfg, varargin{1});
+        cfg = setstructfields(defaultCfg, varargin);
         if ~isfield(cfg, 't_ftimwin')
            cfg.t_ftimwin=  max([ones(1,length(cfg.foi)).*0.5 ; 3./cfg.foi]);
         end
@@ -67,7 +69,7 @@ switch lower(tool)
         for ii = 1:numel(tfSignal)
             tfSignal(ii).Events = self(ii).Events;
             tfSignal(ii).Infos = self(ii).Infos;
-            tfSignal(ii) = tfSignal(ii).interpTimeFreq(cfg.toi, cfg.foi);
+            tfSignal(ii) = tfSignal(ii).interpFreq(cfg.foi);
         end
     otherwise
         error('method not implemented at the moment');

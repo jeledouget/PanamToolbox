@@ -16,13 +16,13 @@ offsetSignal = self;
 
 for ii = 1:numel(self)
     % offset the time
-    ev = offsetSignal(jj).Events;
-    [offsetSignal(jj).Events, offTime] = ev.offsetTime(offset, varargin{:});
-    offsetSignal(jj).Time = offsetSignal(jj).Time - offTime;
+    ev = offsetSignal(ii).Events;
+    [offsetSignal(ii).Events, offTime] = ev.offsetTime(offset, varargin{:});
+    offsetSignal(ii).Time = offsetSignal(ii).Time - offTime;
     
     % history
-    offsetSignal(jj).History{end+1,1} = datestr(clock);
-    offsetSignal(jj).History{end,2} = ...
+    offsetSignal(ii).History{end+1,1} = datestr(clock);
+    offsetSignal(ii).History{end,2} = ...
         'Apply an offset to the Time of the Signal';
 end
 

@@ -33,7 +33,7 @@ else % case 2 : freq or timefreq signal
         dataField = f{fInd};
     end
     % dimensions
-    dims = strsplit(ftStruct.dimord, '_');
+    dims = regexp(ftStruct.dimord, '_','split');
     hasFreq = any(ismember(dims, 'freq', 'rows'));
     hasTime = any(ismember(dims, 'time'));
     hasRpt = any(ismember(dims, 'rpt'));
