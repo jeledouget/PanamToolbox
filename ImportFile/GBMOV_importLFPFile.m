@@ -58,10 +58,6 @@ elseif strcmpi(acquisition, 'GNG')
     acquisition = 'GNG';
 end
 
-% infos
-infos = containers.Map;
-infosSet = containers.Map;
-
 % protocole
 protocole = 'GBMOV';
 
@@ -141,28 +137,28 @@ switch acquisition
 end
 
 % fill infos (containers.Map)
-try infos('medCondition') = medCondition;end
-try infos('speedCondition') = speedCondition;end
-try infos('side') = side;end
-try infos('session') = session;end
-try infos('type') = type;end
-try infos('units') = units;end
-try infos('subject') = subjectCode;end
+try infos.medCondition = medCondition;end
+try infos.speedCondition = speedCondition;end
+try infos.side = side;end
+try infos.session = session;end
+try infos.type = type;end
+try infos.units = units;end
+try infos.subject = subjectCode;end
 try 
     if ~isempty(subjectNumber)
-        infos('subjNumber') = subjectNumber;
+        infos.subjNumber = subjectNumber;
     else
-        infos('subjNumber') = nan;
+        infos.subjNumber = nan;
     end
 end
 
-try infosSet('protocole') = protocole;end
-try infosSet('acquisition') = acquisition;end
-try infosSet('fileName') = fileNameOut;end
+try infosSet.protocole = protocole;end
+try infosSet.acquisition = acquisition;end
+try infosSet.fileName = fileNameOut;end
 if exist('speedCondition','var')
-    try infosSet('comment') = ['import ' sprintf('%s, ', protocole, acquisition, type, session, subjectCode, medCondition) speedCondition];end
+    try infosSet.comment = ['import ' sprintf('%s, ', protocole, acquisition, type, session, subjectCode, medCondition) speedCondition];end
 else
-    try infosSet('comment') = ['import ' sprintf('%s, ', protocole, acquisition, type, session, subjectCode) medCondition];end
+    try infosSet.comment = ['import ' sprintf('%s, ', protocole, acquisition, type, session, subjectCode) medCondition];end
 end
 
 % data
@@ -177,8 +173,7 @@ for ii = 2:length(temp_trigg)
         trig(end+1) = temp_trigg(ii);
     end
 end
-trigInfos = containers.Map;
-trigInfos('description') = 'Soung trigger';
+trigInfos.description = 'Soung trigger';
 for ii = 1:length(trig)
     events(ii) = SignalEvents('Trig', time(trig(ii)), 0, trigInfos);
 end

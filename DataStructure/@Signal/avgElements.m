@@ -38,7 +38,7 @@ end
 
 % assign output
 avgSignal = self(1);
-avgSignal.ChannelTags = channels;
+avgSignal.ChannelTags = channels; 
 nDims = ndims(self(1).Data);
 data  = mean(cat(nDims+1,self.Data),nDims+1);
 avgSignal.Data = data;
