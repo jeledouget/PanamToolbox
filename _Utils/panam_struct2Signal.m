@@ -6,7 +6,7 @@ for ii= 1:length(structIn.Events)
     tmpEv = structIn.Events(ii);
     tmpInfo = containers.Map;
     tmpInfo('ReactionDelay') = tmpEv.ReactionDelay;
-    tmpInfo('ResponseTag') = tmpEv.ReponseTag;
+    tmpInfo('ResponseTag') = tmpEv.ResponseTag;
     tmpInfo('GoNoGo') = tmpEv.GoNoGo;
     tmpInfo('Pause') = tmpEv.Pause;
     tmpInfo('Sortie') = tmpEv.Sortie;
@@ -18,7 +18,7 @@ for ii= 1:length(structIn.Events)
         tmpEv.EventsTime(3),[],tmpInfo);
     infos{ii} = containers.Map;
     infos{ii}('trialName') = structIn.TimeFreqData.TrialName{ii};
-    str = strsplit(infos{ii}('TrialName'));
+    str = strsplit(infos{ii}('trialName'),'_');
     infos{ii}('subject') = str{3};
     infos{ii}('medCondition') = str{4};
     infos{ii}('trialNum') = str2num(str{6});

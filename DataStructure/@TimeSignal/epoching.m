@@ -43,7 +43,7 @@ for ii = 1:numel(self)
             times2 = [ev(indEvent2).Time] + delay(2);
             % check times
             if length(times1) ~= length(times2) || any(times1 > times2)
-                error('to epoch around events, there must be the sazme number of events of both types and times for 1st event (plus chosen delay) must be inferior to times for 2nd event (plus chosen delay)');
+                error('to epoch around events, there must be the same number of events of both types and times for 1st event (plus chosen delay) must be inferior to times for 2nd event (plus chosen delay)');
             end
         else % from one marker to the other: eg. args :  'Go, 'Go', [-2,4]
             if length(varargin) > 1 && ~isempty(varargin{2})
