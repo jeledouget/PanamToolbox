@@ -166,6 +166,7 @@ classdef SampledTimeSignal < TimeSignal
         RmsSignal = RMS_Signal(self, timeWindow)
         newSignal = avgElements(self)  % average elements of a SampledTimeSignal matrix
         tfSignal = tfPowerSpectrum(self, varargin)
+        hilbertTransform = hilbert(self, varargin)
         
         % to do
         

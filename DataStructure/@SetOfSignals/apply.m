@@ -17,5 +17,9 @@ else
     output = tmp;
 end
 
+% history
+output.History{end+1,1} = datestr(clock);
+output.History{end,2} = ...
+    ['Apply function ''' func2str(func) ''' to all elements'];
 end
 
