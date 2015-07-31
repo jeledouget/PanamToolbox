@@ -17,7 +17,7 @@ if nargin < 1 || isempty(filename)
 end
 
 % acquisition
-acquisitionList = {'RealGait','RealGaitAI', 'VirtualGait', 'Rest', 'GNG', 'MSup'};
+acquisitionList = {'RealGait','RealGaitAI', 'VirtualGait', 'Rest', 'GNG', 'MSup', 'Alerte'};
 if nargin < 2 || isempty(acquisition)
     choice = menu('Which acquisition ?', acquisitionList{:});
     acquisition = acquisitionList{choice};
@@ -56,7 +56,11 @@ elseif strcmpi(acquisition, 'Rest')
     acquisition = 'Rest';
 elseif strcmpi(acquisition, 'GNG')
     acquisition = 'GNG';
+elseif strcmpi(acquisition, 'Alerte')
+    acquisition = 'Alerte';
 end
+
+acquisition = upper(acquisition);
 
 % protocole
 protocole = 'GBMOV';
@@ -105,7 +109,7 @@ if any(strcmpi(acquisition, {'RealGait', 'VirtualGait', 'RealGaitAI', 'Porte'}))
 end
 
 % hand used to perform the task
-if any(strcmpi(acquisition, {'MSup', 'GNG'}))
+if any(strcmpi(acquisition, {'MSup', 'GNG', 'Alerte'}))
     choices =  {'Left', 'Right', 'Unknown'};
     side = menu('Which hand / side has been used by the patient for the task ?',choices{:});
     side = choices{side};
@@ -125,12 +129,12 @@ try speedCondition = tmp{3};end
 try subjectNumber = str2num(subjectCode(end-1:end));end
 
 % output file name
-switch acquisition
-    case 'RealGait'
+switch lower(acquisition)
+    case 'realgait'
         fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition '_' speedCondition '_' acquisition];
-    case 'GNG'
+    case {'gng', 'alerte'}
          fileNameOut = [acquisition '_' session '_' subjectCode '_' medCondition];
-    case 'Rest'
+    case 'rest'
         fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition '_' acquisition];
     otherwise
         fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition];

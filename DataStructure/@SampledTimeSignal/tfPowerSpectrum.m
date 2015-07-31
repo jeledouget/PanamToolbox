@@ -59,21 +59,17 @@ switch lower(tool)
         defaultCfg.verbose = 0;
         % adjust cfg
         cfg = setstructfields(defaultCfg, varargin);
-        realFoi = cfg.foi;
-        if cfg.foi(1) > 0
-            cfg.foi = [cfg.foi(1)/2 cfg.foi];
-        end
         if ~isfield(cfg, 't_ftimwin')
-           cfg.t_ftimwin= [3 max([ones(1,length(cfg.foi(2:end))).*0.5 ; 3./cfg.foi(2:end)])];
+           cfg.t_ftimwin= max([ones(1,length(cfg.foi)).*0.5 ; 3./cfg.foi]);
         end
-%         if isfield(cfg, 'foilim'), cfg = rmfield(cfg,'foi');end
+        if isfield(cfg, 'foilim'), cfg = rmfield(cfg,'foi');end
         % compute
         ftStructOut = ft_freqanalysis(cfg, ftStructIn);
         tfSignal = panam_ftToSignal(ftStructOut);
         for ii = 1:numel(tfSignal)
             tfSignal(ii).Events = self(ii).Events;
             tfSignal(ii).Infos = self(ii).Infos;
-            tfSignal(ii) = tfSignal(ii).interpFreq(realFoi);
+            tfSignal(ii) = tfSignal(ii).interpFreq(cfg.foi, 'nearest');
         end
     otherwise
         error('method not implemented at the moment');

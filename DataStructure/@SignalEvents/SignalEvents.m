@@ -97,6 +97,7 @@ classdef SignalEvents
         [newEvents, time] = offsetTime(self, offset, varargin)
         listedEvents = asList(self)
         sortedEvents = sortByTime(self)
+        newEvents = setInfosField(self, field, values)
         
         % to do        
         

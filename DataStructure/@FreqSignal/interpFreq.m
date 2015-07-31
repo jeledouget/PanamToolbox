@@ -15,14 +15,14 @@ for ii = 1:numel(self)
     dimFreq = self(ii).dimIndex('freq');
     oldFreq = self(ii).Freq;
     data = permute(self(ii).Data, [dimFreq 1:dimFreq-1 dimFreq+1:nDims]);
-    indNan = find(isnan(data));
-    data(indNan) = 0;
+%     indNan = find(isnan(data));
+%     data(indNan) = 0;
     if isempty(varargin)
         data = interp1(oldFreq, data, newFreq,'linear','extrap');
     else
         data = interp1(oldFreq, data, newFreq, varargin{:});
     end
-    data(indNan) = nan;
+%     data(indNan) = nan;
     
     % affect changes
     interpSignal(ii).Data = permute(data, [2:dimFreq 1 dimFreq+1:nDims]);
