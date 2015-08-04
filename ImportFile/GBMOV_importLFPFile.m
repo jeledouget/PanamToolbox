@@ -131,11 +131,11 @@ try subjectNumber = str2num(subjectCode(end-1:end));end
 % output file name
 switch lower(acquisition)
     case 'realgait'
-        fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition '_' speedCondition '_' acquisition];
+        fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition '_' speedCondition];
     case {'gng', 'alerte'}
          fileNameOut = [acquisition '_' session '_' subjectCode '_' medCondition];
     case 'rest'
-        fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition '_' acquisition];
+        fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition];
     otherwise
         fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition];
 end

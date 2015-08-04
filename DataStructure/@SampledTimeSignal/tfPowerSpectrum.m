@@ -28,8 +28,6 @@ end
 switch lower(tool)
     % use of FieldTrip's ft_freqanalysis function
     case 'fieldtrip'
-        % to FieldTrip
-        ftStructIn = self.toFieldTrip;
         % args
         if ~isempty(varargin)
             if ischar(varargin{1}) % kvPairs
@@ -42,15 +40,12 @@ switch lower(tool)
         end
         % default cfg
         defaultCfg.method = 'mtmconvol';
-        defaultCfg.foi = 1:round(self.Fs/4);
-        tmpMin = max(arrayfun(@(x) x.Time(1), self));
-        tmpMax = min(arrayfun(@(x) x.Time(end), self));
+        defaultCfg.foi = 1:round(self(1).Fs/4);
         if isfield(varargin, 'windowspace')
             windowSpace = varargin.windowspace;
         else
             windowSpace = 0.02;
         end
-        defaultCfg.toi = tmpMin:windowSpace:tmpMax;
         defaultCfg.tapsmofrq = 4;
         defaultCfg.taper = 'dpss';
         defaultCfg.output = 'pow';
@@ -58,16 +53,40 @@ switch lower(tool)
         defaultCfg.pad = []; % padding = data length
         defaultCfg.verbose = 0;
         % adjust cfg
+        if isfield(varargin, 'toi')
+            if strcmpi(varargin.toi, 'min')
+                tmpMin = max(arrayfun(@(x) x.Time(1), self));
+                tmpMax = min(arrayfun(@(x) x.Time(end), self));
+                defaultCfg.toi = tmpMin:windowSpace:tmpMax;
+                varargin = rmfield(varargin, 'toi');
+            elseif strcmpi(varargin.toi, 'max')
+                % default behaviour
+                varargin = rmfield(varargin, 'toi');
+            end
+        end
         cfg = setstructfields(defaultCfg, varargin);
         if ~isfield(cfg, 't_ftimwin')
-           cfg.t_ftimwin= max([ones(1,length(cfg.foi)).*0.5 ; 3./cfg.foi]);
+           cfg.t_ftimwin = max([ones(1,length(cfg.foi)).*0.5 ; 3./cfg.foi]);
         end
         if isfield(cfg, 'foilim'), cfg = rmfield(cfg,'foi');end
-        % compute
-        ftStructOut = ft_freqanalysis(cfg, ftStructIn);
-        tfSignal = panam_ftToSignal(ftStructOut);
+        % compute via FieldTrip
+        if strcmpi(cfg.keeptrials, 'no') || isfield(cfg, 'toi')
+            ftStructIn = self.toFieldTrip;
+            ftStructOut = ft_freqanalysis(cfg, ftStructIn);
+            tfSignal = panam_ftToSignal(ftStructOut);
+        else
+            for ii = 1:numel(self)
+                cfg.toi = self(ii).Time(1):windowSpace:self(ii).Time(end);
+                ftStructIn{ii} = self(ii).toFieldTrip;
+                ftStructOut{ii} = ft_freqanalysis(cfg, ftStructIn{ii});
+                tfSignal(ii) = panam_ftToSignal(ftStructOut{ii});
+            end
+        end
+        % events
         for ii = 1:numel(tfSignal)
-            tfSignal(ii).Events = self(ii).Events;
+            if isa(tfSignal(ii),'TimeSignal')
+                tfSignal(ii).Events = self(ii).Events;
+            end
             tfSignal(ii).Infos = self(ii).Infos;
             tfSignal(ii) = tfSignal(ii).interpFreq(cfg.foi, 'nearest');
         end

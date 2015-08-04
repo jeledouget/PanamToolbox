@@ -160,6 +160,7 @@ classdef SampledTimeSignal < TimeSignal
         lpFilteredSignal = lowPassFilter(self, cutoff, order)
         hpFilteredSignal = highPassFilter(self, cutoff, order)
         notchedSignal = notchFilter(self, width, order, freq)
+        rmlineSignal = lineNoiseRemoval(self, freq, varargin)
         bpFilteredSignal = bandPassFilter(self, cutoffLow, cutoffHigh, order)
         TKEOSignal = TKEO(self)
         resampledSignal = resampling(self, newFreq)
