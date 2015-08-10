@@ -46,9 +46,11 @@ for ii = 1:numel(self)
     timeWindowedSignal(ii).Data = reshape(timeWindowedSignal(ii).Data(minSample:maxSample,:), dims);
     
     % handle events
-    timeWindowedSignal(ii).Events = timeWindowedSignal(ii).Events.asList;
-    indToRemove = arrayfun(@(x) (x.Time > maxTime || x.Time < minTime), timeWindowedSignal(ii).Events);
-    timeWindowedSignal(ii).Events(indToRemove) = [];
+    if ~isempty(timeWindowedSignal(ii).Events)
+        timeWindowedSignal(ii).Events = timeWindowedSignal(ii).Events.asList;
+        indToRemove = arrayfun(@(x) (x.Time > maxTime || x.Time < minTime), timeWindowedSignal(ii).Events);
+        timeWindowedSignal(ii).Events(indToRemove) = [];
+    end
     
     % history
     timeWindowedSignal(ii).History{end+1,1} = datestr(clock);
