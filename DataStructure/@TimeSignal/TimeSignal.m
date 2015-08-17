@@ -170,7 +170,7 @@ classdef TimeSignal < Signal
         h = subplots(self, commonOptions, specificOptions, varargin)
         h = colorPlot(self, commonOptions, specificOptions, varargin)
         h = colorSubplots(self, commonOptions, specificOptions, varargin)
-        avgSignal = avgTime(self, timeBands, timeTags)
+        avgSignal = avgTime(self, varargin)
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
         newSignal = avgElements(self, subclassFlag)  % average elements of a TimeSignal matrix
         offsetSignal = offsetTime(self, offset, varargin)
