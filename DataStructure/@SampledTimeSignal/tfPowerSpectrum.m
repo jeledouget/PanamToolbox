@@ -86,7 +86,7 @@ switch lower(tool)
                 tfSignal(ii).Events = self(ii).Events;
             end
             tfSignal(ii).Infos = self(ii).Infos;
-            tfSignal(ii) = tfSignal(ii).interpFreq(cfg.foi, 'nearest');
+            tfSignal(ii) = tfSignal(ii).interpFreq(cfg.foi, 'replace');
         end
     otherwise
         error('method not implemented at the moment');

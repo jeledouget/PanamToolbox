@@ -14,6 +14,29 @@ function interpSignal = interpTime(self, newTime, varargin)
 % copy
 interpSignal = self;
 
+% case of 'replace' : just change the time vector. Must be the same
+% length
+if ~isempty(varargin) && strcmpi(varargin{1}, 'replace')
+    timeSamples = unique(arrayfun(@(x) numel(x.Time), self));
+    if numel(timeSamples) > 1 || timeSamples ~= numel(newTime)
+        error(' to replace time vector, all elements must have the same number of time samples and the new time vector must also be the same length');
+    end
+    for ii = 1:numel(self)
+        interpSignal(ii).Time = newTime;
+        
+        % handle markers
+        interpSignal(ii).Events = interpSignal(ii).Events.asList;
+        indToRemove = arrayfun(@(x) (x.Time > newTime(end) || x.Time < newTime(1)), interpSignal(ii).Events);
+        interpSignal(ii).Events(indToRemove) = [];
+        
+        % history
+        interpSignal(ii).History{end+1,1} = datestr(clock);
+        interpSignal(ii).History{end,2} = ...
+            'Interpolate data to a new time vector';
+    end
+    return;
+end
+
 % compute
 for ii = 1:numel(self)
     % dims
