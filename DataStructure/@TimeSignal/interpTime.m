@@ -22,7 +22,7 @@ for ii = 1:numel(self)
     oldTime = self(ii).Time;
     data = permute(self(ii).Data, [dimTime 1:dimTime-1 dimTime+1:nDims]);
     if isempty(varargin)
-        data = interp1(oldTime, data, newTime,'linear','extrap');
+        data = interp1(oldTime, data, newTime);
     else
         data = interp1(oldTime, data, newTime, varargin{:});
     end

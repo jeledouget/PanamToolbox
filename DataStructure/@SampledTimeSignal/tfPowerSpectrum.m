@@ -1,9 +1,7 @@
 % Method for class 'SampledTimeSignal'
 % Compute the time-frequency power spectrum by the input method of your choice
 % INPUTS
-    % newFreq : new sampling frequency
 % OUTPUT
-    % tfSignal : resampled 'Signal' object
 
 
 
