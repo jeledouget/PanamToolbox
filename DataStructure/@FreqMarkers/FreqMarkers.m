@@ -13,9 +13,10 @@ classdef FreqMarkers
     %% properties
     
     properties
-        Freq = 0; % time vector - start times of the events
+        Freq = 0; % freq vector - indicates the frequency of the marker or the start of the band (if used with window property)
+        Window = 0; % width of the window of the marker
         MarkerName@char = ''; % event id
-        Infos@struct;%containers.Map = containers.Map; % include optional information for the Event
+        Infos@struct;% include optional information for the marker
     end
     
     
@@ -26,9 +27,12 @@ classdef FreqMarkers
         
         %% constructor
         
-        function self = FreqMarkers(markername, freq, infos)
-            if nargin > 2
+        function self = FreqMarkers(markername, freq, window, infos)
+            if nargin > 3
                 self.Infos = infos;
+            end
+            if nargin > 2
+                self.Window = window;
             end
             if nargin > 1 && ~isempty(freq)
                 self.Freq = freq;
@@ -42,7 +46,7 @@ classdef FreqMarkers
         
         %% set, get and check methods
         
-        % set Time property
+        % set Freq property
         function self = set.Freq(self, freq)
             if isnumeric(freq) && isvector(freq)
                 self.Freq = freq;

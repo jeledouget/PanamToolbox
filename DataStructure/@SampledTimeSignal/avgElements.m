@@ -16,7 +16,7 @@ if numel(self) > 1 && ~isequal(self.Fs)
 end
 
 % average
-avgSignal = self.avgElements@TimeSignal(1);
+avgSignal = self.avgElements@TimeSignal('subclassFlag',1);
 
 % history
 avgSignal.History{end+1,1} = datestr(clock);

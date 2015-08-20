@@ -8,6 +8,12 @@
 
 function listedEvents = asList(self)
 
+% empty self
+if isempty(self)
+    listedMarkers = FreqMarkers.empty;
+    return;
+end
+
 ind = 0; % init
 
 for ii = 1:length(self)

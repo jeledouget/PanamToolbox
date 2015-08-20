@@ -42,7 +42,7 @@ if numel(self) > 1 && ~isequal(self.Time)
     if self(1).isNumTime
         minTimes = arrayfun(@(x) min(x.Time), self);
         maxTimes = arrayfun(@(x) max(x.Time), self);
-        intervals = arrayfun(@(x) (max(x.Time) - min(Time)) / (length(x.Time) - 1), self);
+        intervals = arrayfun(@(x) (max(x.Time) - min(x.Time)) / (length(x.Time) - 1), self);
         switch option.dt
             case 'min'
                 interval = min(intervals);
@@ -74,7 +74,7 @@ else % discrete times
 end
 
 % average
-avgSignal = self.avgElements@Signal(1);
+avgSignal = self.avgElements@Signal('subclassFlag',1);
 avgSignal.Time = averageTime;
 avgSignal.Events = SignalEvents.empty;
 

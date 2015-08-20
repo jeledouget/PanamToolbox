@@ -21,6 +21,7 @@ for name = unique(lower({self.MarkerName}))
     indEvent = find(arrayfun(@(x) strcmpi(x.MarkerName, name{1}), self));
     for ii = indEvent(2:end)
         self(indEvent(1)).Freq = [self(indEvent(1)).Freq self(ii).Freq];
+        self(indEvent(1)).Window = [self(indEvent(1)).Window self(ii).Window];
     end
     indToKeep(end+1) = indEvent(1);
 end
@@ -32,6 +33,7 @@ newMarkers = self(sort(indToKeep));
 if uniqueFreq
     for ii = 1:length(newMarkers)
         newMarkers(ii).Freq = unique(newMarkers(ii).Freq, 'first');
+        newEvents(ii).Window = newEvents(ii).Window(ind);
     end
 end
 
