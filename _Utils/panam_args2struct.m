@@ -2,7 +2,7 @@
 % Transform a cell of Key-Value pairs arguments into a structure with
 % fieldnames as Keys and field values as Values
 % INPUTS
-    % kvPairs : Key-Value pairs arguments cell
+    % kvPairs : Key-Value pairs arguments cell or list
 % OUTPUT
     % struct : output structure 
 

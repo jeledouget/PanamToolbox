@@ -148,7 +148,7 @@ classdef Signal
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
         newSignal = deleteChannels(self, channels)
         newSignal = selectChannels(self, channels)
-        avgSignal = avgElements(self, options) % average elements of a Signal matrix
+        avgSignal = avgElements(self, varargin) % average elements of a Signal matrix
         normalizedSignal = normalize(self, dims, values, operation)
         newSignal = avgChannel(self, channels, avgChannelName, keepChannels)
         sortedSignal = sortElements(self, filter)

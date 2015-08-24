@@ -72,6 +72,7 @@ classdef FreqMarkers
         newEvents = unifyMarkers(self, uniqueFreq)
         newMarkers = avgMarkers(self)
         listedMarkers = asList(self)
+        newMarkers = deleteMarkers(self, varargin)
         
         
     end

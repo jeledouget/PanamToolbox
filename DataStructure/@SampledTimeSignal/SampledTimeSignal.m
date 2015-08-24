@@ -160,10 +160,12 @@ classdef SampledTimeSignal < TimeSignal
         end
         
         function checkedSignal = sampledOrNot(self)
-            if ~self.isWellSampled % first attempt
-                self.Fs = (length(self.Time)-1) / (self.Time(end) - self.Time(1));
+            if ~all(arrayfun(@(x) x.isWellSampled, self(:))) % first attempt
+                for i = 1:numel(self)
+                    self(i).Fs = (length(self(i).Time)-1) / (self(i).Time(end) - self(i).Time(1));
+                end
                 % second attempt with updated Fs
-                if ~self.isWellSampled
+                if ~all(arrayfun(@(x) x.isWellSampled, self(:)))
                     checkedSignal = self.toTimeSignal;
                     return;
                 end
