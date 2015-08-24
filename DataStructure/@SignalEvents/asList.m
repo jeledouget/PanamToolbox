@@ -10,7 +10,7 @@ function listedEvents = asList(self)
 
 % empty self
 if isempty(self)
-    listedMarkers = FreqMarkers.empty;
+    listedEvents = SignalEvents.empty;
     return;
 end
 

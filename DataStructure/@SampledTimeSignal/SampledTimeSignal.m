@@ -26,6 +26,7 @@ classdef SampledTimeSignal < TimeSignal
             subclassFlag = 0;
             indicesVarargin = []; % initiate vector for superclass constructor
             indFs = [];
+            indDt = [];
             indTstart = [];
             indZerosample = [];
             if nargin > 1
