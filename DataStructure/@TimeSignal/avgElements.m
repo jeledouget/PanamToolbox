@@ -24,7 +24,7 @@ end
 % args & options
 if ~isempty(varargin)
     if ischar(varargin{1}) % kvPairs
-        varargin = panam_args2struct(varargin{:});
+        varargin = panam_args2struct(varargin);
     else % structure
         varargin = varargin{1};
     end
@@ -121,8 +121,8 @@ switch option.events
             name = allNames{ii};
             times = arrayfun(@(x) x.Events(strcmpi({x.Events.EventName},name)).Time, self, 'UniformOutput',0);
             times = cell2mat(times');
-            avgT = min(times,1);
-            duration = max(times,1) - min(times,1);
+            avgT = min(times,[],2);
+            duration = max(times,[],2) - min(times,[],2);
             avgSignal.Events(end+1) = SignalEvents(name, avgT, duration);
         end
     case 'avgAll'

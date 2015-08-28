@@ -41,6 +41,7 @@ classdef SignalEvents
                 self.EventName = eventname;
             end
             self = self.setDefaults;
+            self.checkInstance;
         end
         
         
@@ -71,7 +72,9 @@ classdef SignalEvents
         
         % set default value for Duration property to 0 for each event
         function self = setDefaultDuration(self)
-            self.Duration = zeros(1, size(self.Time,2));
+            if isempty(self.Duration)
+                self.Duration = zeros(1, size(self.Time,2));
+            end
         end
         
         % check instance

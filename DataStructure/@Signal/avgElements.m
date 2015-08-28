@@ -25,7 +25,7 @@ end
 % args & options
 if ~isempty(varargin)
     if ischar(varargin{1}) % kvPairs
-        varargin = panam_args2struct(varargin{:});
+        varargin = panam_args2struct(varargin);
     else % structure
         varargin = varargin{1};
     end
