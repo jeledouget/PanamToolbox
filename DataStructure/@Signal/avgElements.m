@@ -34,8 +34,8 @@ else
 end
 defaultOption.nanmean = 'no'; % by default : nanmean will not be used
 defaultOption.subclassFlag = 0;
+defaultOption.confint = 'no';
 option = setstructfields(defaultOption, varargin);
-
 
 % check channels : they must be the same for all elements of self
 % if not, at least the number of channels must be the same and a warning thrown
@@ -46,7 +46,7 @@ else
     warning('channels do not all have the same name');   
 end
 
-% assign output
+% compute average
 avgSignal = self(1);
 avgSignal.ChannelTags = channels; 
 nDims = ndims(self(1).Data);
@@ -56,6 +56,19 @@ switch option.nanmean
     case 'no'
         data  = mean(cat(nDims+1,self.Data),nDims+1);
 end
+% confidence interval computed ?
+if ischar(option.confint)
+    switch lower(option.confint)
+        case 'no' % do nothing
+        case 'stddev'
+            dataSTD  = nanstd(cat(nDims+1,self.Data),[],nDims+1);
+            data = permute(cat(nDims+1, data, dataSTD), [1:nDims-1 nDims+1 nDims]);
+            avgSignal.DimOrder(end:end+1) = {'confint', avgSignal.DimOrder{end}};
+    end
+else
+   % other cases : struct / cell of options 
+end
+% affect output
 avgSignal.Data = data;
 warning('Infos property is set at the first element''s Infos property; compute it separately if necessary');
 

@@ -12,16 +12,13 @@
     % h : handle to the axes of the plot
 
 
-function [h, ev] = plot(self, commonOptions, specificOptions, varargin)
+function [h, ev] = plot(self, varargin)
 
 % TODO : check inputs
 if ~all(arrayfun(@isNumTime, self)) || ~any(arrayfun(@isNumTime, self))
     error('Time property of the elements of the TimeSignal must be all numeric or all discrete');
 end
-if nargin > 1 && ~iscell(commonOptions)
-    commonOptions = [commonOptions, specificOptions, varargin];
-    specificOptions = {};
-end
+
 
 % make self a column
 self = self(:);
@@ -39,8 +36,8 @@ end
 defaultOption.newFigure = 'yes'; % by default : a new figure is created
 defaultOption.title = '';
 defaultOption.channels = 'list';
-defaultOption.signals = 'superimpose';%'superimpose';
-defaultOption.uniqueAxes = 1; %0; % in case of list -> if 1, all in one axes or not ? If 1, impossible to change between-signals y-axis, but x-axis is updated for all signals
+defaultOption.signals = 'confint';%'superimpose';
+defaultOption.uniqueAxes = 0; %0; % in case of list -> if 1, all in one axes or not ? If 1, impossible to change between-signals y-axis, but x-axis is updated for all signals
 defaultOption.nColumns = 1; % number of columns for lists
 defaultOption.colormap = 'lines'; % default colormap for plots
 defaultOption.xAxis = 'auto';
@@ -50,9 +47,22 @@ defaultOption.eventLabel = 'yes'; % put a label with the name of the event next 
 defaultOption.eventColormap = 'lines'; % use the colormap 'lines' to draw events
 option = setstructfields(defaultOption, varargin);
 
+% case where there is more than 2 dimensions in Data property : select
+% first one
+if ~strcmpi(option.signals, 'confint')
+    for i = 1:numel(self)
+        self(i).Data = self(i).Data(:,:,1);
+    end
+end
+
 % figure
 if strcmpi(option.newFigure, 'yes')
-    figure('Name',option.title,'units','normalized','outerposition',[0 0 1 1])
+    v = get(0, 'MonitorPosition'); % avoid Java isssues
+    v1 = v(1,:);
+    v1(1) = v1(1) - 1;
+    sumX = sum(v(:,3));
+    v1 = v1 ./ [sumX v1(4) sumX v1(4)]; % normalize
+    figure('Name',option.title,'units','normalized','outerposition',v1)
 end
 
 % plot
@@ -100,8 +110,9 @@ switch option.channels
                                 if t2 == t1 % Duration = 0
                                     ev(end+1) = plot([t1,t2], [minEv maxEv], 'color', evColor{ind},'Tag',self(i).Events(k).EventName, 'LineWidth',2);
                                 else
-                                    ev(end+1) = area([t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', 'none', 'Tag',self(i).Events(k).EventName);
-                                    alpha(0.2);
+                                    ev(end+1) = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName, 'FaceAlpha', 0.2);
+%                                     ev(end+1) = area([t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName);
+%                                     alpha(0.2);
                                 end
                                 if eventCount(ind) == 0
                                     indEvLegend(end+1) = numel(ev); % index of considered ev-handle
@@ -181,8 +192,9 @@ switch option.channels
                                     if t2 == t1 % Duration = 0
                                         ev(end+1) = plot(h(countEv+1),[t1,t2], [minEv maxEv], 'color', evColor{ind},'Tag',self(i).Events(k).EventName, 'LineWidth',2);
                                     else
-                                        ev(end+1) = area(h(countEv+1), [t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', 'none', 'Tag',self(i).Events(k).EventName);
-                                        alpha(0.2);
+                                        ev(end+1) = fill(h(countEv+1),[t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName, 'FaceAlpha', 0.2);
+%                                         ev(end+1) = area(h(countEv+1), [t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName);
+%                                         alpha(0.2);
                                     end
                                     if eventCount(ind) == 0
                                         indEvLegend(end+1) = numel(ev); % index of considered ev-handle
@@ -250,8 +262,9 @@ switch option.channels
                                 if t2 == t1 % Duration = 0
                                     ev(end+1) = plot(h(i),[t1,t2], [minEv maxEv], 'color', evColor{ind},'Tag',self(i).Events(k).EventName, 'LineWidth',2);
                                 else
-                                    ev(end+1) = area(h(i),[t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', 'none', 'Tag',self(i).Events(k).EventName);
-                                    alpha(0.2);
+                                    ev(end+1) = fill(h(i),[t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName, 'FaceAlpha', 0.2);
+%                                     ev(end+1) = area(h(i),[t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName);
+%                                     alpha(0.2);
                                 end
                                 if eventCount(ind) == 0
                                     indEvLegend(end+1) = numel(ev); % index of considered ev-handle
@@ -321,8 +334,9 @@ switch option.channels
                                     if t2 == t1 % Duration = 0
                                         ev(end+1) = plot(h(countEv+1),[t1,t2], [minEv maxEv], 'color', evColor{ind},'Tag',self(i).Events(k).EventName, 'LineWidth',2);
                                     else
-                                        ev(end+1) = area(h(countEv+1),[t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', 'none', 'Tag',self(i).Events(k).EventName);
-                                        alpha(0.2);
+                                        ev(end+1) = fill(h(countEv+1),[t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName, 'FaceAlpha', 0.2);
+%                                         ev(end+1) = area(h(countEv+1),[t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName);
+%                                         alpha(0.2);
                                     end
                                     if eventCount(ind) == 0
                                         indEvLegend(end+1) = numel(ev); % index of considered ev-handle
@@ -387,8 +401,8 @@ switch option.channels
                             if t2 == t1 % Duration = 0
                                 ev(end+1) = plot([t1,t2], [minEv maxEv], 'color', evColor{ind},'Tag',self(i).Events(k).EventName, 'LineWidth',2);
                             else
-                                ev(end+1) = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{ind},'EdgeColor', 'none', 'Tag',self(i).Events(k).EventName, 'FaceAlpha', 0.2);
-%                                 ev(end+1) = area([t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', 'none', 'Tag',self(i).Events(k).EventName, 'FaceAlpha', 0.2);
+                                ev(end+1) = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName, 'FaceAlpha', 0.2);
+%                                 ev(end+1) = area([t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName, 'FaceAlpha', 0.2);
 %                                 alpha(0.2);
                             end
                             if eventCount(ind) == 0
@@ -467,8 +481,9 @@ switch option.channels
                                     if t2 == t1 % Duration = 0
                                         ev(end+1) = plot(h(countEv+1),[t1,t2], [minEv maxEv], 'color', evColor{ind},'Tag',self(i).Events(k).EventName, 'LineWidth',2);
                                     else
-                                        ev(end+1) = area(h(countEv+1), [t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', 'none', 'Tag',self(i).Events(k).EventName);
-                                        alpha(0.2);
+                                        ev(end+1) = fill(h(countEv+1),[t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName, 'FaceAlpha', 0.2);
+%                                         ev(end+1) = area(h(countEv+1), [t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName);
+%                                         alpha(0.2);
                                     end
                                     if eventCount(ind) == 0
                                         indEvLegend(end+1) = numel(ev); % index of considered ev-handle
@@ -485,9 +500,162 @@ switch option.channels
                     xlabel(h(1), 'Time');
                 end
             case 'avg'
-                
+                defaultOption.avgOptions = {}; % use default avgOptions
+                option = setstructfields(defaultOption, varargin);
+                try option.avgOptions = panam_args2struct(option.avgOptions);end;
+                self = self.avgElements(option.avgOptions);
+                option.signals = 'list';
+                [h, ev] = self.plot(option);
             case 'confint'
-                
+                % first add in avgElements the possibility to compute the
+                % standard deviation or other deviation / error metrics
+                % then call confplot on the structure
+                defaultOption.avgOptions = {}; % use default avgOptions
+                option = setstructfields(defaultOption, varargin);
+                option.avgOptions(end+1:end+2) = {'confint','stddev'};
+                try option.avgOptions = panam_args2struct(option.avgOptions);end;
+                if ~isequal(self(1).DimOrder{end-1}, 'confint')
+                    self = self.avgElements(option.avgOptions);
+                end
+                % plot 
+                if option.uniqueAxes
+                    % plot signals
+                    ytick = [];
+                    ytickLabel = {};
+                    count = 0;
+                    interval = 1.5*max(arrayfun(@(x) max(abs(x.Data(:))), self));
+                    h = axes();
+                    xlabel('Time');
+                    hold on
+                    for j = 1:numel(self.ChannelTags)
+                        if size(self.Data,2) == 2
+                            confplot(self.Time, self.Data(:,1,j) - count * interval, self.Data(:,2,j)); % symetric error
+                        else
+                            confplot(self.Time, self.Data(:,1,j) - count * interval, self.Data(:,2,j), self.Data(:,3,j)); % lower and upper error
+                        end
+                        hold on
+                        ytick(end+1) = nanmean(self.Data(:,1,j)) - count * interval;
+                        ytickLabel(end+1) = {['Channel ' self.ChannelTags{j}]};
+                        count = count + 1;
+                    end
+                    % events
+                    if strcmpi(option.events, 'yes')
+                        tmp = arrayfun(@(x) {x.Events.EventName}, self, 'UniformOutput',0);
+                        eventNames = unique([tmp{:}]);
+                        evColorMap = option.eventColormap;
+                        eval(['evColor = ' evColorMap '(numel(eventNames));']);
+                        evColor = num2cell(evColor,2);
+                        eventCount = zeros(1,numel(eventNames)); % for legend
+                        ev = [];
+                        indEvLegend = []; % indices of ev handle-struct that will go into legend
+                        legendLabels = {}; % associated legend entries
+                        self.Events = self.Events.sortByTime;
+                        for k = 1:numel(self.Events)
+                            ind = find(strcmp(self.Events(k).EventName, eventNames));
+                            t1 = self.Events(k).Time;
+                            t2 = t1 + self.Events(k).Duration;
+                            minEv = min(self.Data(:,1,end)) - (numel(self.ChannelTags)-1) * interval;
+                            maxEv = max(self.Data(:,1,1));
+                            if t2 == t1 % Duration = 0
+                                ev(end+1) = plot([t1,t2], [minEv maxEv], 'color', evColor{ind},'Tag',self.Events(k).EventName, 'LineWidth',2);
+                            else
+                                ev(end+1) = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self.Events(k).EventName, 'FaceAlpha', 0.2);
+%                                 ev(end+1) = area([t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self.Events(k).EventName);
+%                                 alpha(0.2);
+                            end
+                            if eventCount(ind) == 0
+                                indEvLegend(end+1) = numel(ev); % index of considered ev-handle
+                                legendLabels(end+1) = {self.Events(k).EventName};
+                                eventCount(ind) = 1;
+                            end
+                        end
+                    end
+                    % axes properties
+                    ytick = ytick(end:-1:1); % reverse
+                    ytickLabel = ytickLabel(end:-1:1);
+                    set(gca, 'Ticklength', [0.002 0.005]);
+                    set(gca, 'YTick', ytick);
+                    set(gca, 'YTickLabel', ytickLabel);
+                    axis tight
+                    a = axis;
+                    axis([a(1:2) a(3)-0.05*abs(a(4)-a(3))  a(4)+0.05*abs(a(4)-a(3))]);
+                    legend(ev(indEvLegend), legendLabels, 'Location', 'NorthEastOutside');
+                else % one axes for each plot
+                    % axes properties
+                    nAxes = numel(self.ChannelTags);
+                    xmin = self.Time(1);
+                    xmax = self.Time(end);
+                    interval = 0.9 / nAxes;
+                    % plot signals
+                    count = 0;
+                    for j = numel(self.ChannelTags):-1:1
+                        h(count+1) = axes('Position', [0.1 0.05+count*interval 0.8 interval]);
+                        hold on
+                        if size(self.Data,2) == 2
+                            confplot(self.Time, self.Data(:,1,j), self.Data(:,2,j)); % symetric error
+                            ymin = min(self.Data(:,1,j) - self.Data(:,2,j));
+                            ymax = max(self.Data(:,1,j) + self.Data(:,2,j));
+                        else
+                            confplot(self.Time, self.Data(:,1,j), self.Data(:,2,j), self.Data(:,3,j)); % lower and upper error
+                            ymin = min(self.Data(:,1,j) - self.Data(:,2,j));
+                            ymax = max(self.Data(:,1,j) + self.Data(:,3,j));
+                        end
+                        hold on
+                        delta = ymax - ymin;
+                        ymin = ymin - 0.1*delta;
+                        ymax = ymax + 0.1*delta;
+                        axis([xmin xmax ymin ymax]);
+                        a = axis;
+                        ytick = mean(a(3:4)); % reverse
+                        ytickLabel = {['Channel ' self.ChannelTags{j}]};
+                        set(gca, 'Ticklength', [0.002 0.005]);
+                        set(gca, 'YTick', ytick);
+                        set(gca, 'YTickLabel', ytickLabel);
+                        % increment count
+                        count = count + 1;
+                    end
+                    % events
+                    if strcmpi(option.events, 'yes')
+                        tmp = arrayfun(@(x) {x.Events.EventName}, self, 'UniformOutput',0);
+                        eventNames = unique([tmp{:}]);
+                        evColorMap = option.eventColormap;
+                        eval(['evColor = ' evColorMap '(numel(eventNames));']);
+                        evColor = num2cell(evColor,2);
+                        eventCount = zeros(1,numel(eventNames)); % for legend
+                        ev = [];
+                        countEv = 0;
+                        indEvLegend = []; % indices of ev handle-struct that will go into legend
+                        legendLabels = {}; % associated legend entries
+                        self.Events = self.Events.sortByTime;
+                        for j = numel(self.ChannelTags):-1:1
+                            for k = 1:numel(self.Events)
+                                ind = find(strcmp(self.Events(k).EventName, eventNames));
+                                t1 = self.Events(k).Time;
+                                t2 = t1 + self.Events(k).Duration;
+                                a = axis(h(countEv+1));
+                                minEv = a(3);
+                                maxEv = a(4);
+                                if t2 == t1 % Duration = 0
+                                    ev(end+1) = plot(h(countEv+1),[t1,t2], [minEv maxEv], 'color', evColor{ind},'Tag',self.Events(k).EventName, 'LineWidth',2);
+                                else
+                                    axes(h(countEv+1));
+                                    ev(end+1) = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self.Events(k).EventName, 'FaceAlpha', 0.2);
+%                                                                              ev(end+1) = area( [t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self.Events(k).EventName);
+                                    %                                         alpha(0.2);
+                                end
+                                if eventCount(ind) == 0
+                                    indEvLegend(end+1) = numel(ev); % index of considered ev-handle
+                                    legendLabels(end+1) = {self.Events(k).EventName};
+                                    eventCount(ind) = 1;
+                                end
+                            end
+                            countEv = countEv + 1;
+                        end
+                    end
+                    % axes properties
+                    legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
+                    xlabel(h(1), 'Time');
+                end
         end
     case 'grid'
         switch option.signals

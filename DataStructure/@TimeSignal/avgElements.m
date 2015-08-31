@@ -68,13 +68,13 @@ if numel(self) > 1 && ~isequal(self.Time)
        error('Times do not have the same tag : elements cannot be averaged. Check Time properties');
     end
 elseif self(1).isNumTime
-    averageTime = mean(reshape([self.Time],[],numel(self)),2);
+    averageTime = mean(reshape([self.Time],[],numel(self)),2)';
 else % discrete times
     averageTime = self(1).Time;
 end
 
 % average
-avgSignal = self.avgElements@Signal('subclassFlag',1);
+avgSignal = self.avgElements@Signal(option);
 avgSignal.Time = averageTime;
 avgSignal.Events = SignalEvents.empty;
 

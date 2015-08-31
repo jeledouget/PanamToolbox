@@ -186,7 +186,7 @@ classdef SampledTimeSignal < TimeSignal
         TKEOSignal = TKEO(self)
         resampledSignal = resampling(self, newFreq)
         RmsSignal = RMS_Signal(self, timeWindow)
-        newSignal = avgElements(self)  % average elements of a SampledTimeSignal matrix
+        avgSignal = avgElements(self, varargin)  % average elements of a SampledTimeSignal matrix
         tfSignal = tfPowerSpectrum(self, varargin)
         hilbertTransform = hilbert(self, varargin)
         
