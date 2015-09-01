@@ -35,8 +35,8 @@ else
 end
 defaultOption.newFigure = 'yes'; % by default : a new figure is created
 defaultOption.title = '';
-defaultOption.channels = 'list';
-defaultOption.signals = 'confint';%'superimpose';
+defaultOption.channels = 'grid';
+defaultOption.signals = 'list';%'superimpose';
 defaultOption.uniqueAxes = 1; %0; % in case of list -> if 1, all in one axes or not ? If 1, impossible to change between-signals y-axis, but x-axis is updated for all signals
 defaultOption.nColumns = 1; % number of columns for lists
 defaultOption.colormap = 'lines'; % default colormap for plots
@@ -122,6 +122,7 @@ switch option.channels
                             end
                             countEv = countEv + numel(self(i).ChannelTags);
                         end
+                        legend(ev(indEvLegend), legendLabels, 'Location', 'NorthEastOutside');
                     end
                     % axes properties
                     ytick = ytick(end:-1:1); % reverse
@@ -132,7 +133,6 @@ switch option.channels
                     axis tight
                     a = axis;
                     axis([a(1:2) a(3)-0.05*abs(a(4)-a(3))  a(4)+0.05*abs(a(4)-a(3))]);
-                    legend(ev(indEvLegend), legendLabels, 'Location', 'NorthEastOutside');
                 else % one axes for each plot
                     % axes properties
                     nAxes = 0;
@@ -205,9 +205,9 @@ switch option.channels
                                 countEv = countEv + 1;
                             end
                         end
+                        legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
                     end
                     % axes properties
-                    legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
                     xlabel(h(1), 'Time');
                 end
             case 'grid'
@@ -273,9 +273,9 @@ switch option.channels
                                 end
                             end
                         end
+                        legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
                     end
                     % axes properties
-                    legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
                 else
                     [nH, nV] = panam_subplotDimensions(numel(self));
                     count = 0;
@@ -347,9 +347,9 @@ switch option.channels
                                 countEv = countEv + 1;
                             end
                         end
+                        legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
                     end
                     % axes properties
-                    legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
                 end
             case 'superimpose'
                 if option.uniqueAxes
@@ -411,6 +411,7 @@ switch option.channels
                                 eventCount(ind) = 1;
                             end
                         end
+                        legend(ev(indEvLegend), legendLabels, 'Location', 'NorthEastOutside');
                     end
                     % axes properties
                     ytick = ytick(end:-1:1); % reverse
@@ -421,7 +422,6 @@ switch option.channels
                     axis tight
                     a = axis;
                     axis([a(1:2) a(3)-0.05*abs(a(4)-a(3))  a(4)+0.05*abs(a(4)-a(3))]);
-                    legend(ev(indEvLegend), legendLabels, 'Location', 'NorthEastOutside');
                 else % one axes for each plot
                     % axes properties
                     nAxes = 0;
@@ -494,9 +494,9 @@ switch option.channels
                                 countEv = countEv + 1;
                             end
                         end
+                        legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
                     end
                     % axes properties
-                    legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
                     xlabel(h(1), 'Time');
                 end
             case 'avg'
@@ -569,6 +569,7 @@ switch option.channels
                                 eventCount(ind) = 1;
                             end
                         end
+                        legend(ev(indEvLegend), legendLabels, 'Location', 'NorthEastOutside');
                     end
                     % axes properties
                     ytick = ytick(end:-1:1); % reverse
@@ -579,7 +580,6 @@ switch option.channels
                     axis tight
                     a = axis;
                     axis([a(1:2) a(3)-0.05*abs(a(4)-a(3))  a(4)+0.05*abs(a(4)-a(3))]);
-                    legend(ev(indEvLegend), legendLabels, 'Location', 'NorthEastOutside');
                 else % one axes for each plot
                     % axes properties
                     nAxes = numel(self.ChannelTags);
@@ -651,9 +651,9 @@ switch option.channels
                             end
                             countEv = countEv + 1;
                         end
+                        legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
                     end
                     % axes properties
-                    legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
                     xlabel(h(1), 'Time');
                 end
         end
@@ -664,24 +664,31 @@ switch option.channels
         switch option.signals
             case 'list'
                 if option.uniqueAxes
-                    nPlots = numel(self);
+                    channels = arrayfun(@(x) x.ChannelTags, self, 'UniformOutput',0);
+                    [channels, order] = unique([channels{:}]);
+                    [~,order] = sort(order);
+                    channels = channels(order);
+                    nPlots = numel(channels);
                     [nH, nV] = panam_subplotDimensions(nPlots);
                     % plot signals
-                    for i = 1:numel(self)
+                    for i = 1:numel(channels)
                         h(i) = subplot(nH, nV, i);
                         hold on
                         count = 0;
-                        interval = 1.5*max(abs(self(i).Data(:)));
+                        interval = 1.5*max(arrayfun(@(x) max(max(abs(x.Data(:,i)))), self));
                         ytick = [];
                         ytickLabel = {};
-                        for j = 1:numel(self(i).ChannelTags)
-                            plot(self(i).Time, self(i).Data(:,j) - count * interval);
-                            ytick(end+1) = nanmean(self(i).Data(:,j)) - count * interval;
-                            ytickLabel(end+1) = {['Channel ' self(i).ChannelTags{j}]};
-                            count = count + 1;
+                        for j = 1:numel(self)
+                            indCh = find(strcmp(self(j).ChannelTags, channels{i}));
+                            if ~isempty(indCh)
+                                plot(self(j).Time, self(j).Data(:,indCh) - count * interval);
+                                ytick(end+1) = nanmean(self(i).Data(:,indCh)) - count * interval;
+                                ytickLabel(end+1) = {['Signal' num2str(j)]};
+                                count = count + 1;
+                            end
                         end
                         xlabel('Time');
-                        title(['Signal ' num2str(i)]);
+                        title(channels{i});
                         ytick = ytick(end:-1:1); % reverse
                         ytickLabel = ytickLabel(end:-1:1);
                         set(gca, 'Ticklength', [0.002 0.005]);
@@ -693,41 +700,43 @@ switch option.channels
                     end
                     % events
                     if strcmpi(option.events, 'yes')
-                        tmp = arrayfun(@(x) {x.Events.EventName}, self, 'UniformOutput',0);
-                        eventNames = unique([tmp{:}]);
+                        % average to average options
+                        defaultOption.avgOptions = {}; % use default avgOptions
+                        option = setstructfields(defaultOption, varargin);
+                        try option.avgOptions = panam_args2struct(option.avgOptions);end;
+                        events = self.avgElements(option.avgOptions).Events.sortByTime;
+                        % ev options
                         evColorMap = option.eventColormap;
-                        eval(['evColor = ' evColorMap '(numel(eventNames));']);
+                        eval(['evColor = ' evColorMap '(numel(events));']);
                         evColor = num2cell(evColor,2);
-                        eventCount = zeros(1,numel(eventNames)); % for legend
+                        eventCount = zeros(1,numel(events)); % for legend
                         ev = [];
                         indEvLegend = []; % indices of ev handle-struct that will go into legend
                         legendLabels = {}; % associated legend entries
-                        for i = 1:numel(self)
-                            self(i).Events = self(i).Events.sortByTime;
-                            for k = 1:numel(self(i).Events)
-                                ind = find(strcmp(self(i).Events(k).EventName, eventNames));
-                                t1 = self(i).Events(k).Time;
-                                t2 = t1 + self(i).Events(k).Duration;
+                        for k = 1:numel(events)
+                            t1 = events(k).Time;
+                            t2 = t1 + events(k).Duration;
+                            for i = 1:numel(h)
                                 a = axis(h(i));
                                 minEv = a(3);
                                 maxEv = a(4);
                                 if t2 == t1 % Duration = 0
-                                    ev(end+1) = plot(h(i),[t1,t2], [minEv maxEv], 'color', evColor{ind},'Tag',self(i).Events(k).EventName, 'LineWidth',2);
+                                    ev(end+1) = plot(h(i),[t1,t2], [minEv maxEv], 'color', evColor{k},'Tag',events(k).EventName, 'LineWidth',2);
                                 else
-                                    ev(end+1) = fill(h(i),[t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName, 'FaceAlpha', 0.2);
-%                                     ev(end+1) = area(h(i),[t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName);
-%                                     alpha(0.2);
+                                    axes(h(i));
+                                    ev(end+1) = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{k},'EdgeColor', evColor{k}, 'Tag',events(k).EventName, 'FaceAlpha', 0.2);
+                                    %                                     ev(end+1) = area(h(i),[t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName);
+                                    %                                     alpha(0.2);
                                 end
-                                if eventCount(ind) == 0
+                                if eventCount(k) == 0
                                     indEvLegend(end+1) = numel(ev); % index of considered ev-handle
-                                    legendLabels(end+1) = {self(i).Events(k).EventName};
-                                    eventCount(ind) = 1;
+                                    legendLabels(end+1) = {events(k).EventName};
+                                    eventCount(k) = 1;
                                 end
                             end
                         end
+                        legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
                     end
-                    % axes properties
-                    legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
                 end
                 
                 
