@@ -8,7 +8,7 @@
 
 
 
-function avgSignal = avgElements(self)
+function avgSignal = avgElements(self, varargin)
 
 % check Time
 if ~ (all(arrayfun(@isNumTime, self)) || ~any(arrayfun(@isNumTime, self)))
@@ -18,7 +18,7 @@ end
 % args & options
 if ~isempty(varargin)
     if ischar(varargin{1}) % kvPairs
-        varargin = panam_args2struct(varargin{:});
+        varargin = panam_args2struct(varargin);
     else % structure
         varargin = varargin{1};
     end
@@ -32,44 +32,18 @@ defaultOption.subclassFlag = 0;
 option = setstructfields(defaultOption, varargin);
 
 % modifiy time axis if necessary
-if numel(self) > 1 && ~isequal(self.Time)
-    if self(1).isNumTime
-        minTimes = arrayfun(@(x) min(x.Time), self);
-        maxTimes = arrayfun(@(x) max(x.Time), self);
-        intervals = arrayfun(@(x) (max(x.Time) - min(Time)) / (length(x.Time) - 1), self);
-        switch option.dt
-            case 'min'
-                interval = min(intervals);
-            case 'max'
-                interval = max(intevals);
-            otherwise % user-defined window
-                interval = option.dt;
-        end
-        switch option.timeAxis
-            case 'max'
-                tMin = min(minTimes);
-                tMax = max(maxTimes);
-            case 'min'
-                tMin = max(minTimes);
-                tMax = min(maxTimes);
-            otherwise % user-defined min and max time
-                tMin = option.timeAxis(1);
-                tMax = option.timeAxis(2);
-        end
-        averageTime = tMin:interval:tMax; % time axis on which the data is interpolated
-        self = self.apply(@interpTime, averageTime);
-    else
-       error('Times do not have the same tag : elements cannot be averaged. Check Time properties');
+if numel(self) > 1 && all(arrayfun(@isNumTime, self))
+    if ~isequal(self.Time) 
+        self = self.adjustTime(option);
     end
-elseif self(1).isNumTime
-    averageTime = mean(reshape([self.Time],[],numel(self)),2);
 else % discrete times
-    averageTime = self(1).Time;
+    if ~isequal(self.Time) 
+        error('To average discrete time TimeFreqSignals, time tags must be similar for all elements');
+    end
 end
 
 % average
 avgSignal = self.avgElements@FreqSignal('subclassFlag',1);
-avgSignal.Time = averageTime;
 avgSignal.Events = SignalEvents.empty;
 % unify events
 for ii =1:numel(self)

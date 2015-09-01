@@ -17,7 +17,7 @@ end
 % args & options
 if ~isempty(varargin)
     if ischar(varargin{1}) % kvPairs
-        varargin = panam_args2struct(varargin{:});
+        varargin = panam_args2struct(varargin);
     else % structure
         varargin = varargin{1};
     end
@@ -31,44 +31,19 @@ defaultOption.subclassFlag = 0;
 option = setstructfields(defaultOption, varargin);
 
 % modifiy freq axis if necessary
-if numel(self) > 1 && ~isequal(self.Freq)
-    if self(1).isNumFreq
-        minFreq = arrayfun(@(x) min(x.Freq), self);
-        maxFreq = arrayfun(@(x) max(x.Freq), self);
-        intervals = arrayfun(@(x) (max(x.Freq) - min(x.Freq)) / (length(x.Freq) - 1), self);
-        switch option.df
-            case 'min'
-                interval = min(intervals);
-            case 'max'
-                interval = max(intevals);
-            otherwise % user-defined window
-                interval = option.df;
-        end
-        switch option.freqAxis
-            case 'max'
-                fMin = min(minFreq);
-                fMax = max(maxFreq);
-            case 'min'
-                fMin = max(minFreq);
-                fMax = min(maxFreq);
-            otherwise % user-defined min and max time
-                fMin = option.freqAxis(1);
-                fMax = option.freqAxis(2);
-        end
-        averageFreq = fMin:interval:fMax; % time axis on which the data is interpolated
-        self = self.apply(@interpFreq, averageFreq);
-    else
-       error('Freq do not have the same tag : elements cannot be averaged. Check Freq properties');
+if numel(self) > 1 && all(arrayfun(@isNumFreq, self))
+    if ~isequal(self.Freq) 
+        self = self.adjustFreq(option);
     end
-elseif self(1).isNumFreq
-    averageFreq = mean(reshape([self.Freq],[],numel(self)),2);
 else % discrete times
-    averageFreq = self(1).Freq;
+    if ~isequal(self.Freq) 
+        error('To average discrete freq FreqSignals, freq tags must be similar for all elements');
+    end
 end
+
 
 % average
 avgSignal = self.avgElements@Signal('subclassFlag',1);
-avgSignal.Freq = averageFreq;
 avgSignal.FreqMarkers = FreqMarkers.empty;
 
 % unify markers
@@ -139,7 +114,7 @@ end
 
 
 % history
-if ~subclassFlag
+if ~option.subclassFlag
     avgSignal.History{end+1,1} = datestr(clock);
     avgSignal.History{end,2} = ...
         'Average the elements of the FreqSignal object';

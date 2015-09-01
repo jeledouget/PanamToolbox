@@ -20,27 +20,19 @@ stdDev = std([trial{:}],0,2);
 indicesBad = find(cellfun(@(x) any(x > threshold * stdDev), maxTrial));
 indicesGood = setdiff(1:nTrials, indicesBad);
 
-% plot Bad Trials
-figure('units','normalized','outerposition',[0 0 1 1]);
-[nH, nV] = panam_subplotDimensions(numel(indicesBad));
-for ii = 1:numel(indicesBad)
-    subplot(nH, nV, ii)
-    signalIn(indicesBad(ii)).plot('events','all');
-    title(num2str(indicesBad(ii)));
-end
-[~, temp2] = suplabel( 'Bad Trials','t');
-set(temp2,'FontSize',20,'FontWeight','bold');
 
-% plot Good Trials
-figure('units','normalized','outerposition',[0 0 1 1]);
-[nH, nV] = panam_subplotDimensions(numel(indicesGood));
-for ii = 1:numel(indicesGood)
-    subplot(nH, nV, ii)
-    signalIn(indicesGood(ii)).plot('events','all');
-    title(num2str(indicesGood(ii)));
+hBad = signalIn(indicesBad).plot('channels', 'list', 'signals', 'grid', 'uniqueAxes',1);
+set(gcf, 'Name', 'Bad Trials ?');
+for i = 1:numel(hBad)
+   title(hBad(i), num2str(indicesBad(i))); 
 end
-[~, temp2] = suplabel( 'Good Trials','t');
-set(temp2,'FontSize',20,'FontWeight','bold');
+
+hGood = signalIn(indicesGood).plot('channels', 'list', 'signals', 'grid', 'uniqueAxes',1);
+set(gcf, 'Name', 'Good Trials ?');
+for i = 1:numel(hGood)
+   title(hGood(i), num2str(indicesGood(i))); 
+end
+
 
 [indicesBad, indicesGood] = selectGoodTrials(indicesGood, indicesBad);
 

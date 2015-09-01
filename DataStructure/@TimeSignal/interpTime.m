@@ -76,8 +76,11 @@ else % use panam_interpMatrix
         dimTime = self(ii).dimIndex('time');
         oldTime = self(ii).Time;
         data = permute(self(ii).Data, [dimTime 1:dimTime-1 dimTime+1:nDims]);
+        s = size(data);
+        data = reshape(data, s(1), []);
         iM = panam_interpMatrix(oldTime, newTime, varargin{:}); % interpolation matrix
         data = iM' * data;
+        data = reshape(data, [numel(newTime) s(2:end)]);
         
         % affect changes
         interpSignal(ii).Data = permute(data, [2:dimTime 1 dimTime+1:nDims]);

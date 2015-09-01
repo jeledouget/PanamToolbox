@@ -41,7 +41,7 @@ else
             evIndex2 = 1;
         end
     else
-        error('offset must be a numeric value or the anme of an event or ''eventnum'' string followed by the index of the Event in the vector');
+        error('offset must be a numeric value or the name of an event or ''eventnum'' string followed by the index of the Event in the vector');
     end
     time = temp(evIndex).Time(evIndex2);    
 end
