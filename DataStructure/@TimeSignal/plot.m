@@ -30,9 +30,9 @@ else
 end
 defaultOption.newFigure = 'yes'; % by default : a new figure is created
 defaultOption.title = '';
-defaultOption.channels = 'list';
-defaultOption.signals = 'confint';%'superimpose';
-defaultOption.uniqueAxes = 1; %0; % in case of list -> if 1, all in one axes or not ? If 1, impossible to change between-signals y-axis, but x-axis is updated for all signals
+defaultOption.channels = 'grid';
+defaultOption.signals = 'list';%'superimpose';
+defaultOption.uniqueAxes = 0; %0; % in case of list -> if 1, all in one axes or not ? If 1, impossible to change between-signals y-axis, but x-axis is updated for all signals
 defaultOption.nColumns = 1; % number of columns for lists
 defaultOption.colormap = 'lines'; % default colormap for plots
 defaultOption.xAxis = 'auto';
@@ -675,24 +675,41 @@ switch option.channels
         switch option.signals
             case 'list'
                 if option.uniqueAxes
-                    nPlots = numel(self);
+                    channels = arrayfun(@(x) x.ChannelTags, self, 'UniformOutput',0);
+                    [channels, order] = unique([channels{:}]);
+                    [~,order] = sort(order);
+                    channels = channels(order);
+                    nPlots = numel(channels);
                     [nH, nV] = panam_subplotDimensions(nPlots);
                     % plot signals
-                    for i = 1:numel(self)
+                    for i = 1:numel(channels)
+                        % first : get data
+                        data{i}  = [];
+                        indSignals{i} = [];
+                        for j = 1:numel(self)
+                            indCh = find(strcmp(self(j).ChannelTags, channels{i}));
+                            if ~isempty(indCh)
+                                data{i}(:,end+1) = self(i).Data(:,indCh);
+                                indSignals{i}(end+1) = j;
+                            end
+                        end
+                        interval{i} = 1.5*max(abs(data{i}(:)));
+                        clear data
+                        % plot
                         h(i) = subplot(nH, nV, i);
                         hold on
                         count = 0;
-                        interval = 1.5*max(abs(self(i).Data(:)));
                         ytick = [];
                         ytickLabel = {};
-                        for j = 1:numel(self(i).ChannelTags)
-                            plot(self(i).Time, self(i).Data(:,j) - count * interval);
-                            ytick(end+1) = nanmean(self(i).Data(:,j)) - count * interval;
-                            ytickLabel(end+1) = {['Channel ' self(i).ChannelTags{j}]};
+                        for j = indSignals{i}
+                            indCh = find(strcmp(self(j).ChannelTags, channels{i}));
+                            plot(self(j).Time, self(j).Data(:,indCh) - count * interval{i});
+                            ytick(end+1) = nanmean(self(i).Data(:,indCh)) - count * interval{i};
+                            ytickLabel(end+1) = {['Signal' num2str(j)]};
                             count = count + 1;
                         end
                         xlabel('Time');
-                        title(['Signal ' num2str(i)]);
+                        title(channels{i});
                         ytick = ytick(end:-1:1); % reverse
                         ytickLabel = ytickLabel(end:-1:1);
                         set(gca, 'Ticklength', [0.002 0.005]);
@@ -713,32 +730,119 @@ switch option.channels
                         ev = [];
                         indEvLegend = []; % indices of ev handle-struct that will go into legend
                         legendLabels = {}; % associated legend entries
-                        for i = 1:numel(self)
-                            self(i).Events = self(i).Events.sortByTime;
-                            for k = 1:numel(self(i).Events)
-                                ind = find(strcmp(self(i).Events(k).EventName, eventNames));
-                                t1 = self(i).Events(k).Time;
-                                t2 = t1 + self(i).Events(k).Duration;
-                                a = axis(h(i));
-                                minEv = a(3);
-                                maxEv = a(4);
-                                if t2 == t1 % Duration = 0
-                                    ev(end+1) = plot(h(i),[t1,t2], [minEv maxEv], 'color', evColor{ind},'Tag',self(i).Events(k).EventName, 'LineWidth',2);
-                                else
-                                    ev(end+1) = fill(h(i),[t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName, 'FaceAlpha', 0.2);
-%                                     ev(end+1) = area(h(i),[t1,t2], [maxEv maxEv],minEv, 'FaceColor', evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(i).Events(k).EventName);
-%                                     alpha(0.2);
+                        for i = 1:numel(channels)
+                            axes(h(i));
+                            count = 0;
+                            for j = indSignals{i}
+                                indCh = find(strcmp(self(j).ChannelTags, channels{i}));
+                                for k = 1:numel(self(j).Events)
+                                    ind = find(strcmp(self(j).Events(k).EventName, eventNames));
+                                    t1 = self(j).Events(k).Time;
+                                    t2 = t1 + self(j).Events(k).Duration;
+                                    minEv = nanmean(self(j).Data(:,indCh)) - (count+0.5)* interval{i};
+                                    maxEv = nanmean(self(j).Data(:,indCh)) - (count-0.5)* interval{i};
+                                    if t2 == t1 % Duration = 0
+                                        ev(end+1) = plot([t1,t2], [minEv maxEv], 'color', evColor{ind},'Tag',self(j).Events(k).EventName, 'LineWidth',2);
+                                    else
+                                        ev(end+1) = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(j).Events(k).EventName, 'FaceAlpha', 0.2);
+                                    end
+                                    if eventCount(ind) == 0
+                                        indEvLegend(end+1) = numel(ev); % index of considered ev-handle
+                                        legendLabels(end+1) = {self(j).Events(k).EventName};
+                                        eventCount(ind) = 1;
+                                    end
                                 end
-                                if eventCount(ind) == 0
-                                    indEvLegend(end+1) = numel(ev); % index of considered ev-handle
-                                    legendLabels(end+1) = {self(i).Events(k).EventName};
-                                    eventCount(ind) = 1;
-                                end
+                                count = count + 1;
                             end
                         end
+                        legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
                     end
-                    % axes properties
-                    legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
+                else
+                    channels = arrayfun(@(x) x.ChannelTags, self, 'UniformOutput',0);
+                    [channels, order] = unique([channels{:}]);
+                    [~,order] = sort(order);
+                    channels = channels(order);
+                    
+                    [nH, nV] = panam_subplotDimensions(numel(channels));
+                    count = 0;
+                    % plot signals
+                    for i = 1:numel(channels)
+                        % first : get indices of signals
+                        indSignals{i} = [];
+                        for j = 1:numel(self)
+                            indCh = find(strcmp(self(j).ChannelTags, channels{i}));
+                            if ~isempty(indCh)
+                                indSignals{i}(end+1) = j;
+                            end
+                        end
+                        
+                        hTemp = subplot(nH, nV, i);
+                        pos = get(hTemp, 'Position');
+                        delete(hTemp);
+                        yInterval = pos(4) / numel(indSignals{i});
+                        xmin = min(arrayfun(@(x) self(x).Time(1), indSignals{i}));
+                        xmax = max(arrayfun(@(x) self(x).Time(end), indSignals{i}));
+                        
+                        for j = indSignals{i}
+                            indCh = find(strcmp(self(j).ChannelTags, channels{i}));
+                            h(count+1) = axes('Position', [pos(1) pos(2)+(numel(indSignals{i})-j)*yInterval pos(3) yInterval]);
+                            hold on
+                            plot(self(j).Time, self(j).Data(:,indCh));
+                            ymin = min(self(j).Data(:,indCh));
+                            ymax = max(self(j).Data(:,indCh));
+                            delta = ymax - ymin;
+                            ymin = ymin - 0.1*delta;
+                            ymax = ymax + 0.1*delta;
+                            axis([xmin xmax ymin ymax]);
+                            a = axis;
+                            ytick = mean(a(3:4)); % reverse
+                            ytickLabel = {['Signal ' num2str(j)]};
+                            set(gca, 'Ticklength', [0.002 0.005]);
+                            set(gca, 'YTick', ytick);
+                            set(gca, 'YTickLabel', ytickLabel);
+                            % increment count
+                            count = count + 1;
+                        end
+                        xlabel(h(count+1-numel(self(i).ChannelTags)),'Time');
+                        title(h(count),title(channels{i}));
+                    end
+                    % events
+                    if strcmpi(option.events, 'yes')
+                        tmp = arrayfun(@(x) {x.Events.EventName}, self, 'UniformOutput',0);
+                        eventNames = unique([tmp{:}]);
+                        evColorMap = option.eventColormap;
+                        eval(['evColor = ' evColorMap '(numel(eventNames));']);
+                        evColor = num2cell(evColor,2);
+                        eventCount = zeros(1,numel(eventNames)); % for legend
+                        ev = [];
+                        indEvLegend = []; % indices of ev handle-struct that will go into legend
+                        legendLabels = {}; % associated legend entries
+                        countEv = 0;
+                        for i = 1:numel(channels)
+                            for j = indSignals{i}
+                                for k = 1:numel(self(j).Events)
+                                    ind = find(strcmp(self(j).Events(k).EventName, eventNames));
+                                    t1 = self(j).Events(k).Time;
+                                    t2 = t1 + self(j).Events(k).Duration;
+                                    a = axis(h(countEv+1));
+                                    minEv = a(3);
+                                    maxEv = a(4);
+                                    if t2 == t1 % Duration = 0
+                                        ev(end+1) = plot(h(countEv+1),[t1,t2], [minEv maxEv], 'color', evColor{ind},'Tag',self(j).Events(k).EventName, 'LineWidth',2);
+                                    else
+                                        ev(end+1) = fill(h(countEv+1),[t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],evColor{ind},'EdgeColor', evColor{ind}, 'Tag',self(j).Events(k).EventName, 'FaceAlpha', 0.2);
+                                    end
+                                    if eventCount(ind) == 0
+                                        indEvLegend(end+1) = numel(ev); % index of considered ev-handle
+                                        legendLabels(end+1) = {self(j).Events(k).EventName};
+                                        eventCount(ind) = 1;
+                                    end
+                                end
+                                countEv = countEv + 1;
+                            end
+                        end
+                        legend(ev(indEvLegend), legendLabels, 'Position', [0.94 0.85 0.03 0.1]);
+                    end
                 end
                 
                 
