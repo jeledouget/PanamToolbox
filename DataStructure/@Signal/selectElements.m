@@ -14,7 +14,7 @@ selectedSignal = self;
 % switch between filters
 if isnumeric(filter)
     res = filter;
-elseif isfunc(filter)
+elseif isa(filter, 'function_handle')
     res = arrayfun(filter, self); % must be logical
 elseif isempty(filter)
     res = [];

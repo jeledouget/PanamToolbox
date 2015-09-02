@@ -40,7 +40,9 @@ self = self(:);
 if numel(self) > 1 && ~isequal(self.Time) % unequal Times
     lengths = arrayfun(@(x) length(x.Time), self);
     if any(lengths(2:end) - lengths(1:end-1)) % lengths of Time differ among elements of self
-        error('Time properties are not of the same length : colorPlot cannot be applied');
+        self = self.adjustTime;
+        averageTime = mean(reshape([self.Time],[],numel(self)),2);
+%         error('Time properties are not of the same length : colorPlot cannot be applied');
     elseif self(1).isNumTime
         averageTime = mean(reshape([self.Time],[],numel(self)),2);
         for ii = 1:numel(self)
