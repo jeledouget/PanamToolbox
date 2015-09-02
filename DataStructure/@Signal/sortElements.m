@@ -23,7 +23,7 @@ if isnumeric(filter) && isvector(filter)
         error('to sort by order, you must input a permutation of the elements opf the Signal object');
     end
     order = filter;
-elseif isfunc(filter)
+elseif isa(filter, 'function_handle')
     res = arrayfun(filter, self, 'UniformOutput', 0);
     if all(cellfun(@isnumeric,res))
         res = cell2mat(res);
