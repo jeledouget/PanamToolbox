@@ -57,10 +57,10 @@ elseif strcmpi(acquisition, 'Rest')
 elseif strcmpi(acquisition, 'GNG')
     acquisition = 'GNG';
 elseif strcmpi(acquisition, 'Alerte')
-    acquisition = 'Alerte';
+    acquisition = 'ALERTE';
 end
 
-acquisition = upper(acquisition);
+% acquisition = upper(acquisition);
 
 % protocole
 protocole = 'GBMOV';

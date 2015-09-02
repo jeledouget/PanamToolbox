@@ -130,7 +130,7 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         %% external methods
         
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
-        avgSignal = avgElements(self)
+        avgSignal = avgElements(self, varargin)
         freqSignal = toFreq(self, time, varargin)
         timeSignal = toTime(self, freq, varargin)
         ftStruct = toFieldTrip(self, varargin)

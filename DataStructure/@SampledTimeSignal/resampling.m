@@ -6,10 +6,14 @@
 % resampledSignal : resampled 'Signal' object
 
 
-function resampledSignal = resampling(self, newFreq)
+function resampledSignal = resampling(self, newFreq, tol)
 
 % copy of the object
 resampledSignal = self;
+
+if nargin < 3 || isempty(tol)
+    tol = 1e-6; % default
+end
 
 for ii = 1:numel(self)
     % dimensions of data
@@ -19,7 +23,8 @@ for ii = 1:numel(self)
     oldFreq = self(ii).Fs;
     
     % compute resampling
-    data = resample(self(ii).Data,newFreq, oldFreq);
+    [n, k] = rat(newFreq / oldFreq, newFreq / oldFreq * tol);
+    data = resample(self(ii).Data,n, k);
     dims(1) = size(data,1);
     resampledSignal(ii).Data = reshape(data, dims);
     resampledSignal(ii).Time = self(ii).Time(1)+ 1. / newFreq * (0:size(resampledSignal(ii).Data,1)-1);

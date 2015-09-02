@@ -3,8 +3,8 @@
 % A Butterworth filter is applied
 % The user has handle over the width of the notched frequency window and filter order
 % Default frequency is 50Hz (electric baseline in Europe)
-% Default width is 2Hz (Window : 49-51 Hz)
-% Default filter order is 2
+% Default width is 0.5Hz (Window : 49.5-50.5 Hz)
+% Default filter order is 4
 % REQUIREMENTS
 % dimensions must be 'time' and 'chan' (no supplementary dimensions)
 % INPUTS
@@ -31,11 +31,11 @@ if nargin < 4 || isempty(freq)
 end
 % filter order
 if nargin < 3 || isempty(order)
-    order = 2;
+    order = 4;
 end
 % window width
 if nargin < 2 || isempty(width)
-    width = 1;
+    width = 0.5;
 end
 
 % copy of the object

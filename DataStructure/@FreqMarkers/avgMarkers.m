@@ -11,6 +11,7 @@ self = self.unifyMarkers(0); % unique markers but all times kept
 
 for ii = 1:length(self)
     self(ii).Freq = mean(self(ii).Freq,2);
+    self(ii).Window = mean(self(ii).Window,2);
 end
 
 % affect output

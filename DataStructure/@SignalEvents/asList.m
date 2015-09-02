@@ -8,6 +8,12 @@
 
 function listedEvents = asList(self)
 
+% empty self
+if isempty(self)
+    listedEvents = SignalEvents.empty;
+    return;
+end
+
 ind = 0; % init
 
 for ii = 1:length(self)

@@ -26,6 +26,7 @@ classdef SampledTimeSignal < TimeSignal
             subclassFlag = 0;
             indicesVarargin = []; % initiate vector for superclass constructor
             indFs = [];
+            indDt = [];
             indTstart = [];
             indZerosample = [];
             if nargin > 1
@@ -33,6 +34,8 @@ classdef SampledTimeSignal < TimeSignal
                     switch lower(varargin{i_argin})
                         case 'fs'
                             indFs = i_argin + 1;
+                        case 'dt'
+                            indDt = i_argin + 1;
                         case 'tstart' % time of the first sample
                             indTstart = i_argin + 1;
                         case 'zerosample' % index of sample with time 0
@@ -45,7 +48,11 @@ classdef SampledTimeSignal < TimeSignal
                 end
             end
             self@TimeSignal(varargin{indicesVarargin}, 'subclassflag', 1);
-            if ~isempty(indFs) && ~isempty(varargin{indFs}), self.Fs = varargin{indFs};end 
+            if ~isempty(indFs) && ~isempty(varargin{indFs}), self.Fs = varargin{indFs};end
+            if ~isempty(indDt) && ~isempty(varargin{indDt})
+                self.Temp.dt = varargin{indDt};
+                self.Fs = 1 ./ varargin{indDt};
+            end 
             if ~isempty(indTstart) && ~isempty(varargin{indTstart}), self.Temp.tstart = varargin{indTstart};end
             if ~isempty(indZerosample) && ~isempty(varargin{indZerosample}), self.Temp.zerosample = varargin{indZerosample};end
             if ~subclassFlag && ~isempty(varargin)
@@ -93,14 +100,26 @@ classdef SampledTimeSignal < TimeSignal
             if isempty(self.Time)
                 nSamples = size(self.Data, 1);
                 if isfield(self.Temp,'tstart')
-                    self.Time = self.Temp.tstart + 1 / self.Fs * (0:nSamples-1);
+                    if isfield(self.Temp, 'dt')
+                        self.Time = self.Temp.tstart + 1 / self.Temp.dt * (0:nSamples-1);
+                    else
+                        self.Time = self.Temp.tstart + 1 / self.Fs * (0:nSamples-1);
+                    end
                     if isfield(self.Temp,'zerosample')
                         warning('zerosample not taken into account, conflict with tstart');
                     end
                 elseif isfield(self.Temp,'zerosample')
-                    self.Time = 1 / self.Fs * ((1:nSamples) - self.Temp.zerosample);
+                    if isfield(self.Temp, 'dt')
+                        self.Time = self.Temp.dt * ((1:nSamples) - self.Temp.zerosample);
+                    else
+                        self.Time = 1 / self.Fs * ((1:nSamples) - self.Temp.zerosample);
+                    end
                 else % no tsart nor zerosample nor predefined time sample
-                    self.Time = 1 / self.Fs * (0:nSamples-1);
+                    if isfield(self.Temp, 'dt')
+                        self.Time = self.Temp.dt * (0:nSamples-1);
+                    else
+                        self.Time = 1 / self.Fs * (0:nSamples-1);
+                    end
                     warning('tsart assumed to be 0 (default value)');
                 end
             end
@@ -142,10 +161,12 @@ classdef SampledTimeSignal < TimeSignal
         end
         
         function checkedSignal = sampledOrNot(self)
-            if ~self.isWellSampled % first attempt
-                self.Fs = (length(self.Time)-1) / (self.Time(end) - self.Time(1));
+            if ~all(arrayfun(@(x) x.isWellSampled, self(:))) % first attempt
+                for i = 1:numel(self)
+                    self(i).Fs = (length(self(i).Time)-1) / (self(i).Time(end) - self(i).Time(1));
+                end
                 % second attempt with updated Fs
-                if ~self.isWellSampled
+                if ~all(arrayfun(@(x) x.isWellSampled, self(:)))
                     checkedSignal = self.toTimeSignal;
                     return;
                 end
@@ -160,11 +181,12 @@ classdef SampledTimeSignal < TimeSignal
         lpFilteredSignal = lowPassFilter(self, cutoff, order)
         hpFilteredSignal = highPassFilter(self, cutoff, order)
         notchedSignal = notchFilter(self, width, order, freq)
+        rmlineSignal = lineNoiseRemoval(self, freq, varargin)
         bpFilteredSignal = bandPassFilter(self, cutoffLow, cutoffHigh, order)
         TKEOSignal = TKEO(self)
         resampledSignal = resampling(self, newFreq)
         RmsSignal = RMS_Signal(self, timeWindow)
-        newSignal = avgElements(self)  % average elements of a SampledTimeSignal matrix
+        avgSignal = avgElements(self, varargin)  % average elements of a SampledTimeSignal matrix
         tfSignal = tfPowerSpectrum(self, varargin)
         hilbertTransform = hilbert(self, varargin)
         

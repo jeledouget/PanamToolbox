@@ -166,13 +166,13 @@ classdef TimeSignal < Signal
         
         epochedSignal = epoching(self, eventname,varargin)
         timeWindowedSignal = timeWindow(thisObj, minTime, maxTime, mode)
-        h = plot(self, commonOptions, specificOptions, varargin)
+        [h, ev] = plot(self, varargin)
         h = subplots(self, commonOptions, specificOptions, varargin)
         h = colorPlot(self, commonOptions, specificOptions, varargin)
         h = colorSubplots(self, commonOptions, specificOptions, varargin)
-        avgSignal = avgTime(self, timeBands, timeTags)
+        avgSignal = avgTime(self, varargin)
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
-        newSignal = avgElements(self, subclassFlag)  % average elements of a TimeSignal matrix
+        avgSignal = avgElements(self, varargin)  % average elements of a TimeSignal matrix
         offsetSignal = offsetTime(self, offset, varargin)
         ftStruct = toFieldTrip(self, varargin)
         adjustedSignal = adjustTime(self, varargin)

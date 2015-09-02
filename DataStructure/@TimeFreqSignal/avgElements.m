@@ -8,45 +8,108 @@
 
 
 
-function avgSignal = avgElements(self)
+function avgSignal = avgElements(self, varargin)
 
 % check Time
 if ~ (all(arrayfun(@isNumTime, self)) || ~any(arrayfun(@isNumTime, self)))
     error('Time property of the elements of the TimeSignal must be all numeric or all discrete');
 end
 
-% check that Time property is the same for each element of self
-if numel(self) > 1 && ~isequal(self.Time)
-    lengths = arrayfun(@(x) length(x.Time), self);
-    if any(lengths(2:end) - lengths(1:end-1)) % lengths of Time differ among elements of self
-        error('Time properties are not of the same length');
-    elseif self(1).isNumTime
-        averageTime = mean(reshape([self.Time],[],numel(self)),2);
-        for ii = 1:numel(self)
-            orderTime{ii} = arrayfun(@(x) panam_closest(averageTime, x), self(ii).Time);
-        end
-        if isequal(orderTime{:}, 1:lengths(1))
-            warning('times are not exactly the same in all elements of the TimeSignal');
-        else
-            error('Time should be the same');
-        end
-    else % discrete Times
-        averageTime = self(1).Time;
-        warning('Times do not have the same tag. Check Time properties');
+% args & options
+if ~isempty(varargin)
+    if ischar(varargin{1}) % kvPairs
+        varargin = panam_args2struct(varargin);
+    else % structure
+        varargin = varargin{1};
     end
-elseif self(1).isNumTime
-    averageTime = self(1).Time;
+else
+    varargin = [];
+end
+defaultOption.timeAxis = 'max'; % by default : timeaxis will be extended for all averaged elements (fill with nans if necessary)
+defaultOption.dt = 'min'; % space between time points is set at the minimum
+defaultOption.events = 'keepRange'; % saves the range of events across elements via field 'Duration'. Other options : 'avgAll' to average values and 'keepOnlyConstant'
+defaultOption.subclassFlag = 0;
+option = setstructfields(defaultOption, varargin);
+
+% modifiy time axis if necessary
+if numel(self) > 1 && all(arrayfun(@isNumTime, self))
+    if ~isequal(self.Time) 
+        self = self.adjustTime(option);
+    end
+else % discrete times
+    if ~isequal(self.Time) 
+        error('To average discrete time TimeFreqSignals, time tags must be similar for all elements');
+    end
 end
 
 % average
-avgSignal = self.avgElements@FreqSignal(1);
-avgSignal.Time = averageTime;
-ev = [self.Events];
-if ~isempty(ev)
-    ev = ev.unifyEvents(0).avgEvents;
-    avgSignal.Events = ev;
+avgSignal = self.avgElements@FreqSignal('subclassFlag',1);
+avgSignal.Events = SignalEvents.empty;
+% unify events
+for ii =1:numel(self)
+    self(ii).Events = self(ii).Events.unifyEvents(0);
 end
-
+% keep only events that are present in all Signals
+listNames = arrayfun(@(x) {x.Events.EventName}, self,'UniformOutput',0);
+allNames = unique([listNames{:}]);
+bad = [];
+for ii = 1:numel(allNames)
+    name = allNames{ii};
+    if ~all(cellfun(@(x) ismember(name, x), listNames)) % suppress this event
+        bad(end+1) = ii;
+    end
+end
+for b = bad
+    for ii = 1:numel(self)
+        self(ii).Events = self(ii).Events.deleteEvents(allNames{b});
+    end
+end
+% keep an event only if it is present the same number of times in all
+% elements
+allNames = {self(1).Events.EventName};
+bad = [];
+for ii = 1:numel(allNames)
+    name = allNames{ii};
+    n = arrayfun(@(x) numel(x.Events(strcmpi({x.Events.EventName},name)).Time), self);
+    if length(unique(n)) > 1
+        bad(end+1) = ii;
+    end
+end
+for b = bad
+    for ii = 1:numel(self)
+        self(ii).Events = self(ii).Events.deleteEvents(allNames{b});
+    end
+end
+% average events
+allNames = {self(1).Events.EventName};
+switch option.events
+    case 'keepRange'
+        for ii = 1:numel(allNames)
+            name = allNames{ii};
+            times = arrayfun(@(x) x.Events(strcmpi({x.Events.EventName},name)).Time, self, 'UniformOutput',0);
+            times = cell2mat(times');
+            avgT = min(times,1);
+            duration = max(times,1) - min(times,1);
+            avgSignal.Events(end+1) = SignalEvents(name, avgT, duration);
+        end
+    case 'avgAll'
+        for ii = 1:numel(allNames)
+            name = allNames{ii};
+            times = arrayfun(@(x) x.Events(strcmpi({x.Events.EventName},name)).Time, self, 'UniformOutput',0);
+            times = cell2mat(times');
+            avgT = mean(times,1);
+            avgSignal.Events(end+1) = SignalEvents(name, avgT);
+        end
+    case 'keepOnlyConstant'
+        for ii = 1:numel(allNames)
+            name = allNames{ii};
+            times = arrayfun(@(x) x.Events(strcmpi({x.Events.EventName},name)).Time, self, 'UniformOutput',0);
+            times = cell2mat(times');
+            if all(arrayfun(@(i) length(unique(times(:,i))) == 1, 1:size(times,2)))
+                avgSignal.Events(end+1) = SignalEvents(name, mean(times,1));
+            end
+        end
+end
 % history
 avgSignal.History{end+1,1} = datestr(clock);
 avgSignal.History{end,2} = ...

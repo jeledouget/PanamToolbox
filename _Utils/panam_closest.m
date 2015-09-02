@@ -29,7 +29,7 @@ switch mode
         elseif value == -Inf
             ind = find(vect == min(vect));
         else
-            ind = find(abs(vect - value) == min(abs(vect - value)));
+            ind = find(abs(vect - value) == min(abs(vect - value)),1);
         end
         ind = ind(1); % handle several indices
         val = vect(ind);
@@ -39,7 +39,7 @@ switch mode
         elseif value == -Inf
             error('No inferior value');
         else
-            ind = find(abs(vect - value) == min(abs(vect - value)));
+            ind = find(abs(vect - value) == min(abs(vect - value)),1);
             if vect(ind) > value
                 if ind(1) > 1
                     ind = ind-1;
@@ -56,7 +56,7 @@ switch mode
         elseif value == -Inf
             ind = find(vect == min(vect));
         else
-            ind = find(abs(vect - value) == min(abs(vect - value)));
+            ind = find(abs(vect - value) == min(abs(vect - value)),1);
             if vect(ind) < value
                 if ind(1) < length(vect)
                     ind = ind+1;

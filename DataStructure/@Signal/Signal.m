@@ -16,7 +16,7 @@ classdef Signal
         Data = []; % numeric matrix with values of the signal; see set.Data
         ChannelTags@cell vector = {}; % ids for last dimension of data (usually channels, eg. {'C01D','C12D'})
         DimOrder@cell vector = {}; % cell of strings with dimensions of the signal values (eg. {'time','channels'})
-        Infos@struct;%containers.Map = containers.Map; % information about the signal (1 x 1 containers.Map) : can include TrialName, TrialNumber, Units, etc.;
+        Infos@struct = struct();%containers.Map = containers.Map; % information about the signal (1 x 1 containers.Map) : can include TrialName, TrialNumber, Units, etc.;
         History@cell matrix; % history of operations on the Signal instance (n x 2 string cells)
     end
     
@@ -148,7 +148,7 @@ classdef Signal
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
         newSignal = deleteChannels(self, channels)
         newSignal = selectChannels(self, channels)
-        avgSignal = avgElements(self, options) % average elements of a Signal matrix
+        avgSignal = avgElements(self, varargin) % average elements of a Signal matrix
         normalizedSignal = normalize(self, dims, values, operation)
         newSignal = avgChannel(self, channels, avgChannelName, keepChannels)
         sortedSignal = sortElements(self, filter)

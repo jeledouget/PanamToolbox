@@ -8,15 +8,32 @@
 
 
 
-function avgSignal = avgElements(self)
+function avgSignal = avgElements(self, varargin)
 
 % check sampling freq
 if numel(self) > 1 && ~isequal(self.Fs)
     error('All elements of self must have the same sampling frequency for average');
 end
 
+% args & options
+if ~isempty(varargin)
+    if ischar(varargin{1}) % kvPairs
+        varargin = panam_args2struct(varargin);
+    else % structure
+        varargin = varargin{1};
+    end
+else
+    varargin = [];
+end
+defaultOption.subclassFlag = 0;
+varargin = setstructfields(defaultOption, varargin);
+
 % average
-avgSignal = self.avgElements@TimeSignal(1);
+avgSignal = self.avgElements@TimeSignal(varargin);
+
+if avgSignal.isSampled
+    avgSignal = avgSignal.toSampledTimeSignal;
+end
 
 % history
 avgSignal.History{end+1,1} = datestr(clock);

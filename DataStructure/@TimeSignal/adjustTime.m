@@ -16,27 +16,58 @@ end
 % copy of the object
 adjustedSignal = self;
 
-% check that it is not already adjusted, and compute times
-minAll = arrayfun(@(x) x.Time(1), self(:));
-maxAll =  arrayfun(@(x) x.Time(end), self(:));
-if length(unique(minAll)) == 1 && length(unique(maxAll)) == 1
-    warning('object is already time-adjusted');
-    return;
+% args & options
+if ~isempty(varargin)
+    if ischar(varargin{1}) % kvPairs
+        varargin = panam_args2struct(varargin);
+    else % structure
+        varargin = varargin{1};
+    end
 else
-    minTime = max(minAll);
-    maxTime = min(maxAll);
+    varargin = [];
+end
+defaultOption.timeAxis = 'max'; % by default : timeaxis will be extended for all averaged elements (fill with nans if necessary)
+defaultOption.dt = 'min'; % space between time points is set at the minimum
+defaultOption.interpOptions = {};
+option = setstructfields(defaultOption, varargin);
+
+% modifiy time axis if necessary
+if numel(self) > 1 && ~isequal(self.Time)
+    minTimes = arrayfun(@(x) min(x.Time), self);
+    maxTimes = arrayfun(@(x) max(x.Time), self);
+    intervals = arrayfun(@(x) (max(x.Time) - min(x.Time)) / (length(x.Time) - 1), self);
+    switch option.dt
+        case 'min'
+            interval = min(intervals);
+        case 'max'
+            interval = max(intevals);
+        otherwise % user-defined window
+            interval = option.dt;
+    end
+    switch option.timeAxis
+        case 'max'
+            tMin = min(minTimes);
+            tMax = max(maxTimes);
+        case 'min'
+            tMin = max(minTimes);
+            tMax = min(maxTimes);
+        otherwise % user-defined min and max time
+            tMin = option.timeAxis(1);
+            tMax = option.timeAxis(2);
+    end
+    timeAxis = tMin:interval:tMax; % time axis on which the data is interpolated
+else % all time axes are equal
+    return;
 end
 
 % time-windowing
-adjustedSignal = adjustedSignal.timeWindow(minTime, maxTime, 'inf');
-if ~isequal(adjustedSignal.Time)
-    adjustedSignal = adjustedSignal.interpTime(adjustedSignal(1).Time);
-end
+adjustedSignal = adjustedSignal.interpTime(timeAxis, option.interpOptions{:});
+
 
 % history
 for ii = 1:numel(adjustedSignal)
     adjustedSignal(ii).History{end+1,1} = datestr(clock);
     adjustedSignal(ii).History{end,2} = ...
-        ['Signal time-adjusted from ' num2str(minTime) 's to ' num2str(maxTime) 's'];
+        ['Signal time-adjusted from ' num2str(timeAxis(1)) 's to ' num2str(timeAxis(end)) 's, with interval ' num2str(interval)];
 end
 end

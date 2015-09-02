@@ -8,30 +8,59 @@
 
 function adjustedSignal = adjustFreq(self, varargin)
 
-% check that Time property is numeric
+% check that Freq property is numeric
 if ~all(arrayfun(@isNumFreq, self))
     error('adjustFreq method only applies to FreqSignal objects with a numeric Freq property');
 end
 
 % copy of the object
 adjustedSignal = self;
-
-% check that it is not already adjusted, and compute times
-minAll = arrayfun(@(x) x.Freq(1), self(:));
-maxAll =  arrayfun(@(x) x.Freq(end), self(:));
-if length(unique(minAll)) == 1 && length(unique(maxAll)) == 1
-    warning('object is already freq-adjusted');
-    return;
+% args & options
+if ~isempty(varargin)
+    if ischar(varargin{1}) % kvPairs
+        varargin = panam_args2struct(varargin);
+    else % structure
+        varargin = varargin{1};
+    end
 else
-    minFreq = max(minAll);
-    maxFreq = min(maxAll);
+    varargin = [];
+end
+defaultOption.freqAxis = 'max'; % by default : freqaxis will be extended for all averaged elements (fill with nans if necessary)
+defaultOption.df = 'min'; % space between time points is set at the minimum
+defaultOption.interpOptions = {};
+option = setstructfields(defaultOption, varargin);
+
+% modifiy time axis if necessary
+if numel(self) > 1 && ~isequal(self.Freq)
+    minFreqs = arrayfun(@(x) min(x.Freq), self);
+    maxFreqs = arrayfun(@(x) max(x.Freq), self);
+    intervals = arrayfun(@(x) (max(x.Freq) - min(x.Freq)) / (length(x.Freq) - 1), self);
+    switch option.df
+        case 'min'
+            interval = min(intervals);
+        case 'max'
+            interval = max(intevals);
+        otherwise % user-defined window
+            interval = option.df;
+    end
+    switch option.freqAxis
+        case 'max'
+            fMin = min(minFreqs);
+            fMax = max(maxFreqs);
+        case 'min'
+            fMin = max(minFreqs);
+            fMax = min(maxFreqs);
+        otherwise % user-defined min and max freq
+            fMin = option.freqAxis(1);
+            fMax = option.freqAxis(2);
+    end
+    freqAxis = fMin:interval:fMax; % time axis on which the data is interpolated
+else % all time axes are equal
+    return;
 end
 
-% freq-windowing
-adjustedSignal = adjustedSignal.freqWindow(minFreq, maxFreq, 'inf');
-if ~isequal(adjustedSignal.Freq)
-    adjustedSignal = adjustedSignal.interpFreq(adjustedSignal(1).Freq);
-end
+% time-windowing
+adjustedSignal = adjustedSignal.interpFreq(freqAxis, option.interpOptions{:});
 
 % history
 for ii = 1:numel(adjustedSignal)
