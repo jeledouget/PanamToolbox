@@ -10,6 +10,12 @@
 
 function newMarkers = unifyMarkers(self, uniqueFreq)
 
+% empty
+if isempty(self)
+    newMarkers = self;
+    return;
+end
+
 % default
 if nargin < 2  || isempty(uniqueFreq)
     uniqueFreq = 1;
@@ -18,12 +24,12 @@ end
 % append time to common type of events
 indToKeep = [];
 for name = unique(lower({self.MarkerName}))
-    indEvent = find(arrayfun(@(x) strcmpi(x.MarkerName, name{1}), self));
-    for ii = indEvent(2:end)
-        self(indEvent(1)).Freq = [self(indEvent(1)).Freq self(ii).Freq];
-        self(indEvent(1)).Window = [self(indEvent(1)).Window self(ii).Window];
+    indMarkers = find(arrayfun(@(x) strcmpi(x.MarkerName, name{1}), self));
+    for ii = indMarkers(2:end)
+        self(indMarkers(1)).Freq = [self(indMarkers(1)).Freq self(ii).Freq];
+        self(indMarkers(1)).Window = [self(indMarkers(1)).Window self(ii).Window];
     end
-    indToKeep(end+1) = indEvent(1);
+    indToKeep(end+1) = indMarkers(1);
 end
         
 % keep unique events    
