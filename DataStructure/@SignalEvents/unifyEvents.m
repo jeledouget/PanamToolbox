@@ -10,6 +10,12 @@
 
 function newEvents = unifyEvents(self, uniqueTimes)
 
+% empty
+if isempty(self)
+    newEvents = self;
+    return;
+end
+
 % default
 if nargin < 2  || isempty(uniqueTimes)
     uniqueTimes = 1;
