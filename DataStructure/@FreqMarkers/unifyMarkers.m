@@ -18,12 +18,12 @@ end
 % append time to common type of events
 indToKeep = [];
 for name = unique(lower({self.MarkerName}))
-    indEvent = find(arrayfun(@(x) strcmpi(x.MarkerName, name{1}), self));
-    for ii = indEvent(2:end)
-        self(indEvent(1)).Freq = [self(indEvent(1)).Freq self(ii).Freq];
-        self(indEvent(1)).Window = [self(indEvent(1)).Window self(ii).Window];
-    end
-    indToKeep(end+1) = indEvent(1);
+    indMarker = find(arrayfun(@(x) strcmpi(x.MarkerName, name{1}), self));
+        for ii = indMarker(2:end)
+            self(indMarker(1)).Freq = [self(indMarker(1)).Freq self(ii).Freq];
+            self(indMarker(1)).Window = [self(indMarker(1)).Window self(ii).Window];
+        end
+        indToKeep(end+1) = indMarker(1);
 end
         
 % keep unique events    
