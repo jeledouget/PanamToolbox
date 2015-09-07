@@ -99,6 +99,7 @@ classdef Signal
         function self = setDefaultDimOrder(self)
             if isempty(self.DimOrder)
                 nDims = ndims(self.Data);
+                if ~iscolumn(self.Data) && (numel(self.ChannelTags) == 1), nDims = nDims + 1;end
                 self.DimOrder(1:nDims-1) = arrayfun(@(x) ['dim' num2str(x)],1:nDims-1,'UniformOutput',0);
                 self.DimOrder{nDims} = 'chan';
             end
@@ -113,14 +114,18 @@ classdef Signal
                 
         % check ChannelTags property
         function checkChannelTags(self)
-            if size(self.ChannelTags,2) ~= size(self.Data, ndims(self.Data))
+            nDims = ndims(self.Data);
+            if ~iscolumn(self.Data) && (numel(self.ChannelTags) == 1), nDims = nDims + 1;end
+            if size(self.ChannelTags,2) ~= size(self.Data, nDims)
                 error('the number of channels in ChannelTags property does not correspond to the last dimension in Data property');
             end
         end
         
         % check DimOrder property
         function checkDimOrder(self)
-            if size(self.DimOrder,2) ~= ndims(self.Data)
+            nDims = ndims(self.Data);
+            if ~iscolumn(self.Data) && (numel(self.ChannelTags) == 1), nDims = nDims + 1;end
+            if size(self.DimOrder,2) ~= nDims
                 error('the number of dimensions in DimOrder property does not correspond to the number of dimensions in Data property');
             end
         end

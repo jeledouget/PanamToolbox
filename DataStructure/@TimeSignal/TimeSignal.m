@@ -101,7 +101,9 @@ classdef TimeSignal < Signal
         
         % check DimOrder property
         function checkDimOrder(self)
-            if size(self.DimOrder,2) ~= ndims(self.Data)
+            nDims = ndims(self.Data);
+            if ~iscolumn(self.Data) && numel(self.ChannelTags) == 1, nDims = nDims + 1;end
+            if size(self.DimOrder,2) ~= nDims
                 error('the number of dimensions in DimOrder property does not correspond to the number of dimensions in Data property');
             end
             if ~strcmpi(self.DimOrder{1},'time') || ~strcmpi(self.DimOrder{end},'chan')
