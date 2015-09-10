@@ -180,6 +180,7 @@ classdef TimeSignal < Signal
         offsetSignal = offsetTime(self, offset, varargin)
         ftStruct = toFieldTrip(self, varargin)
         adjustedSignal = adjustTime(self, varargin)
+        newSignal = correction(self, varargin)
         
         % to do
         
