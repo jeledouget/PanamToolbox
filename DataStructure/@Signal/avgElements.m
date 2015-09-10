@@ -16,12 +16,6 @@ self = self(:);
 % check input
 arrayfun(@checkInstance,self);
 
-% check dimensions
-sizes = arrayfun(@(x) size(x.Data), self, 'UniformOutput',0);
-if ~isequal(sizes{:})
-    error('to be averaged, elements of self must be of the same dimensions');
-end
-
 % args & options
 if ~isempty(varargin)
     if ischar(varargin{1}) % kvPairs

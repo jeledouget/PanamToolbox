@@ -8,7 +8,7 @@
 % OUTPUT
 % outSignal : Signal object created by the import
 
-function outSignalSet = GBMOV_importLFPFile(filename, acquisition)
+function outSignalSet = PPN_importLFPFile(filename, acquisition)
 
 % filename
 if nargin < 1 || isempty(filename)
@@ -63,7 +63,7 @@ end
 % acquisition = upper(acquisition);
 
 % protocole
-protocole = 'GBMOV';
+protocole = 'PPN';
 
 % session
 if strcmpi(type, 'LFP')
@@ -72,66 +72,37 @@ else
     session = 'UNKNOWN';
 end
 
-% subjectCode
-subjectCode = hdr.patientID;
 
-% parse recordID
-parseRecord = regexp(hdr.recordID,'_','split');
+switch lower(extension)
+    case '.edf'
+        fs = hdr.samples(1)/ hdr.duration;
+        try units = hdr.units(end-5:end);end
+        data = data_temp(end-5:end,:)';
+    case '.trc'
+        fs = hdr.Rate_Min;
+        try units = hdr.units(end-5:end);end
+        data = data_temp(end-5:end,:)';
+end
+
 
 % sampling frequency
-fs = hdr.fs;
 time = 1/fs*(0:size(data_temp,2)-1);
 
 % channel tags
 channelTags = {'C_01D', 'C_12D', 'C_23D', 'C_01G', 'C_12G', 'C_23G'};
 
-% units
-units = hdr.units(2:end);
 
-% medical condition
-if any(strcmpi('ON',parseRecord))
-    medCondition = 'ON';
-elseif any(strcmpi('OFF',parseRecord))
-    medCondition = 'OFF';
-else
-    medCondition = 'UNKNOWN';
-end
+tmp = inputdlg({'Subject Code','Speed Condition'},...
+    'Check parameters of the input',1, {'',''});
 
-% speed condition
-if any(strcmpi(acquisition, {'RealGait', 'VirtualGait', 'RealGaitAI', 'Porte'}))
-    if any(strcmpi('S',parseRecord))
-        speedCondition = 'S';
-    elseif any(strcmpi('R',parseRecord))
-        speedCondition = 'R';
-    else
-        speedCondition = 'UNKNOWN';
-    end
-end
-
-% hand used to perform the task
-if any(strcmpi(acquisition, {'MSup', 'GNG', 'Alerte'}))
-    choices =  {'Left', 'Right', 'Unknown'};
-    side = menu('Which hand / side has been used by the patient for the task ?',choices{:});
-    side = choices{side};
-end
-
-% check input parameters
-if exist('speedCondition','var')
-    tmp = inputdlg({'Subject Code','Med Condition','Speed Condition'},...
-        'Check parameters of the input',1, {subjectCode, medCondition, speedCondition});
-else
-    tmp = inputdlg({'Subject Code','Med Condition'},...
-        'Check parameters of the input',1, {subjectCode, medCondition});
-end
 subjectCode = tmp{1};
-medCondition = tmp{2};
-try speedCondition = tmp{3};end
+try speedCondition = tmp{2};end
 try subjectNumber = str2num(subjectCode(end-1:end));end
 
 % output file name
 switch lower(acquisition)
     case 'realgait'
-        fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition '_' speedCondition '_' acquisition];
+        fileNameOut = [protocole '_' session '_' subjectCode '_' speedCondition '_' acquisition];
     case {'gng', 'alerte'}
          fileNameOut = [acquisition '_' session '_' subjectCode '_' medCondition];
     case 'rest'
@@ -140,8 +111,7 @@ switch lower(acquisition)
         fileNameOut = [protocole '_' session '_' subjectCode  '_' medCondition];
 end
 
-% fill infos (containers.Map)
-try infos.medCondition = medCondition;end
+% fill infos 
 try infos.speedCondition = speedCondition;end
 try infos.side = side;end
 try infos.session = session;end
@@ -160,21 +130,21 @@ try infosSet.protocole = protocole;end
 try infosSet.acquisition = acquisition;end
 try infosSet.fileName = fileNameOut;end
 if exist('speedCondition','var')
-    try infosSet.comment = ['import ' sprintf('%s, ', protocole, acquisition, type, session, subjectCode, medCondition) speedCondition];end
+    try infosSet.comment = ['import ' sprintf('%s, ', protocole, acquisition, type, session, subjectCode) speedCondition];end
 else
-    try infosSet.comment = ['import ' sprintf('%s, ', protocole, acquisition, type, session, subjectCode) medCondition];end
+    try infosSet.comment = ['import ' sprintf('%s, ', protocole, acquisition, type, session) subjectCode];end
 end
 
-% data
-data = data_temp(2:end,:)';
 
 % triggers
-data_trigg = data_temp(1,:);
-temp_trigg = find(data_trigg(1,:)~=2);
-trig=temp_trigg(1);
-for ii = 2:length(temp_trigg)
-    if temp_trigg(ii)~=temp_trigg(ii-1)+1
-        trig(end+1) = temp_trigg(ii);
+trigg_Channel = 1;
+trigg  = data_temp(trigg_Channel,:);
+trigg_binary = clean_trigger_v2(trigg,fs);
+trigg_samples = find(trigg_binary);
+trig=trigg_samples(1);
+for ii = 2:length(trigg_samples)
+    if trigg_samples(ii)~=trigg_samples(ii-1)+1
+        trig(end+1) = trigg_samples(ii);
     end
 end
 trigInfos.description = 'Soung trigger';

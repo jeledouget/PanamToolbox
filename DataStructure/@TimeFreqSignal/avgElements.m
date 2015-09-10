@@ -87,9 +87,10 @@ switch option.events
         for ii = 1:numel(allNames)
             name = allNames{ii};
             times = arrayfun(@(x) x.Events(strcmpi({x.Events.EventName},name)).Time, self, 'UniformOutput',0);
-            times = cell2mat(times');
-            avgT = min(times,1);
-            duration = max(times,1) - min(times,1);
+            times = cell2mat(times);
+            times = times(:);
+            avgT = min(times,[],1);
+            duration = max(times,[],1) - min(times,[],1);
             avgSignal.Events(end+1) = SignalEvents(name, avgT, duration);
         end
     case 'avgAll'

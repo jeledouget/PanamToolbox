@@ -156,10 +156,12 @@ classdef TimeSignal < Signal
         
         % is the TimeSignal sampled ?
         function [res, fs] = isSampled(self)
-            localFs = 1 ./ (self.Time(2:end) - self.Time(1:end-1));
-            globalFs = (length(self.Time)-1) / (self.Time(end) - self.Time(1));
-            res = all(abs(localFs - globalFs) < 0.05*globalFs) && abs(mean(localFs) - globalFs) < 0.01*globalFs;
-            fs = -1 * (1-res) + res * globalFs;
+            for i = 1:numel(self)
+                localFs = 1 ./ (self(i).Time(2:end) - self(i).Time(1:end-1));
+                globalFs = (length(self(i).Time)-1) / (self(i).Time(end) - self(i).Time(1));
+                res(i) = all(abs(localFs - globalFs) < 0.05*globalFs) && abs(mean(localFs) - globalFs) < 0.01*globalFs;
+                fs(i) = -1 * (1-res(i)) + res(i) * globalFs;
+            end
         end
         
         %% external methods

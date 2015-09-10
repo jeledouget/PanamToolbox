@@ -31,7 +31,7 @@ end
 defaultOption.newFigure = 'yes'; % by default : a new figure is created
 defaultOption.title = '';
 defaultOption.channels = 'list';
-defaultOption.signals = 'avg';%'superimpose';
+defaultOption.signals = 'grid';%'superimpose';
 defaultOption.uniqueAxes = 1; %0; % in case of list -> if 1, all in one axes or not ? If 1, impossible to change between-signals y-axis, but x-axis is updated for all signals
 defaultOption.nColumns = 1; % number of columns for lists
 defaultOption.colormap = 'lines'; % default colormap for plots

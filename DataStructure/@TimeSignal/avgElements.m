@@ -10,15 +10,14 @@
 
 function avgSignal = avgElements(self, varargin)
 
+if numel(self) == 1
+    avgSignal = self;
+    return;
+end
+
 % check input
 if ~(all(arrayfun(@isNumTime, self)) || ~any(arrayfun(@isNumTime, self)))
     error('Time property of the elements of the TimeSignal must be all numeric or all discrete');
-end
-
-% check dimensions
-sizes = arrayfun(@(x) size(x.Data), self, 'UniformOutput',0);
-if ~isequal(sizes{:})
-    error('to be averaged, elements of self must be of the same dimensions');
 end
 
 % args & options
