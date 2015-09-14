@@ -4,32 +4,43 @@
 % valid only if number of dimensions <= 2 in Data property
 % WARNING : if several channels are present, they will be averaged. default : averaged
 % INPUTS :
-    % commonOptions : cell of key-values pairs for plot properties that will
-    % be shared by plots of all channels
-    % specificOptions : cell of key-values pairs for plot properties that
-    % will are specific to each channels ; each values of key-value pair
-    % must be cell of length nChannels
 % OUTPUTS :
     % h : handle to the axes of the plot
 
 
-function h = plot(self, commonOptions, specificOptions, varargin)
+function h = plot(self, varargin)
 
-% average self
-if numel(self) > 1
-    self = self.avgElements;
-end
+% default outputs
+h = [];
 
-% defaults
-if nargin < 3 || isempty(specificOptions)
-    specificOptions = {};
+% args & options
+if ~isempty(varargin)
+    if ischar(varargin{1}) % kvPairs
+        varargin = panam_args2struct(varargin);
+    else % structure
+        varargin = varargin{1};
+    end
+else
+    varargin = [];
 end
-if nargin < 2 || isempty(commonOptions)
-    commonOptions = {};
-end
-if nargin > 1 && ~iscell(commonOptions)
-    commonOptions = [commonOptions, specificOptions, varargin];
-    specificOptions = {};
+defaultOption.newFigure = 'yes'; % by default : a new figure is created
+defaultOption.channels = 'grid'; % default : 1 subplot per channel
+defaultOption.title = '';
+defaultOption.colormap = 'lines'; % default colormap for plots
+defaultOption.xaxis = 'auto';
+defaultOption.events = 'yes';
+defaultOption.markers = 'yes';
+defaultOption.smooth = [1 1 1 1];% nb of points and std dev for gaussian smoothing. Default : no smoothing
+defaultOption.eventColormap = 'lines'; % use the colormap 'lines' to draw events
+defaultOption.markerColormap = 'hsv'; % use the colormap 'hsv' to draw markers
+option = setstructfields(defaultOption, varargin);
+
+% case empty
+if isempty(self)
+    if option.newFigure
+        figure;
+    end
+    return;
 end
 
 % check input
@@ -40,224 +51,215 @@ if ~(all(arrayfun(@isNumFreq, self)) || ~any(arrayfun(@isNumFreq, self)))
     error('Freq property of the elements of the TimeFreqSignal must be all numeric or all discrete');
 end
 
-% common options for Events
-isEvents = 1; % default : show Events
-isAvgEvents = 1; % default : average the events (one value per Time tag only)
-evType = find(strcmpi(commonOptions,'events')); % 'avg' (average events), 'all' (show all events, not averaged), ou 'no' (hide events)
-if ~isempty(evType)
-        if strcmpi(commonOptions{evType+1}, 'no')
-            isEvents = 0;
-        elseif strcmpi(commonOptions{evType+1}, 'all')
-            isAvgEvents = 0;
-        elseif strcmpi(commonOptions{evType+1}, 'avg')
-            % do nothing
-        else
-            warning('after ''events'' option, parameter should be ''all'', ''avg'' or ''no'' ; here considered ''avg'' by default');
-        end
-        commonOptions(evType:evType+1) = [];
-end
-evOptions = find(strcmpi(commonOptions,'evOptions'));
-argEvCommon = {'LineWidth',2}; % default
-if ~isempty(evOptions)
-    argEvCommon = [argEvCommon commonOptions{evOptions+1}];
-    commonOptions(evOptions:evOptions+1) = [];
+% init events
+if strcmpi(option.events, 'yes')
+    [eventNames, eventColors, legStatusEv, legLabelsEv, legHandlesEv] =  init_events(self, option);
 end
 
-% specific options and colorbars for Events
-allEvents = [self.Events];
-if isempty(allEvents), isEvents = 0;end
-if isEvents
-    if isAvgEvents
-        allEvents = allEvents.avgEvents;
-    else
-        allEvents = allEvents.unifyEvents;
-    end
-    nEvents = length(allEvents);
-    argEvSpecific = {}; % init
-    % colormap for Events
-    cm = find(strcmpi(argEvCommon,'colormap'));
-    if ~isempty(cm)
-        cmap_ev = argEvCommon{cm+1};
-        argEvCommon(cm:cm+1) = [];
-        eval(['cmap_ev = ' cmap_ev '(nEvents);']);
-        cmap_ev = mat2cell(cmap_ev, ones(1,nEvents),3);
-    else
-        cmap_ev = lines(nEvents);
-        cmap_ev = mat2cell(cmap_ev, ones(1,nEvents),3);
-    end
-    argEvSpecific{end+1} = 'color';
-    argEvSpecific{end+1} = cmap_ev;
-    % other options
-    evOptions = find(strcmpi(specificOptions,'evOptions'));
-    if ~isempty(evOptions)
-        argEvSpecific = [argEvSpecific specificOptions{evOptions+1}];
-        specificOptions(evOptions:evOptions+1) = [];
-    end
+% init markers
+if strcmpi(option.markers, 'yes')
+    [markerNames, markerColors, legStatusFm, legLabelsFm, legHandlesFm] =  init_markers(self, option);
 end
 
-% common options for FreqMarkers
-isMarkers = 1; % default : show Markers
-isAvgMarkers = 1; % default : average the freq markers (one value per Freq tag only)
-fmType = find(strcmpi(commonOptions,'freqmarkers')); % 'avg' (average markers), 'all' (show all markers, not averaged), ou 'no' (hide markers)
-if ~isempty(fmType)
-        if strcmpi(commonOptions{fmType+1}, 'no')
-            isMarkers = 0;
-        elseif strcmpi(commonOptions{fmType+1}, 'all')
-            isAvgMarkers = 0;
-        elseif strcmpi(commonOptions{fmType+1}, 'avg')
-            % do nothing
-        else
-            warning('after ''freqmarkers'' option, parameter should be ''all'', ''avg'' or ''no'' ; here considered ''avg'' by default');
-        end
-        commonOptions(fmType:fmType+1) = [];
-end
-fmOptions = find(strcmpi(commonOptions,'fmOptions'));
-argFmCommon = {'LineWidth',2}; % default
-if ~isempty(fmOptions)
-    argFmCommon = [argFmCommon commonOptions{fmOptions+1}];
-    commonOptions(fmOptions:fmOptions+1) = [];
+
+% figure
+if strcmpi(option.newFigure, 'yes')
+    v = get(0, 'MonitorPosition'); % avoid Java isssues
+    v1 = v(1,:);
+    v1(1) = v1(1) - 1;
+    sumX = sum(v(:,3));
+    v1 = v1 ./ [sumX v1(4) sumX v1(4)]; % normalize
+    figure('Name',option.title,'units','normalized','outerposition',v1)
 end
 
-% specific options and colorbars for freqMarkers
-allMarkers = [self.FreqMarkers];
-if isempty(allMarkers), isMarkers = 0;end
-if isMarkers
-    if isAvgMarkers
-        allMarkers = allMarkers.avgMarkers;
-    else
-        allMarkers = allMarkers.unifyMarkers;
-    end
-    nMarkers = length(allMarkers);
-    argFmSpecific = {}; % init
-    % colormap for FreqMarkers
-    cm = find(strcmpi(argFmCommon,'colormap'));
-    if ~isempty(cm)
-        cmap_fm = argFmCommon{cm+1};
-        argFmCommon(cm:cm+1) = [];
-        eval(['cmap_fm = ' cmap_fm '(nMarkers);']);
-        cmap_fm = mat2cell(cmap_fm, ones(1,nMarkers),3);
-    else
-        cmap_fm = lines(nMarkers);
-        cmap_fm = mat2cell(cmap_fm, ones(1,nMarkers),3);
-    end
-    argFmSpecific{end+1} = 'color';
-    argFmSpecific{end+1} = cmap_fm;
-    % other options
-    fmOptions = find(strcmpi(specificOptions,'fmOptions'));
-    if ~isempty(fmOptions)
-        argFmSpecific = [argFmSpecific specificOptions{fmOptions+1}];
-        specificOptions(fmOptions:fmOptions+1) = [];
-    end
-end
+% average
+self = self.avgElements;
 
-% average channels
-self = self.avgChannel;
-
-% data to plot :
-data = self.Data';
+% extract data
+data = permute(self.Data,[2 1 3]); % new order : freq x time x channels
 
 % smooth data with gaussian filter
-sm = find(strcmpi(commonOptions,'smooth'));
-if ~isempty(sm)
-    nPointsSmoothHor = commonOptions{sm+1}(1);
-    nPointsSmoothVert = commonOptions{sm+1}(2);
-    try 
-        stdDevSmoothHor = commonOptions{sm+1}(3);
-    catch
-        stdDevSmoothHor = nPointsSmoothHor;
-    end
-    try
-        stdDevSmoothVert = commonOptions{sm+1}(4);
-    catch
-        stdDevSmoothVert = nPointsSmoothVert;
-    end
-else
-    nPointsSmoothHor = 1;
-    nPointsSmoothVert = 1;
-    stdDevSmoothHor = 1;
-    stdDevSmoothVert = 1;
-end
+% smooth data with gaussian filter
+nPointsSmoothHor = option.smooth(1);
+nPointsSmoothVert = option.smooth(2);
+stdDevSmoothHor = option.smooth(3);
+stdDevSmoothVert = option.smooth(4);
 gaussFilter = customgauss([nPointsSmoothVert nPointsSmoothHor], stdDevSmoothVert, stdDevSmoothHor,0,0,1,[0 0]);
 ratio = sum(sum(gaussFilter));
-data = conv2(data, gaussFilter, 'same') / ratio;
-
+for ii = 1:size(data,3)
+    data(:,:,ii) = conv2(data(:,:,ii), gaussFilter, 'same') / ratio;
+end
 
 % plot
-h = gca; 
-hold on
-set(gca,'YDir','normal');
-if self(1).isNumTime
-    if self.isNumFreq
-        imagesc(self.Time,self.Freq,data);
+[nH, nV] = panam_subplotDimensions(size(data,3));
+for ii = 1:size(data,3)
+    dataTmp = data(:,:,ii);
+    h(ii) = subplot(nH, nV, ii);
+    hold on
+    set(gca,'YDir','normal');
+    if self(1).isNumTime
+        if self.isNumFreq
+            imagesc(self.Time,self.Freq,dataTmp);
+        else
+            imagesc(self.Time,1:size(dataTmp,1),dataTmp);
+        end
     else
-        imagesc(self.Time,1:size(data,1),data);
+        if self.isNumFreq
+            imagesc(1:size(dataTmp,2),self.Freq,dataTmp);
+        else
+            imagesc(1:size(dataTmp,2),1:size(dataTmp,1),dataTmp);
+        end
+    end
+    axis tight
+    title(h(ii),self.ChannelTags{ii});
+end
+
+% events
+if strcmpi(option.events, 'yes')
+    for ii = 1:numel(h)
+        [h(ii), legStatusEv, legLabelsEv, legHandlesEv] = plot_events(h(ii), self.Events, eventNames, eventColors, legStatusEv, legLabelsEv, legHandlesEv);
+    end
+end
+
+% markers
+if strcmpi(option.markers, 'yes')
+    for ii = 1:numel(h)
+        [h(ii), legStatusFm, legLabelsFm, legHandlesFm] = plot_markers(h(ii), self.FreqMarkers, markerNames, markerColors, legStatusFm, legLabelsFm, legHandlesFm);
+    end
+end
+
+if strcmpi(option.events, 'yes')
+    if strcmpi(option.markers, 'yes')
+        legend([legHandlesEv, legHandlesFm], [legLabelsEv,legLabelsEv], 'Position', [0.94 0.85 0.03 0.1]);
+    else
+        legend(legHandlesEv, legLabelsEv, 'Position', [0.94 0.85 0.03 0.1]);
     end
 else
-    if self.isNumFreq
-        imagesc(1:size(data,2),self.Freq,data);
+    if strcmpi(option.markers, 'yes')
+        legend(legHandlesFm, legLabelsFm, 'Position', [0.94 0.85 0.03 0.1]);
     else
-        imagesc(1:size(data,2),1:size(data,1),data);
+         legend hide % no legend
     end
 end
-axis tight
-
-% plot Events
-legendTmp = {};
-if isEvents % draw lines for Time
-    if self(1).isNumTime
-        a  = axis;
-        for ii = 1:length(allEvents)
-            argEvSpecific_current = argEvSpecific;
-            for jj = 2:2:length(argEvSpecific)
-                argEvSpecific_current{jj} = argEvSpecific{jj}{ii};
-            end
-            for kk = 1:length(allEvents(ii).Time)
-                t = allEvents(ii).Time(kk);
-                plot([t t], [a(3) a(4)], argEvCommon{:}, argEvSpecific_current{:});
-                legendTmp = [legendTmp allEvents(ii).EventName];
-            end
-        end
-    else
-        warning('impossible to draw Events when Time is not numeric');
+        
+        
+% axes properties
+for ii = 1:numel(h)
+    xlabel(h(ii),'Time')
+    ylabel(h(ii),'Freq')
+    hold off
+    if ~self.isNumTime
+        set(h(ii),'XTick',1:length(self.Time), 'XTickLabel', self.Time);
+    end
+    if ~self.isNumFreq
+        set(h(ii),'YTick',1:length(self.Freq), 'YTickLabel', self.Freq);
     end
 end
 
-% plot FreqMarkers
-if isMarkers % draw lines for Freq
-    if self(1).isNumFreq
-        a  = axis;
-        for ii = 1:length(allMarkers)
-            argFmSpecific_current = argFmSpecific;
-            for jj = 2:2:length(argFmSpecific)
-                argFmSpecific_current{jj} = argFmSpecific{jj}{ii};
-            end
-            for kk = 1:length(allMarkers(ii).Freq)
-                t = allMarkers(ii).Freq(kk);
-                plot([a(1) a(2)], [t t], argFmCommon{:}, argFmSpecific_current{:});
-                legendTmp = [legendTmp allMarkers(ii).MarkerName];
-            end
-        end
-    else
-        warning('impossible to draw FreqMarkers when Freq is not numeric');
+% xaxis
+if ~isequal(option.xaxis, 'auto')
+    for i = 1:length(h)
+        xlim(h(i), option.xaxis);
     end
 end
 
-if ~self(1).isNumTime
-    set(gca,'XTick',1:length(self.Time), 'XTickLabel', self.Time);
-    %     a = axis;
-    %     axis([a(1)-1 a(2)+1 a(3) a(4)]);
 end
 
-if ~self(1).isNumFreq
-    set(gca,'YTick',1:length(self.Freq), 'YTickLabel', self.Freq);
-    %     a = axis;
-    %     axis([a(1)-1 a(2)+1 a(3) a(4)]);
+
+function [hOut, legStatusOut, legLabelsOut, legHandlesOut] = plot_events(hIn, events, eventNames, eventColors, legStatusIn, legLabelsIn, legHandlesIn)
+
+hOut = hIn;
+axes(hOut);
+hold on
+
+legStatusOut = legStatusIn;
+legLabelsOut = legLabelsIn;
+legHandlesOut = legHandlesIn;
+
+
+for k = 1:numel(events)
+    ind = find(strcmp(events(k).EventName, eventNames));
+    t1 = events(k).Time;
+    t2 = t1 + events(k).Duration;
+    a = axis(hOut);
+    minEv = a(3);
+    maxEv = a(4);
+    if t2 == t1 % Duration = 0
+        plot([t1 t2], [minEv maxEv],'color', eventColors{ind},'Tag',events(k).EventName,'LineWidth',1);
+        ev = plot((t1+t2)/2, (minEv + maxEv)/2,'color', eventColors{ind},'Tag',events(k).EventName,'LineWidth',1,'MarkerSize',4);
+    else
+        ev = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],eventColors{ind},'EdgeColor', eventColors{ind}, 'Tag',events(k).EventName, 'FaceAlpha', 0.2);
+    end
+    if legStatusOut(ind) == 0
+        legHandlesOut(end+1) = ev;
+        legLabelsOut(end+1) = {events(k).EventName};
+        legStatusOut(ind) = 1;
+    end
 end
 
-xlabel('Time')
-ylabel('Frequency')
-legend(legendTmp)
-legend hide
-hold off
+end
+
+
+
+function [eventNames, eventColors, legStatus, legLabels,legHandles] =  init_events(self, option)
+
+tmp = arrayfun(@(x) {x.Events.EventName}, self, 'UniformOutput',0);
+eventNames = unique([tmp{:}]);
+evColorMap = option.eventColormap;
+eval(['eventColors = ' evColorMap '(numel(eventNames));']);
+eventColors = num2cell(eventColors,2);
+legStatus = zeros(1,numel(eventNames)); % for legend
+legLabels = {}; % associated legend entries
+legHandles = [];
 
 end
+
+
+function [hOut, legStatusOut, legLabelsOut, legHandlesOut] = plot_markers(hIn, markers, markerNames, markerColors, legStatusIn, legLabelsIn, legHandlesIn)
+
+hOut = hIn;
+axes(hOut);
+hold on
+
+legStatusOut = legStatusIn;
+legLabelsOut = legLabelsIn;
+legHandlesOut = legHandlesIn;
+
+% markers
+for k = 1:numel(markers)
+    ind = find(strcmp(markers(k).EventName, markerNames));
+    t1 = markers(k).Freq;
+    t2 = t1 + markers(k).Window;
+    a = axis(hOut);
+    minEv = a(3);
+    maxEv = a(4);
+    if t2 == t1 % Window = 0
+        ev = plot([t1 t2], [minEv maxEv],'color', markerColors{ind},'Tag',markers{i}(k).EventName,'LineWidth',1);
+    else
+        ev = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],markerColors{ind},'EdgeColor', markerColors{ind}, 'Tag',markers(k).EventName, 'FaceAlpha', 0.2);
+    end
+    if legStatusOut(ind) == 0
+        legHandlesOut(end+1) = ev;
+        legLabelsOut(end+1) = {markers(k).EventName};
+        legStatusOut(ind) = 1;
+    end
+end
+
+end
+
+
+
+function [markerNames, markerColors, legStatus, legLabels,legHandles] =  init_markers(self, option)
+
+tmp = arrayfun(@(x) {x.FreqMarkers.MarkerName}, self, 'UniformOutput',0);
+markerNames = unique([tmp{:}]);
+evColorMap = option.markerColormap;
+eval(['markerColors = ' evColorMap '(numel(markerNames));']);
+markerColors = num2cell(markerColors,2);
+legStatus = zeros(1,numel(markerNames)); % for legend
+legLabels = {}; % associated legend entries
+legHandles = [];
+
+end
+
+

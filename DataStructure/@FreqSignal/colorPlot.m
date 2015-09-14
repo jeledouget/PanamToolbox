@@ -14,11 +14,10 @@
     % h : handle to the axes of the plot
 
 
-function [h, ev] = colorPlot(self, varargin)
+function h = colorPlot(self, varargin)
 
 % default outputs
 h = [];
-ev = [];
 
 % args & options
 if ~isempty(varargin)
@@ -203,8 +202,7 @@ else % straightly markers structure : same markers for all plots of the gca
         minEv = a(3);
         maxEv = a(4);
         if t2 == t1 % Window = 0
-            plot([t1 t2], [minEv maxEv],'color', markerColors{ind},'Tag',markers{i}(k).EventName,'LineWidth',1);
-            ev = plot((t1+t2)/2, (minEv + maxEv)/2, '-*','color', markerColors{ind},'Tag',markers{i}(k).EventName,'LineWidth',1,'MarkerSize',4);
+            ev = plot([t1 t2], [minEv maxEv],'color', markerColors{ind},'Tag',markers(k).EventName,'LineWidth',1);
         else
             ev = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],markerColors{ind},'EdgeColor', markerColors{ind}, 'Tag',markers(k).EventName, 'FaceAlpha', 0.2);
         end

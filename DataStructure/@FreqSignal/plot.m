@@ -6,11 +6,10 @@
 % h : handle to the axes of the plot
 
 
-function [h, ev] = plot(self, varargin)
+function h = plot(self, varargin)
 
 % default outputs
 h = [];
-ev = [];
 
 % args & options
 if ~isempty(varargin)
