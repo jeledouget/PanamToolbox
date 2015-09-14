@@ -37,18 +37,18 @@ end
 
 for i = 1:numel(newSignal)
     
-    % baseline times
+    % baseline time
     % correction is applied between the baseline start to the next baseline
     % start (ex stimulus onset minus 3s to 3s before next stimulus onset)
     if ~isEV
        if isequal(time,'all')
            samples{1} = [1 numel(self(i).Time)];
        else
-           if times(1) < self(i).Time(1) || times(2) > self(i).Time(end)
-               error('input times to compute correction are not present in the Time vector');
+           if (time(1) < self(i).Time(1)) || (time(2) > self(i).Time(end))
+               error('input time to compute correction are not present in the Time vector');
            end
-           if times(2) < times(1)
-               error('times for correction must be a 2-elements increasing vector');
+           if time(2) < time(1)
+               error('time for correction must be a 2-elements increasing vector');
            end
            samples{1} = [panam_closest(self(i).Time, time(1)) panam_closest(self(i).Time, time(2))];
        end
@@ -57,14 +57,14 @@ for i = 1:numel(newSignal)
         eventNames = {events.EventName};
         ind1 = strcmp(eventNames, ev1);
         ind2 = strcmp(eventNames, ev2);
-        times1 = events(ind1).Time + delay(1);
-        times2 = events(ind2).Time + delay(2);
-        if numel(times1) ~= numel(times2) || any(times2 - times1 < 0)
+        time1 = events(ind1).Time + delay(1);
+        time2 = events(ind2).Time + delay(2);
+        if numel(time1) ~= numel(time2) || any(time2 - time1 < 0)
             error('problem with the choice of events and/or delays');
         end
-        for j = 1:numel(times1)
-            samples{j}(1) = panam_closest(self(i).Time, times1(j));
-            samples{j}(2) = panam_closest(self(i).Time, times2(j));
+        for j = 1:numel(time1)
+            samples{j}(1) = panam_closest(self(i).Time, time1(j));
+            samples{j}(2) = panam_closest(self(i).Time, time2(j));
         end
     end
     

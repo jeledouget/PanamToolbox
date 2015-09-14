@@ -1,6 +1,6 @@
 % COLORPLOT
 % plot the 'FreqSignal' elements as columns of a colorplot (data vs.
-% frequency bins). Each element must have the same Freq property
+% freq bins). Each element must have the same Freq property
 % valid only if number of dimensions <= 2 in Data property
 % WARNING : if several channels are present, they will be averaged or
 % superimposed. default : averaged
@@ -14,207 +14,221 @@
     % h : handle to the axes of the plot
 
 
-function h = colorPlot(self, commonOptions, specificOptions, varargin)
+function [h, ev] = colorPlot(self, varargin)
 
-% defaults
-if nargin < 3 || isempty(specificOptions)
-    specificOptions = {};
+% default outputs
+h = [];
+ev = [];
+
+% args & options
+if ~isempty(varargin)
+    if ischar(varargin{1}) % kvPairs
+        varargin = panam_args2struct(varargin);
+    else % structure
+        varargin = varargin{1};
+    end
+else
+    varargin = [];
 end
-if nargin < 2 || isempty(commonOptions)
-    commonOptions = {};
-end
-if nargin > 1 && ~iscell(commonOptions)
-    commonOptions = [commonOptions, specificOptions, varargin];
-    specificOptions = {};
+defaultOption.newFigure = 'yes'; % by default : a new figure is created
+defaultOption.channels = 'grid'; % default : 1 subplot per channel
+defaultOption.title = '';
+defaultOption.colormap = 'lines'; % default colormap for plots
+defaultOption.xaxis = 'auto';
+defaultOption.markers = 'yes';
+defaultOption.smooth = [1 1 1 1];% nb of points and std dev for gaussian smoothing. Default : no smoothing
+defaultOption.markerColormap = 'lines'; % use the colormap 'lines' to draw markers
+option = setstructfields(defaultOption, varargin);
+
+% case empty
+if isempty(self)
+    if option.newFigure
+        figure;
+    end
+    return;
 end
 
-% check input
+% TODO : check inputs
 if ~all(arrayfun(@isNumFreq, self)) || ~any(arrayfun(@isNumFreq, self))
     error('Freq property of the elements of the FreqSignal must be all numeric or all discrete');
+end
+
+% figure
+if strcmpi(option.newFigure, 'yes')
+    v = get(0, 'MonitorPosition'); % avoid Java isssues
+    v1 = v(1,:);
+    v1(1) = v1(1) - 1;
+    sumX = sum(v(:,3));
+    v1 = v1 ./ [sumX v1(4) sumX v1(4)]; % normalize
+    figure('Name',option.title,'units','normalized','outerposition',v1)
 end
 
 % make self a column
 self = self(:);
 
 % check that Freq property is the same for each element of self
-if numel(self) > 1 && ~isequal(self.Freq)
-    lengths = arrayfun(@(x) length(x.Freq), self);
-    if any(lengths(2:end) - lengths(1:end-1)) % lengths of Freq differ among elements of self
-        error('Freq properties are not of the same length : colorPlot cannot be applied');
-    elseif self(1).isNumFreq
-        averageFreq = mean(reshape([self.Freq],[],numel(self)),2);
-        for ii = 1:numel(self)
-            orderFreq{ii} = arrayfun(@(x) panam_closest(averageFreq, x), self(ii).Freq);
-        end
-        if isequal(orderFreq{:}, 1:lengths(1))
-            warning('frequencies are not exacatly the same in all elements of the FreqSignal');
-        else
-            error('Frequencies should be the same so that mutiple-element FreqSignal object can ba color-plotted');
-        end
-    else % discrete Frequencies
-        error('Frequencies should have the same name so that mutiple-element FreqSignal object can ba color-plotted');
-    end
-elseif self(1).isNumFreq
-    averageFreq = mean(reshape([self.Freq],[],numel(self)),2);
-end
+self = self.adjustFreq;
 
-% several channels : average or superimpose ?
-handleChannels = 'average'; % default : average channels
-hc = find(strcmpi(commonOptions,'handlechannels'));
-if ~isempty(hc)
-    if find(strcmpi(commonOptions{hc+1}, {'average', 'avg'}))
-        handleChannels = 'average';
-    elseif find(strcmpi(commonOptions{hc+1}, {'superimpose', 'stack'}))
-        handleChannels = 'superimpose';
-    else
-        error('handlechannels options must be ''average'' or ''superimpose''');
-    end
-    commonOptions(hc:hc+1) = [];
-end
-
-% common options for FreqMarkers
-isMarkers = 1; % default : show Markers
-isAvgMarkers = 1; % default : average the freq markers (one value per Freq tag only)
-fmType = find(strcmpi(commonOptions,'freqmarkers')); % 'avg' (average markers), 'all' (show all markers, not averaged), ou 'no' (hide markers)
-if ~isempty(fmType)
-        if strcmpi(commonOptions{fmType+1}, 'no')
-            isMarkers = 0;
-        elseif strcmpi(commonOptions{fmType+1}, 'all')
-            isAvgMarkers = 0;
-        elseif strcmpi(commonOptions{fmType+1}, 'avg')
-            % do nothing
-        else
-            warning('after ''freqmarkers'' option, parameter should be ''all'', ''avg'' or ''no'' ; here considered ''avg'' by default');
-        end
-        commonOptions(fmType:fmType+1) = [];
-end
-fmOptions = find(strcmpi(commonOptions,'fmOptions'));
-argFmCommon = {'LineWidth',2}; % default
-if ~isempty(fmOptions)
-    argFmCommon = [argFmCommon commonOptions{fmOptions+1}];
-    commonOptions(fmOptions:fmOptions+1) = [];
-end
-
-% specific options and colorbars for freqMarkers
-allMarkers = [self.FreqMarkers];
-if isempty(allMarkers), isMarkers = 0;end
-if isMarkers
-    if isAvgMarkers
-        allMarkers = allMarkers.avgMarkers;
-    else
-        allMarkers = allMarkers.unifyMarkers;
-    end
-    nMarkers = length(allMarkers);
-    argFmSpecific = {}; % init
-    % colormap for FreqMarkers
-    cm = find(strcmpi(argFmCommon,'colormap'));
-    if ~isempty(cm)
-        cmap_fm = argFmCommon{cm+1};
-        argFmCommon(cm:cm+1) = [];
-        eval(['cmap_fm = ' cmap_fm '(nMarkers);']);
-        cmap_fm = mat2cell(cmap_fm, ones(1,nMarkers),3);
-    else
-        cmap_fm = lines(nMarkers);
-        cmap_fm = mat2cell(cmap_fm, ones(1,nMarkers),3);
-    end
-    argFmSpecific{end+1} = 'color';
-    argFmSpecific{end+1} = cmap_fm;
-    % other options
-    fmOptions = find(strcmpi(specificOptions,'fmOptions'));
-    if ~isempty(fmOptions)
-        argFmSpecific = [argFmSpecific specificOptions{fmOptions+1}];
-        specificOptions(fmOptions:fmOptions+1) = [];
-    end
+% init markers
+if strcmpi(option.markers, 'yes')
+    [markerNames, markerColors, legStatus, legLabels, legHandles] =  init_markers(self, option);
 end
 
 % create data
-switch handleChannels
-    case 'average'
-        for ii = 1:numel(self)
-            self(ii) = self(ii).avgChannel;
-        end
+switch option.channels
     case 'superimpose'
-        % do nothing
+        channels = {'All Channels'};
+        tmp = [];
+        markers{1} = {};
+        for ii = 1:numel(self)
+            tmp = cat(2, tmp, self(ii).Data);
+            if strcmpi(option.markers, 'yes')
+                markers{1}(end+1:end+size(self(ii).Data, 2)) = {self(ii).FreqMarkers};
+            end
+        end
+        data = {tmp'};
+    case 'grid'
+        channels = arrayfun(@(x) x.ChannelTags, self, 'UniformOutput',0);
+        [channels, order] = unique([channels{:}]);
+        [~,order] = sort(order);
+        channels = channels(order);
+        for jj = 1:numel(channels)
+            tmp = [];
+            markers{jj} = {};
+            for ii = 1:numel(self)
+                indChan = find(strcmpi(self(ii).ChannelTags, channels{jj}),1);
+                if ~isempty(indChan)
+                    tmp = cat(2, tmp, self(ii).Data(:,indChan));
+                    if strcmpi(option.markers, 'yes')
+                        markers{jj}{end+1} = self(ii).FreqMarkers;
+                    end
+                end
+            end
+            data{jj} = tmp';
+        end
 end
-data = [];
-for ii = 1:numel(self)
-    data = cat(2, data, self(ii).Data);
-end
-data = data';
 
 % smooth data with gaussian filter
-sm = find(strcmpi(commonOptions,'smooth'));
-if ~isempty(sm)
-    nPointsSmoothHor = commonOptions{sm+1}(1);
-    nPointsSmoothVert = commonOptions{sm+1}(2);
-    try 
-        stdDevSmoothHor = commonOptions{sm+1}(3);
-    catch
-        stdDevSmoothHor = nPointsSmoothHor;
-    end
-    try
-        stdDevSmoothVert = commonOptions{sm+1}(4);
-    catch
-        stdDevSmoothVert = nPointsSmoothVert;
-    end
-else
-    nPointsSmoothHor = 1;
-    nPointsSmoothVert = 1;
-    stdDevSmoothHor = 1;
-    stdDevSmoothVert = 1;
-end
+nPointsSmoothHor = option.smooth(1);
+nPointsSmoothVert = option.smooth(2);
+stdDevSmoothHor = option.smooth(3);
+stdDevSmoothVert = option.smooth(4);
 gaussFilter = customgauss([nPointsSmoothVert nPointsSmoothHor], stdDevSmoothVert, stdDevSmoothHor,0,0,1,[0 0]);
 ratio = sum(sum(gaussFilter));
-data = conv2(data, gaussFilter, 'same') / ratio;
-
+for ii = 1:numel(data)
+    data{ii} = conv2(data{ii}, gaussFilter, 'same') / ratio;
+end
 
 % plot
-h = gca; 
-hold on
-set(gca,'YDir','normal');
-if self(1).isNumFreq
-    imagesc(averageFreq,[],data);
-else
-    imagesc(1:size(data,1),[],data);
-end
-axis tight
-
-% plot FreqMarkers
-legendTmp = {};
-if isMarkers % draw lines for Freq
+[nH, nV] = panam_subplotDimensions(numel(data));
+for ii = 1:numel(data)
+    h(ii) = subplot(nH, nV, ii);
+    hold on
+    set(gca,'YDir','normal');
     if self(1).isNumFreq
-        a  = axis;
-        for ii = 1:length(allMarkers)
-            argFmSpecific_current = argFmSpecific;
-            for jj = 2:2:length(argFmSpecific)
-                argFmSpecific_current{jj} = argFmSpecific{jj}{ii};
+        imagesc(self(1).Freq,[],data{ii});
+    else
+        imagesc(1:size(data,1),[],data{ii});
+    end
+    axis tight
+    title(h(ii),channels(ii));
+end
+
+% markers
+if strcmpi(option.markers, 'yes')          
+    for ii = 1:numel(h)
+        [h(ii), legStatus, legLabels, legHandles] = plot_markers(h(ii), markers{ii}, markerNames, markerColors, legStatus, legLabels, legHandles);
+        if strcmpi(option.markers, 'yes')
+            legend(legHandles, legLabels, 'Position', [0.94 0.85 0.03 0.1]);
+        end
+    end
+end
+
+% axes properties
+for ii = 1:numel(h)
+    set(h(ii),'YTick',[]);
+    xlabel(h(ii),'Freq')
+    hold off
+end
+
+% xaxis
+if ~isequal(option.xaxis, 'auto')
+    for i = 1:length(h)
+        xlim(h(i), option.xaxis);
+    end
+end
+
+end
+
+
+
+function [hOut, legStatusOut, legLabelsOut, legHandlesOut] = plot_markers(hIn, markers, markerNames, markerColors, legStatusIn, legLabelsIn, legHandlesIn)
+
+hOut = hIn;
+axes(hOut);
+hold on
+
+legStatusOut = legStatusIn;
+legLabelsOut = legLabelsIn;
+legHandlesOut = legHandlesIn;
+
+% markers
+if iscell(markers) % 1 marker for each data plot)
+    for i = 1:numel(markers)
+        for k = 1:numel(markers{i})
+            ind = find(strcmp(markers{i}(k).EventName, markerNames));
+            t1 = markers{i}(k).Freq;
+            t2 = t1 + markers{i}(k).Window;
+            minEv = i - 0.5;
+            maxEv = i + 0.5;
+            if t2 == t1 % Window = 0
+                plot([t1 t2], [minEv maxEv],'color', markerColors{ind},'Tag',markers{i}(k).EventName,'LineWidth',1);
+                ev = plot((t1+t2)/2, (minEv + maxEv)/2, '-*','color', markerColors{ind},'Tag',markers{i}(k).EventName,'LineWidth',1,'MarkerSize',4);
+            else
+                ev = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],markerColors{ind},'EdgeColor', markerColors{ind}, 'Tag',markers{i}(k).EventName, 'FaceAlpha', 0.2);
             end
-            for kk = 1:length(allMarkers(ii).Freq)
-                t = allMarkers(ii).Freq(kk);
-                plot([t t], [a(3) a(4)], argFmCommon{:}, argFmSpecific_current{:});
-                legendTmp = [legendTmp allMarkers(ii).MarkerName];
+            if legStatusOut(ind) == 0
+                legHandlesOut(end+1) = ev;
+                legLabelsOut(end+1) = {markers{i}(k).EventName};
+                legStatusOut(ind) = 1;
             end
         end
-    else
-        warning('impossible to draw FreqMarkers when Freq is not numeric');
+    end
+else % straightly markers structure : same markers for all plots of the gca
+    for k = 1:numel(markers)
+        ind = find(strcmp(markers(k).EventName, markerNames));
+        t1 = markers(k).Freq;
+        t2 = t1 + markers(k).Window;
+        a = axis(hOut);
+        minEv = a(3);
+        maxEv = a(4);
+        if t2 == t1 % Window = 0
+            plot([t1 t2], [minEv maxEv],'color', markerColors{ind},'Tag',markers{i}(k).EventName,'LineWidth',1);
+            ev = plot((t1+t2)/2, (minEv + maxEv)/2, '-*','color', markerColors{ind},'Tag',markers{i}(k).EventName,'LineWidth',1,'MarkerSize',4);
+        else
+            ev = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],markerColors{ind},'EdgeColor', markerColors{ind}, 'Tag',markers(k).EventName, 'FaceAlpha', 0.2);
+        end
+        if legStatusOut(ind) == 0
+            legHandlesOut(end+1) = ev;
+            legLabelsOut(end+1) = {markers(k).EventName};
+            legStatusOut(ind) = 1;
+        end
     end
 end
 
-if ~self(1).isNumFreq
-    freqs = {self.Freq};
-    if ~isequal(freqs{:})
-        warning('freqs differ between elements of the FreqSignal');
-    else
-        set(gca,'XTick',1:length(self.Freq), 'XTickLabel', self.Freq);
-    end
-    a = axis;
-    axis([a(1)-1 a(2)+1 a(3) a(4)]);
 end
 
-set(gca,'YTick',[]);
-xlabel('Frequency')
-legend(legendTmp)
-legend hide
-hold off
+
+
+function [markerNames, markerColors, legStatus, legLabels,legHandles] =  init_markers(self, option)
+
+tmp = arrayfun(@(x) {x.FreqMarkers.MarkerName}, self, 'UniformOutput',0);
+markerNames = unique([tmp{:}]);
+evColorMap = option.markerColormap;
+eval(['markerColors = ' evColorMap '(numel(markerNames));']);
+markerColors = num2cell(markerColors,2);
+legStatus = zeros(1,numel(markerNames)); % for legend
+legLabels = {}; % associated legend entries
+legHandles = [];
 
 end

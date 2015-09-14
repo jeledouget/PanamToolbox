@@ -25,7 +25,7 @@ if ~isempty(varargin)
 else
     varargin = [];
 end
-defaultOption.timeAxis = 'max'; % by default : timeaxis will be extended for all averaged elements (fill with nans if necessary)
+defaultOption.timeAxis = 'min'; % by default : timeaxis will be extended for all averaged elements (fill with nans if necessary)
 defaultOption.dt = 'min'; % space between time points is set at the minimum
 defaultOption.events = 'keepRange'; % saves the range of events across elements via field 'Duration'. Other options : 'avgAll' to average values and 'keepOnlyConstant'
 defaultOption.subclassFlag = 0;

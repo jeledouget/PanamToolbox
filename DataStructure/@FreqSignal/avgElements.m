@@ -9,6 +9,11 @@
 
 function avgSignal = avgElements(self, varargin)
 
+if numel(self) == 1
+    avgSignal = self;
+    return;
+end
+
 % check input
 if ~(all(arrayfun(@isNumFreq, self)) || ~any(arrayfun(@isNumFreq, self)))
     error('Freq property of the elements of the FreqSignal must be all numeric or all discrete');
@@ -43,7 +48,7 @@ end
 
 
 % average
-avgSignal = self.avgElements@Signal('subclassFlag',1);
+avgSignal = self.avgElements@Signal(option);
 avgSignal.FreqMarkers = FreqMarkers.empty;
 
 % unify markers

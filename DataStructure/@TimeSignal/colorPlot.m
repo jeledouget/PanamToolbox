@@ -14,209 +14,221 @@
     % h : handle to the axes of the plot
 
 
-function h = colorPlot(self, commonOptions, specificOptions, varargin)
+function [h, ev] = colorPlot(self, varargin)
 
-% defaults
-if nargin < 3 || isempty(specificOptions)
-    specificOptions = {};
+% default outputs
+h = [];
+ev = [];
+
+% args & options
+if ~isempty(varargin)
+    if ischar(varargin{1}) % kvPairs
+        varargin = panam_args2struct(varargin);
+    else % structure
+        varargin = varargin{1};
+    end
+else
+    varargin = [];
 end
-if nargin < 2 || isempty(commonOptions)
-    commonOptions = {};
-end
-if nargin > 1 && ~iscell(commonOptions)
-    commonOptions = [commonOptions, specificOptions, varargin];
-    specificOptions = {};
+defaultOption.newFigure = 'yes'; % by default : a new figure is created
+defaultOption.channels = 'grid'; % default : 1 subplot per channel
+defaultOption.title = '';
+defaultOption.colormap = 'lines'; % default colormap for plots
+defaultOption.xaxis = 'auto';
+defaultOption.markers = 'yes';
+defaultOption.smooth = [1 1 1 1];% nb of points and std dev for gaussian smoothing. Default : no smoothing
+defaultOption.eventColormap = 'lines'; % use the colormap 'lines' to draw markers
+option = setstructfields(defaultOption, varargin);
+
+% case empty
+if isempty(self)
+    if option.newFigure
+        figure;
+    end
+    return;
 end
 
-% check input
+% TODO : check inputs
 if ~all(arrayfun(@isNumTime, self)) || ~any(arrayfun(@isNumTime, self))
     error('Time property of the elements of the TimeSignal must be all numeric or all discrete');
+end
+
+% figure
+if strcmpi(option.newFigure, 'yes')
+    v = get(0, 'MonitorPosition'); % avoid Java isssues
+    v1 = v(1,:);
+    v1(1) = v1(1) - 1;
+    sumX = sum(v(:,3));
+    v1 = v1 ./ [sumX v1(4) sumX v1(4)]; % normalize
+    figure('Name',option.title,'units','normalized','outerposition',v1)
 end
 
 % make self a column
 self = self(:);
 
 % check that Time property is the same for each element of self
-if numel(self) > 1 && ~isequal(self.Time) % unequal Times
-    lengths = arrayfun(@(x) length(x.Time), self);
-    if any(lengths(2:end) - lengths(1:end-1)) % lengths of Time differ among elements of self
-        self = self.adjustTime;
-        averageTime = mean(reshape([self.Time],[],numel(self)),2);
-%         error('Time properties are not of the same length : colorPlot cannot be applied');
-    elseif self(1).isNumTime
-        averageTime = mean(reshape([self.Time],[],numel(self)),2);
-        for ii = 1:numel(self)
-            orderTime{ii} = arrayfun(@(x) panam_closest(averageTime, x), self(ii).Time);
-        end
-        if isequal(orderTime{:}, 1:lengths(1)) % just a warning
-            warning('times are not exactly the same in all elements of the TimeSignal');
-        else
-            error('Times should be the same so that mutiple-element TimeSignal object can be color-plotted');
-        end
-    else % discrete Time
-        error('Times should have the same name so that mutiple-element TimeSignal object can ba color-plotted');
-    end
-elseif self(1).isNumTime
-    averageTime = mean(reshape([self.Time],[],numel(self)),2);
-end
+self = self.adjustTime;
 
-% several channels : average or superimpose ?
-handleChannels = 'average'; % default : average channels
-hc = find(strcmpi(commonOptions,'handlechannels'));
-if ~isempty(hc)
-    if find(strcmpi(commonOptions{hc+1}, {'average', 'avg'}))
-        handleChannels = 'average';
-    elseif find(strcmpi(commonOptions{hc+1}, {'superimpose', 'stack'}))
-        handleChannels = 'superimpose';
-    else
-        error('handlechannels options must be ''average'' or ''superimpose''');
-    end
-    commonOptions(hc:hc+1) = [];
-end
-
-% common options for Events
-isEvents = 1; % default : show Events
-isAvgEvents = 1; % default : average the events (one value per Time tag only)
-evType = find(strcmpi(commonOptions,'events')); % 'avg' (average events), 'all' (show all events, not averaged), ou 'no' (hide events)
-if ~isempty(evType)
-        if strcmpi(commonOptions{evType+1}, 'no')
-            isEvents = 0;
-        elseif strcmpi(commonOptions{evType+1}, 'all')
-            isAvgEvents = 0;
-        elseif strcmpi(commonOptions{evType+1}, 'avg')
-            % do nothing
-        else
-            warning('after ''events'' option, parameter should be ''all'', ''avg'' or ''no'' ; here considered ''avg'' by default');
-        end
-        commonOptions(evType:evType+1) = [];
-end
-evOptions = find(strcmpi(commonOptions,'evOptions'));
-argEvCommon = {'LineWidth',2}; % default
-if ~isempty(evOptions)
-    argEvCommon = [argEvCommon commonOptions{evOptions+1}];
-    commonOptions(evOptions:evOptions+1) = [];
-end
-
-% specific options and colorbars for Events
-allEvents = [self.Events];
-if isempty(allEvents), isEvents = 0;end
-if isEvents
-    if isAvgEvents
-        allEvents = allEvents.avgEvents;
-    else
-        allEvents = allEvents.unifyEvents;
-    end
-    nEvents = length(allEvents);
-    argEvSpecific = {}; % init
-    % colormap for Events
-    cm = find(strcmpi(argEvCommon,'colormap'));
-    if ~isempty(cm)
-        cmap_ev = argEvCommon{cm+1};
-        argEvCommon(cm:cm+1) = [];
-        eval(['cmap_ev = ' cmap_ev '(nEvents);']);
-        cmap_ev = mat2cell(cmap_ev, ones(1,nEvents),3);
-    else
-        cmap_ev = lines(nEvents);
-        cmap_ev = mat2cell(cmap_ev, ones(1,nEvents),3);
-    end
-    argEvSpecific{end+1} = 'color';
-    argEvSpecific{end+1} = cmap_ev;
-    % other options
-    evOptions = find(strcmpi(specificOptions,'evOptions'));
-    if ~isempty(evOptions)
-        argEvSpecific = [argEvSpecific specificOptions{evOptions+1}];
-        specificOptions(evOptions:evOptions+1) = [];
-    end
+% init markers
+if strcmpi(option.markers, 'yes')
+    [eventNames, eventColors, legStatus, legLabels, legHandles] =  init_markers(self, option);
 end
 
 % create data
-switch handleChannels
-    case 'average'
-        for ii = 1:numel(self)
-            self(ii) = self(ii).avgChannel;
-        end
+switch option.channels
     case 'superimpose'
-        % do nothing
+        channels = {'All Channels'};
+        tmp = [];
+        markers{1} = {};
+        for ii = 1:numel(self)
+            tmp = cat(2, tmp, self(ii).Data);
+            if strcmpi(option.markers, 'yes')
+                markers{1}(end+1:end+size(self(ii).Data, 2)) = {self(ii).Events};
+            end
+        end
+        data = {tmp'};
+    case 'grid'
+        channels = arrayfun(@(x) x.ChannelTags, self, 'UniformOutput',0);
+        [channels, order] = unique([channels{:}]);
+        [~,order] = sort(order);
+        channels = channels(order);
+        for jj = 1:numel(channels)
+            tmp = [];
+            markers{jj} = {};
+            for ii = 1:numel(self)
+                indChan = find(strcmpi(self(ii).ChannelTags, channels{jj}),1);
+                if ~isempty(indChan)
+                    tmp = cat(2, tmp, self(ii).Data(:,indChan));
+                    if strcmpi(option.markers, 'yes')
+                        markers{jj}{end+1} = self(ii).Events;
+                    end
+                end
+            end
+            data{jj} = tmp';
+        end
 end
-data = [];
-for ii = 1:numel(self)
-    data = cat(2, data, self(ii).Data);
-end
-data = data';
 
 % smooth data with gaussian filter
-sm = find(strcmpi(commonOptions,'smooth'));
-if ~isempty(sm)
-    nPointsSmoothHor = commonOptions{sm+1}(1);
-    nPointsSmoothVert = commonOptions{sm+1}(2);
-    try 
-        stdDevSmoothHor = commonOptions{sm+1}(3);
-    catch
-        stdDevSmoothHor = nPointsSmoothHor;
-    end
-    try
-        stdDevSmoothVert = commonOptions{sm+1}(4);
-    catch
-        stdDevSmoothVert = nPointsSmoothVert;
-    end
-else
-    nPointsSmoothHor = 1;
-    nPointsSmoothVert = 1;
-    stdDevSmoothHor = 1;
-    stdDevSmoothVert = 1;
-end
+nPointsSmoothHor = option.smooth(1);
+nPointsSmoothVert = option.smooth(2);
+stdDevSmoothHor = option.smooth(3);
+stdDevSmoothVert = option.smooth(4);
 gaussFilter = customgauss([nPointsSmoothVert nPointsSmoothHor], stdDevSmoothVert, stdDevSmoothHor,0,0,1,[0 0]);
 ratio = sum(sum(gaussFilter));
-data = conv2(data, gaussFilter, 'same') / ratio;
-
+for ii = 1:numel(data)
+    data{ii} = conv2(data{ii}, gaussFilter, 'same') / ratio;
+end
 
 % plot
-h = gca; 
-hold on
-set(gca,'YDir','normal');
-if self(1).isNumTime
-    imagesc(averageTime,[],data);
-else
-    imagesc(1:size(data,1),[],data);
-end
-axis tight
-
-% plot Events
-legendTmp = {};
-if isEvents % draw lines for Time
+[nH, nV] = panam_subplotDimensions(numel(data));
+for ii = 1:numel(data)
+    h(ii) = subplot(nH, nV, ii);
+    hold on
+    set(gca,'YDir','normal');
     if self(1).isNumTime
-        a  = axis;
-        for ii = 1:length(allEvents)
-            argEvSpecific_current = argEvSpecific;
-            for jj = 2:2:length(argEvSpecific)
-                argEvSpecific_current{jj} = argEvSpecific{jj}{ii};
+        imagesc(self(1).Time,[],data{ii});
+    else
+        imagesc(1:size(data,1),[],data{ii});
+    end
+    axis tight
+    title(h(ii),channels(ii));
+end
+
+% markers
+if strcmpi(option.markers, 'yes')          
+    for ii = 1:numel(h)
+        [h(ii), legStatus, legLabels, legHandles] = plot_markers(h(ii), markers{ii}, eventNames, eventColors, legStatus, legLabels, legHandles);
+        if strcmpi(option.markers, 'yes')
+            legend(legHandles, legLabels, 'Position', [0.94 0.85 0.03 0.1]);
+        end
+    end
+end
+
+% axes properties
+for ii = 1:numel(h)
+    set(h(ii),'YTick',[]);
+    xlabel(h(ii),'Time')
+    hold off
+end
+
+% xaxis
+if ~isequal(option.xaxis, 'auto')
+    for i = 1:length(h)
+        xlim(h(i), option.xaxis);
+    end
+end
+
+end
+
+
+
+function [hOut, legStatusOut, legLabelsOut, legHandlesOut] = plot_markers(hIn, markers, eventNames, eventColors, legStatusIn, legLabelsIn, legHandlesIn)
+
+hOut = hIn;
+axes(hOut);
+hold on
+
+legStatusOut = legStatusIn;
+legLabelsOut = legLabelsIn;
+legHandlesOut = legHandlesIn;
+
+% markers
+if iscell(markers) % 1 event for each data plot)
+    for i = 1:numel(markers)
+        for k = 1:numel(markers{i})
+            ind = find(strcmp(markers{i}(k).EventName, eventNames));
+            t1 = markers{i}(k).Time;
+            t2 = t1 + markers{i}(k).Duration;
+            minEv = i - 0.5;
+            maxEv = i + 0.5;
+            if t2 == t1 % Duration = 0
+                plot([t1 t2], [minEv maxEv],'color', eventColors{ind},'Tag',markers{i}(k).EventName,'LineWidth',1);
+                ev = plot((t1+t2)/2, (minEv + maxEv)/2, '-*','color', eventColors{ind},'Tag',markers{i}(k).EventName,'LineWidth',1,'MarkerSize',4);
+            else
+                ev = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],eventColors{ind},'EdgeColor', eventColors{ind}, 'Tag',markers{i}(k).EventName, 'FaceAlpha', 0.2);
             end
-            for kk = 1:length(allEvents(ii).Time)
-                t = allEvents(ii).Time(kk);
-                plot([t t], [a(3) a(4)], argEvCommon{:}, argEvSpecific_current{:});
-                legendTmp = [legendTmp allEvents(ii).EventName];
+            if legStatusOut(ind) == 0
+                legHandlesOut(end+1) = ev;
+                legLabelsOut(end+1) = {markers{i}(k).EventName};
+                legStatusOut(ind) = 1;
             end
         end
-    else
-        warning('impossible to draw Events when Time is not numeric');
+    end
+else % straightly markers structure : same markers for all plots of the gca
+    for k = 1:numel(markers)
+        ind = find(strcmp(markers(k).EventName, eventNames));
+        t1 = markers(k).Time;
+        t2 = t1 + markers(k).Duration;
+        a = axis(hOut);
+        minEv = a(3);
+        maxEv = a(4);
+        if t2 == t1 % Duration = 0
+            plot([t1 t2], [minEv maxEv],'color', eventColors{ind},'Tag',markers{i}(k).EventName,'LineWidth',1);
+            ev = plot((t1+t2)/2, (minEv + maxEv)/2, '-*','color', eventColors{ind},'Tag',markers{i}(k).EventName,'LineWidth',1,'MarkerSize',4);
+        else
+            ev = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],eventColors{ind},'EdgeColor', eventColors{ind}, 'Tag',markers(k).EventName, 'FaceAlpha', 0.2);
+        end
+        if legStatusOut(ind) == 0
+            legHandlesOut(end+1) = ev;
+            legLabelsOut(end+1) = {markers(k).EventName};
+            legStatusOut(ind) = 1;
+        end
     end
 end
 
-if ~self(1).isNumTime
-    times = {self.Time};
-    if ~isequal(times{:})
-        warning('times differ between elements of the TimeSignal');
-    else
-        set(gca,'XTick',1:length(self.Time), 'XTickLabel', self.Time);
-    end
-    a = axis;
-    axis([a(1)-1 a(2)+1 a(3) a(4)]);
 end
 
-set(gca,'YTick',[]);
-xlabel('Time')
-legend(legendTmp)
-legend hide
-hold off
+
+
+function [eventNames, eventColors, legStatus, legLabels,legHandles] =  init_markers(self, option)
+
+tmp = arrayfun(@(x) {x.Events.EventName}, self, 'UniformOutput',0);
+eventNames = unique([tmp{:}]);
+evColorMap = option.eventColormap;
+eval(['eventColors = ' evColorMap '(numel(eventNames));']);
+eventColors = num2cell(eventColors,2);
+legStatus = zeros(1,numel(eventNames)); % for legend
+legLabels = {}; % associated legend entries
+legHandles = [];
 
 end

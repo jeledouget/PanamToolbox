@@ -133,11 +133,11 @@ classdef FreqSignal < Signal
         %% external methods
         
         freqWindowedSignal = freqWindow(self, minFreq, maxFreq, mode)
-        h = plot(self, commonOptions, specificOptions, varargin)
+        [h, ev] = plot(self, varargin)
         h = subplots(self, commonOptions, specificOptions, varargin)
         avgSignal = avgFreq(self, varargin)
         newSignal = concatenate(self, otherSignals, dim, subclassFlag)
-        h = colorPlot(self, commonOptions, specificOptions, varargin)
+        [h, ev] = colorPlot(self, varargin)
         h = colorSubplots(self, commonOptions, specificOptions, varargin)
         avgSignal = avgElements(self, varargin) % average elements of a FreqSignal matrix
         ftStruct = toFieldTrip(self, varargin)

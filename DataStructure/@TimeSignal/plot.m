@@ -1,13 +1,7 @@
 % PLOT
 % plot the 'TimeSignal' as data vs. time bins
-% valid only if number of dimensions <= 2 in Data property
 % plot the different channels on the same plot
 % INPUTS :
-% commonOptions : cell of key-values pairs for plot properties that will
-% be shared by plots of all channels
-% specificOptions : cell of key-values pairs for plot properties that
-% are specific to each channel ; each values of key-value pair
-% must be a cell of length nChannels
 % OUTPUTS :
 % h : handle to the axes of the plot
 
@@ -30,15 +24,12 @@ else
 end
 defaultOption.newFigure = 'yes'; % by default : a new figure is created
 defaultOption.title = '';
-defaultOption.channels = 'list';
-defaultOption.signals = 'grid';%'superimpose';
-defaultOption.uniqueAxes = 1; %0; % in case of list -> if 1, all in one axes or not ? If 1, impossible to change between-signals y-axis, but x-axis is updated for all signals
-defaultOption.nColumns = 1; % number of columns for lists
+defaultOption.channels = 'grid';
+defaultOption.signals = 'list'; 
+defaultOption.uniqueAxes = 1; % in case of list -> if 1, all in one axes or not ? If 1, impossible to change between-signals y-axis, but x-axis is updated for all signals
 defaultOption.colormap = 'lines'; % default colormap for plots
-defaultOption.xAxis = 'auto';
-defaultOption.yAxis = 'auto';
+defaultOption.xaxis = 'auto';
 defaultOption.events = 'yes';
-defaultOption.eventLabel = 'yes'; % put a label with the name of the event next to the event
 defaultOption.eventColormap = 'lines'; % use the colormap 'lines' to draw events
 option = setstructfields(defaultOption, varargin);
 
@@ -318,7 +309,7 @@ switch option.channels
                 % plot
                 if option.uniqueAxes
                     y = arrayfun(@(j) arrayfun(@(i) self.Data(:,i,j)', 1:size(self.Data,2), 'UniformOutput',0), 1:size(self.Data,3), 'UniformOutput',0);
-                    x = {self.Time};
+                    x = repmat({self.Time},1,size(self.Data, 3));
                     interval = 1.5*max(arrayfun(@(x) max(abs(x.Data(:))), self));
                     h = axes();
                     xlabel('Time');
@@ -400,7 +391,6 @@ switch option.channels
                         [h(i), interval, ytick] = plot_data(h(i), x, y, option);
                         % events
                         if strcmpi(option.events, 'yes')
-                            events = self(i).Events.sortByTime;
                             [h(i) , legStatus, legLabels, legHandles] = plot_events(h(i) , y, interval, events, eventNames, eventColors, legStatus, legLabels, legHandles);
                         end
                         xlabel('Time');
@@ -698,6 +688,13 @@ switch option.channels
         [h, ev] = self.plot(option);
 end
 
+% xaxis
+if ~isequal(option.xaxis, 'auto')
+    for i = 1:length(h)
+        xlim(h(i), option.xaxis);
+    end
+end
+
 end
 
 
@@ -728,6 +725,10 @@ if strcmp(option.signals,'confint') || strcmp(option.channels,'confint')
         ytick = [meanTrace , ytick];
     end
 else
+    plotColorMap = option.colormap;
+    nColors = max(cellfun(@(c) size(c,2), y));
+    eval(['colors = ' plotColorMap '(nColors);']);
+    colors = num2cell(colors,2);
     % plot
     for i = 1:numel(y)
         meanTrace = 0;
@@ -736,9 +737,9 @@ else
             tmpData  = y{i}{j} - (i-1) * interval;
             
             if iscell(x{i}) % time for each trace
-                plot(x{i}{j},tmpData);
+                plot(x{i}{j},tmpData, 'color', colors{j});
             else
-                plot(x{i},tmpData);
+                plot(x{i},tmpData, 'color', colors{j});
             end
             meanTrace = meanTrace + nanmean(tmpData);
         end
@@ -770,7 +771,7 @@ legHandlesOut = legHandlesIn;
 
 % events
 if iscell(events) % 1 event for each data plot)
-    for i = 1:size(y,1)
+    for i = 1:numel(y)
         for k = 1:numel(events{i})
             ind = find(strcmp(events{i}(k).EventName, eventNames));
             t1 = events{i}(k).Time;

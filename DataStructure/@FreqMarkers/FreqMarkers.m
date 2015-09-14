@@ -73,6 +73,7 @@ classdef FreqMarkers
         newMarkers = avgMarkers(self)
         listedMarkers = asList(self)
         newMarkers = deleteMarkers(self, varargin)
+        sortedMarkers = sortByFreq(self)
         
         
     end
