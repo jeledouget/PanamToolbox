@@ -99,19 +99,20 @@ for ii = 1:size(data,3)
     set(gca,'YDir','normal');
     if self(1).isNumTime
         if self.isNumFreq
-            imagesc(self.Time,self.Freq,dataTmp);
+            htmp = imagesc(self.Time,self.Freq,dataTmp);
         else
-            imagesc(self.Time,1:size(dataTmp,1),dataTmp);
+            htmp = imagesc(self.Time,1:size(dataTmp,1),dataTmp);
         end
     else
         if self.isNumFreq
-            imagesc(1:size(dataTmp,2),self.Freq,dataTmp);
+            htmp = imagesc(1:size(dataTmp,2),self.Freq,dataTmp);
         else
-            imagesc(1:size(dataTmp,2),1:size(dataTmp,1),dataTmp);
+            htmp = imagesc(1:size(dataTmp,2),1:size(dataTmp,1),dataTmp);
         end
     end
     axis tight
     title(h(ii),self.ChannelTags{ii});
+    set(htmp,'alphadata',~isnan(dataTmp));
 end
 
 % events
@@ -147,7 +148,7 @@ end
 for ii = 1:numel(h)
     xlabel(h(ii),'Time')
     ylabel(h(ii),'Freq')
-    hold(h(ii), 'off');
+    hold(h(ii), 'off');     
     if ~self.isNumTime
         set(h(ii),'XTick',1:length(self.Time), 'XTickLabel', self.Time);
     end

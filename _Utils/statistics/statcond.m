@@ -147,7 +147,7 @@ function [ ori_vals, df, pvals, surrogval ] = statcond( data, varargin );
     else
         g = struct(varargin{:});
         if ~isfield(g, 'naccu'),     g.naccu = 200; end;
-        if ~isfield(g, 'mode'),      g.naccu = 'param'; end;
+        if ~isfield(g, 'mode'),      g.mode = 'param'; end;
         if ~isfield(g, 'paired'),    g.paired = 'on'; end;
         if ~isfield(g, 'arraycomp'), g.arraycomp = 'on'; end;
         if ~isfield(g, 'verbose'),   g.verbose = 'on'; end;
@@ -156,7 +156,7 @@ function [ ori_vals, df, pvals, surrogval ] = statcond( data, varargin );
     end;
     
     if strcmpi(g.verbose, 'on'), verb = 1; else verb = 0; end;
-    if strcmp(g.mode, 'param' ) & exist('fcdf') ~= 2
+    if strcmp(g.mode, 'param' ) && exist('fcdf') ~= 2
       myfprintf(verb,['statcond(): parametric testing requires fcdf() \n' ...
                '            from the Matlab StatsticaL Toolbox.\n' ...
                '            Running nonparametric permutation tests\n.']);

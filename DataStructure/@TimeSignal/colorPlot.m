@@ -120,12 +120,13 @@ for ii = 1:numel(data)
     hold on
     set(gca,'YDir','normal');
     if self(1).isNumTime
-        imagesc(self(1).Time,[],data{ii});
+       htmp =  imagesc(self(1).Time,[],data{ii});
     else
-        imagesc(1:size(data,1),[],data{ii});
+       htmp = imagesc(1:size(data,1),[],data{ii});
     end
     axis tight
     title(h(ii),channels(ii));
+    set(htmp,'alphadata',~isnan(dataTmp));
 end
 
 % events
