@@ -147,7 +147,7 @@ end
 for ii = 1:numel(h)
     xlabel(h(ii),'Time')
     ylabel(h(ii),'Freq')
-    hold off
+    hold(h(ii), 'off');
     if ~self.isNumTime
         set(h(ii),'XTick',1:length(self.Time), 'XTickLabel', self.Time);
     end
