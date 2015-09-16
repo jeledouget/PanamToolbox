@@ -187,7 +187,8 @@ classdef SampledTimeSignal < TimeSignal
         resampledSignal = resampling(self, newFreq)
         RmsSignal = RMS_Signal(self, timeWindow)
         avgSignal = avgElements(self, varargin)  % average elements of a SampledTimeSignal matrix
-        tfSignal = tfPowerSpectrum(self, varargin)
+        freqSignal = psd(self, varargin)
+        tfSignal = tfPsd(self, varargin)
         hilbertTransform = hilbert(self, varargin)
         
         % to do
