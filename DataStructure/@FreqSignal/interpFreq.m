@@ -86,7 +86,7 @@ else % use panam_interpMatrix
         % history
         interpSignal(ii).History{end+1,1} = datestr(clock);
         interpSignal(ii).History{end,2} = ...
-            'Interpolate data to a new time vector : panam_interpMatrix';
+            'Interpolate data to a new freq vector : panam_interpMatrix';
     end
 end
 
