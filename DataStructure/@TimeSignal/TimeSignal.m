@@ -116,6 +116,9 @@ classdef TimeSignal < Signal
             if size(self.Time, 2) ~= size(self.Data, self.dimIndex('time'))
                 error(['Time property and dimension ' num2str(self.dimIndex('time')) ' of Data property should be the same length']);
             end
+            if self.isNumTime && ~issorted(self.Time)
+                error('Time vector, when numeric, should be sorted is increasing order');
+            end                
         end
         
         
