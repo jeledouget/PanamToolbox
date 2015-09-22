@@ -18,12 +18,15 @@
 % Note that in this toolbox, properties start with an uppercase while
 % methods start with a lowercase.
 %
-% The central class is called Signal and contains notably a Data property.
+% The 'central' class is called Signal.
 %
 % Then, subclasses are created to account for specificities of Signal
 % objects : do they have a time axis, a freq axis, etc. ?
 % Subclasses inherit methods and properties from their parent class.
 %
+
+% Signal subclasses architecture :
+% 
 %                       Signal
 %                       -     -
 %                      -       - 
@@ -159,10 +162,58 @@ test = SampledTimeSignal('time', [0 1 2 3 6 9 12], 'zerosample',5,'data', rand(7
 
 % FreqSignal objects are very similar to TimeSignal objects except that
 % Time property is replaced by Freq and Events by FreqMarkers
+test = FreqSignal('freq', [0 4 6 12 15], 'data', rand(5,2));test
+% As you can see here the first dimension is 'freq' and the last remains
+% 'chan'
+
 
 %% Add Events or FreqMarkers
 
+% 1) SignalEvents :
+% 
+% SignalEvents class includes 4 properties :
+% - EventName : a string that is the identifier of the name of the event
+% - Time : a vector of times
+% - Duration : a vector of event durations
+% - Infos : a structure that encapsulates all information that the user
+% wishes to associate with the event
+
+% The properties must be input in this order, no key-value pari here :
+test = SignalEvents('event1', 3,0, struct('type', 'stimulus'));test
+test.Infos
+% it is possible to have several events times 
+test = SignalEvents('event1', [2 3 7 9],[0 0 1 1], struct('type', 'stimulus'));test
+
+% Duration must be same length as Time property though
+test = SignalEvents('event1', [2 3 7 9],[0 0], struct('type', 'stimulus'));test
+% if Duration is to be set to 0, it can be input as [] or unfilled
+test = SignalEvents('event1', [2 3 7 9],[], struct('type', 'stimulus'));test
+test = SignalEvents('event1', [2 3 7 9]);test
+
+% 2) FreqMarkers
+% 
+% FreqMarkers class is the equivalent to SignalEvents, but considering
+% frequency instead of time
+% - Property Freq replaces Time
+% - Property Window replaces Duration
+% - Property MarkerName replaces EventName
+test = FreqMarkers('alpha', 7,6);test % alpha : 7 to 13Hz
+
 
 %% Encapsulate in a SetOfSignals
+
+% The class SetOfSignals is useful to encapsulate Signal objects
+% It contains the following properties:
+% - Signal: matrix of 'Signal' or 'Signal' subclass instances
+% - Infos :  common information to all the signals included in the Signals property
+% - DimOrder : cell of strings with dimensions of the Signals property
+% - History : history of operations on the SetOfSignals instance
+
+% A SetOfSignals object can therefore contain a Signals array and save a
+% common History of the operations that have been performed on the elements
+% of the Signals array.
+% It can also store information (Infos property) common to all the elements
+% of the Signals array, as well as the meaning of the dimension of the
+% Signals array (for instance 'conditions', and 'trials')
 
 

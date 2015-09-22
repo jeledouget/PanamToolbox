@@ -1,12 +1,7 @@
 classdef FreqMarkers
     
     % FREQMARKERS : defines a set of markers with a common name
-    %
-    % Properties:
-    % Time = time vector - start time of the Events
-    % Duration = duration of each event
-    % EventName = event id
-    % Infos = containers.Map including optional information for the Event
+    
     
     
     
