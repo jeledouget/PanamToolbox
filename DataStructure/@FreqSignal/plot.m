@@ -23,8 +23,8 @@ else
 end
 defaultOption.newFigure = 'yes'; % by default : a new figure is created
 defaultOption.title = '';
-defaultOption.channels = 'list';
-defaultOption.signals = 'grid'; 
+defaultOption.channels = 'grid';
+defaultOption.signals = 'list'; 
 defaultOption.uniqueAxes = 1; % in case of list -> if 1, all in one axes or not ? If 1, impossible to change between-signals y-axis, but x-axis is updated for all signals
 defaultOption.colormap = 'lines'; % default colormap for plots
 defaultOption.xaxis = 'auto';
@@ -771,7 +771,7 @@ if iscell(markers) % 1 marker for each data plot)
             t2 = t1 + markers{i}(k).Window;
             minEv = nanmean(cat(2,y{i}{:})) - (i-1+0.5)* interval;
             maxEv = nanmean(cat(2,y{i}{:})) - (i-1-0.5)* interval;
-            if t2 == t1 % Duration = 0
+            if t2 == t1 % Window = 0
                 ev = plot([t1,t2], [minEv maxEv], 'color', markerColors{ind},'Tag',markers{i}(k).MarkerName, 'LineWidth',2);
             else
                 ev = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],markerColors{ind},'EdgeColor', markerColors{ind}, 'Tag',markers{i}(k).MarkerName, 'FaceAlpha', 0.2);
@@ -787,11 +787,11 @@ else % straightly markers structure : same markers for all plots of the gca
     for k = 1:numel(markers)
         ind = find(strcmp(markers(k).MarkerName, markerNames));
         t1 = markers(k).Freq;
-        t2 = t1 + markers(k).Duration;
+        t2 = t1 + markers(k).Window;
         a = axis(hOut);
         minEv = a(3);
         maxEv = a(4);
-        if t2 == t1 % Duration = 0
+        if t2 == t1 % Window = 0
             ev = plot([t1,t2], [minEv maxEv], 'color', markerColors{ind},'Tag',markers(k).MarkerName, 'LineWidth',2);
         else
             ev = fill([t1, t1,t2, t2], [minEv, maxEv,maxEv, minEv],markerColors{ind},'EdgeColor', markerColors{ind}, 'Tag',markers(k).MarkerName, 'FaceAlpha', 0.2);

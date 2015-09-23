@@ -78,7 +78,7 @@ for i = 1:numel(self)
     tmp = panam_struct2args(tmp);
     freqSignal(i) = FreqSignal('data', psdData', 'DimOrder', {'freq', 'chan'}, 'freq', f(1,:), tmp{:});
     freqSignal(i).History = cat(1,self(i).History,freqSignal(i).History);
-    freqSignal(i) = freqSignal(i).interpFreq(linspace(0, ceil(min([self.Fs])/4), 10*ceil(min([self.Fs])/4) + 1));
+%     freqSignal(i) = freqSignal(i).interpFreq(linspace(0, ceil(min([self.Fs])/4), 10*ceil(min([self.Fs])/4) + 1));
     % add history
     freqSignal(i).History{end+1,1} = datestr(clock);
     freqSignal(i).History{end,2} = ...

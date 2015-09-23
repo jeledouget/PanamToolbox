@@ -51,7 +51,7 @@
 % - DimOrder : cell of dimension names in Data -> 'time', 'freq', 'chan' or whatever else. 'chan' always goes last
 % - Infos : structure in which fields are filled by the user to save information relative to the Signal object
 % - History : cell of strings that include an history of the operations applied on the Signal object
-% - Temp : Hidden propoerty, can be used to ave some extra data that is not visible 
+% - Temp : Hidden property, can be used to ave some extra data that is not visible 
 
 
 % 1) Create a default Signal object (all properties set to defaults)
@@ -60,8 +60,8 @@ test = Signal();test
 
 
 % 2) Input Data
-data = rand(10,5); % random data matrix
-test = Signal('data', data);test
+d = rand(10,5); % random data matrix
+test = Signal('data', d);test
 % You can see that default values are affected to properties that have not
 % been explicitely initialized by the user. For instance, channels are
 % named 'chan1', 'chan2' etc. according to the size of the last dimension
@@ -152,7 +152,7 @@ test = SampledTimeSignal('fs', 10, 'tstart',2,'data', rand(11,2));test
 test = SampledTimeSignal('fs', 10, 'zerosample',5,'data', rand(11,2));test
 
 % You can also input the time and Fs is calculated
-test = SampledTimeSignal('time', 0:3:30, 'zerosample',5,'data', rand(11,2));test
+test = SampledTimeSignal('time', 0:3:30,'data', rand(11,2));test
 % Incorrect output raise errors : here the time vector is not equally
 % spaced
 test = SampledTimeSignal('time', [0 1 2 3 6 9 12], 'zerosample',5,'data', rand(7,2));test
@@ -165,6 +165,11 @@ test = SampledTimeSignal('time', [0 1 2 3 6 9 12], 'zerosample',5,'data', rand(7
 test = FreqSignal('freq', [0 4 6 12 15], 'data', rand(5,2));test
 % As you can see here the first dimension is 'freq' and the last remains
 % 'chan'
+
+% 4) TimeFreqSignal
+
+test = TimeFreqSignal('data', rand(5,4,6), 'time', 0:4, 'freq', [10 20 30 50]);test
+
 
 
 %% Add Events or FreqMarkers
@@ -179,7 +184,7 @@ test = FreqSignal('freq', [0 4 6 12 15], 'data', rand(5,2));test
 % wishes to associate with the event
 
 % The properties must be input in this order, no key-value pari here :
-test = SignalEvents('event1', 3,0, struct('type', 'stimulus'));test
+test = SignalEvents('event1', 3,1, struct('type', 'stimulus'));test
 test.Infos
 % it is possible to have several events times 
 test = SignalEvents('event1', [2 3 7 9],[0 0 1 1], struct('type', 'stimulus'));test
@@ -197,7 +202,8 @@ test = SignalEvents('event1', [2 3 7 9]);test
 % - Property Freq replaces Time
 % - Property Window replaces Duration
 % - Property MarkerName replaces EventName
-test = FreqMarkers('alpha', 7,6);test % alpha : 7 to 13Hz
+test = FreqMarkers('alpha', 7, 6);test % alpha : 7 to 13Hz
+
 
 
 %% Encapsulate in a SetOfSignals
@@ -216,4 +222,7 @@ test = FreqMarkers('alpha', 7,6);test % alpha : 7 to 13Hz
 % of the Signals array, as well as the meaning of the dimension of the
 % Signals array (for instance 'conditions', and 'trials')
 
-
+s = TimeSignal('data', rand(10,2));
+setInfo.protocol = 'Protocol1';
+setInfo.yearOfStudy = '2012';
+test = SetOfSignals('signals', s, 'infos', setInfo);

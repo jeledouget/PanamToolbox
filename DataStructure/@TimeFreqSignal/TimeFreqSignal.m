@@ -42,7 +42,7 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
             end
             argFreqSignal = {'subclassFlag',1};
             if ~isempty(indFreq)
-                argFreqSignal = [argFreqSignal, 'freq',varargin{indFreq}];
+                argFreqSignal = {argFreqSignal{:}, 'freq',varargin{indFreq}};
             end
             if ~isempty(indFreqMarkers)
                 argFreqSignal = [argFreqSignal, 'freqmarkers', varargin(indFreqMarkers)];
@@ -72,6 +72,7 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         function self = setDefaultDimOrder(self)
             if isempty(self.DimOrder)
                 nDims = ndims(self.Data);
+                if numel(self.ChannelTags) == 1, nDims = nDims + 1;end
                 self.DimOrder{1} = 'time';
                 self.DimOrder{2} = 'freq';
                 self.DimOrder(3:nDims-1) = arrayfun(@(x) ['dim' num2str(x)],3:nDims-1,'UniformOutput',0); % for optional supplementary dimensions but not advised. Create a subclass if nDims > 3 is necessary
@@ -107,7 +108,9 @@ classdef TimeFreqSignal < TimeSignal & FreqSignal
         
         % check DimOrder property
         function checkDimOrder(self)
-            if size(self.DimOrder,2) ~= ndims(self.Data)
+            nDims = ndims(self.Data);
+            if numel(self.ChannelTags) == 1, nDims = nDims + 1;end
+            if size(self.DimOrder,2) ~= nDims
                 error('the number of dimensions in DimOrder property does not correspond to the number of dimensions in Data property');
             end
             if ~strcmpi(self.DimOrder{1},'time') || ~strcmpi(self.DimOrder{2},'freq') || ~strcmpi(self.DimOrder{end},'chan')

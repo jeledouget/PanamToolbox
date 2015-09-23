@@ -36,7 +36,7 @@ if numel(self) > 1 && all(arrayfun(@isNumTime, self))
     if ~isequal(self.Time) 
         self = self.adjustTime(option);
     end
-else % discrete times
+elseif ~any(arrayfun(@isNumTime, self)) % discrete times
     if ~isequal(self.Time) 
         error('To average discrete time TimeFreqSignals, time tags must be similar for all elements');
     end
